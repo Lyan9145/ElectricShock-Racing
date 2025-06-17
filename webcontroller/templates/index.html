@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectricShock Racing - Car Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Video.js for RTMP video streaming support -->
+    <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+    <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+    <!-- Video.js RTMP plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'racing-blue': '#1e40af',
+                        'racing-orange': '#f97316',
+                        'racing-green': '#059669',
+                        'racing-red': '#dc2626',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-600 min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-racing-blue to-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center">
+                    <!-- <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg> -->
+                    ElectricShock Racing
+                </h1>
+                <div class="text-sm md:text-base">
+                    <span class="bg-white/20 px-3 py-1 rounded-full">Car Control System</span>
+                </div>
+            </div>
+        </div>
+    </header>    <!-- Emergency Stop Bar -->
+    <div class="bg-red-600 border-b-4 border-red-800 shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-center">
+                <button id="emergencyStopButton" 
+                        class="bg-red-800 hover:bg-red-900 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg border-2 border-white flex items-center space-x-3">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM9 13a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>🚨 紧急停车 EMERGENCY STOP</span>
+                    <kbd class="bg-white/20 px-2 py-1 rounded text-sm">ESC</kbd>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Control Panel -->
+            <div class="space-y-6">
+                <!-- Speed Control -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-racing-orange" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                        </svg>
+                        Speed Control
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-sm font-medium text-gray-700">Speed (m/s)</label>
+                            <span id="speedValueDisplay" class="bg-racing-orange text-white px-3 py-1 rounded-full text-sm font-bold">{{ "%.2f"|format(current_speed) }}</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <input type="range" id="speedSlider" min="-1.0" max="1.0" step="0.05" value="{{ current_speed }}" 
+                                   class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                            <input type="number" id="speedNumber" min="-1.0" max="1.0" step="0.05" value="{{ current_speed }}" 
+                                   class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue text-center">
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>-1.0 (Reverse)</span>
+                            <span>0.0 (Stop)</span>
+                            <span>1.0 (Forward)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Servo Control -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-racing-green" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                        </svg>
+                        Servo Control
+                    </h2>
+                    
+                    <!-- Servo Range Configuration -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3">Range Configuration</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">Min PWM</label>
+                                <input type="number" id="servoMinPwmInput" value="{{ current_servo_min_slider }}" 
+                                       min="{{ uint16_min }}" max="{{ uint16_max }}" step="10"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">Max PWM</label>
+                                <input type="number" id="servoMaxPwmInput" value="{{ current_servo_max_slider }}" 
+                                       min="{{ uint16_min }}" max="{{ uint16_max }}" step="10"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-sm font-medium text-gray-700">
+                                PWM (<span id="servoMinDisplay">{{ current_servo_min_slider }}</span> - <span id="servoMaxDisplay">{{ current_servo_max_slider }}</span>)
+                            </label>
+                            <span id="servoValueDisplay" class="bg-racing-green text-white px-3 py-1 rounded-full text-sm font-bold">{{ current_servo }}</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <input type="range" id="servoSlider" min="{{ current_servo_min_slider }}" max="{{ current_servo_max_slider }}" 
+                                   step="10" value="{{ current_servo }}" 
+                                   class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                            <input type="number" id="servoNumber" min="{{ current_servo_min_slider }}" max="{{ current_servo_max_slider }}" 
+                                   step="10" value="{{ current_servo }}" 
+                                   class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue text-center">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Continuous Send -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                        </svg>
+                        Continuous Send
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Interval (ms)</label>
+                            <input type="number" id="continuousSendIntervalInput" value="{{ current_continuous_interval }}" 
+                                   min="50" max="5000" step="10"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                        </div>
+                        <button id="continuousSendToggle" 
+                                class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors mt-6">
+                            Start Continuous
+                        </button>
+                    </div>
+                </div>                <!-- Emergency Reset Button -->
+                <button id="resetButton" 
+                        class="w-full bg-racing-red hover:bg-red-700 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg">
+                    🛑 完全重置 (速度 0, 舵机 {{ servo_mid_default }})
+                </button>
+            </div>
+
+            <!-- Camera & Status Panel -->
+            <div class="space-y-6">
+                <!-- Camera Control -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                        </svg>
+                        Camera Control
+                    </h2>
+                    
+                    <!-- Camera Buttons -->
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <button id="cameraInitButton" 
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors">
+                            Initialize
+                        </button>
+                        <button id="cameraStartButton" 
+                                class="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors">
+                            Start
+                        </button>
+                        <button id="cameraStopButton" 
+                                class="bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors">
+                            Stop
+                        </button>
+                    </div>
+
+                    <!-- Camera Settings -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Camera Index</label>
+                            <input type="number" id="cameraIndexInput" value="0" min="0" max="10" step="1"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">FPS</label>
+                            <input type="number" id="cameraFpsInput" value="30" min="5" max="60" step="5"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Width</label>
+                            <input type="number" id="cameraWidthInput" value="640" min="320" max="1920" step="10"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Height</label>
+                            <input type="number" id="cameraHeightInput" value="480" min="240" max="1080" step="10"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 mb-1">Bitrate (kbps)</label>
+                        <input type="number" id="cameraBitrateInput" value="500" min="100" max="5000" step="100"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue">
+                        <div class="text-xs text-gray-500 mt-1">Lower values = less bandwidth, lower quality</div>
+                    </div>
+                    
+                    <button id="cameraUpdateButton" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium transition-colors">
+                        Update Settings
+                    </button>
+                </div>
+
+                <!-- Live Video Feed -->
+                <div id="cameraContainer" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
+                        </svg>
+                        Live Video Feed (RTMP/H.264 Ultra Low Latency)
+                        <span class="ml-auto">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                                LIVE
+                            </span>
+                        </span>
+                    </h3>
+                    <div class="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                        <video id="cameraFeed" class="video-js vjs-default-skin w-full h-full object-contain" 
+                            autoplay muted playsinline controls preload="auto"
+                            data-setup='{"fluid": true, "responsive": true}'>
+                            <p class="vjs-no-js">
+                                To view this video please enable JavaScript, and consider upgrading to a web browser that
+                                <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>.
+                            </p>
+                        </video>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 text-center">
+                        RTMP Stream: Ultra low latency (~1-3 seconds) with H.264 hardware acceleration
+                    </div>
+                    <div class="mt-1 text-xs text-blue-600 text-center">
+                        If video doesn't play automatically, click the play button or check RTMP server status
+                    </div>
+                </div>                <!-- Status Panel -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        系统状态
+                    </h2>
+                    <div id="status" class="bg-gray-50 rounded-lg p-4 text-sm font-mono break-words min-h-16 flex items-center mb-4">
+                        <span class="text-gray-600">系统就绪。连接串口并使用控制器。</span>
+                    </div>
+                    
+                    <!-- Keyboard Shortcuts -->
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h3 class="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"></path>
+                            </svg>
+                            快捷键
+                        </h3>
+                        <div class="text-xs text-blue-700 space-y-1">
+                            <div><kbd class="bg-white px-2 py-1 rounded">ESC</kbd> - 紧急停车</div>
+                            <div><kbd class="bg-white px-2 py-1 rounded">空格</kbd> - 快速停车（速度归零）</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400">&copy; 2025 ElectricShock Racing. Advanced Car Control System.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

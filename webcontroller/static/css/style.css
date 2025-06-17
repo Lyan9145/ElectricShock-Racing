@@ -1,0 +1,237 @@
+/* Custom CSS for ElectricShock Racing Car Control */
+
+/* Custom slider styles */
+.slider {
+    background: linear-gradient(to right, #e5e7eb, #e5e7eb);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #1e40af, #3b82f6);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #1e40af, #3b82f6);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Speed slider specific styling */
+#speedSlider {
+    background: linear-gradient(to right, #dc2626 0%, #fbbf24 50%, #059669 100%);
+}
+
+#speedSlider::-webkit-slider-thumb {
+    background: linear-gradient(45deg, #f97316, #fb923c);
+}
+
+#speedSlider::-moz-range-thumb {
+    background: linear-gradient(45deg, #f97316, #fb923c);
+}
+
+/* Servo slider specific styling */
+#servoSlider::-webkit-slider-thumb {
+    background: linear-gradient(45deg, #059669, #10b981);
+}
+
+#servoSlider::-moz-range-thumb {
+    background: linear-gradient(45deg, #059669, #10b981);
+}
+
+/* Button hover effects */
+.btn-gradient {
+    background: linear-gradient(45deg, var(--color-1), var(--color-2));
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Continuous send button active state */
+#continuousSendToggle.active {
+    background: linear-gradient(45deg, #dc2626, #ef4444);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Status panel animations */
+#status {
+    transition: all 0.3s ease;
+}
+
+.status-success {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+    border-left: 4px solid #10b981;
+}
+
+.status-error {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border-left: 4px solid #ef4444;
+}
+
+.status-warning {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border-left: 4px solid #f59e0b;
+}
+
+.status-info {
+    background-color: #dbeafe !important;
+    color: #1e40af !important;
+    border-left: 4px solid #3b82f6;
+}
+
+/* Camera feed container */
+.aspect-video {
+    aspect-ratio: 16 / 9;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 1024px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .grid-cols-3 {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .text-2xl {
+        font-size: 1.25rem;
+    }
+    
+    .text-3xl {
+        font-size: 1.5rem;
+    }
+}
+
+/* Loading spinner for camera */
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Card shadow hover effects */
+.bg-white {
+    transition: all 0.3s ease;
+}
+
+.bg-white:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #1e40af, #3b82f6);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #1d4ed8, #2563eb);
+}
+
+/* Emergency Stop Button Styles */
+#emergencyStopButton {
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+    animation: emergency-glow 2s ease-in-out infinite alternate;
+}
+
+#emergencyStopButton:hover {
+    box-shadow: 0 0 30px rgba(220, 38, 38, 0.8);
+    transform: scale(1.05) !important;
+}
+
+#emergencyStopButton:active {
+    transform: scale(0.98) !important;
+}
+
+@keyframes emergency-glow {
+    from {
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+    }
+    to {
+        box-shadow: 0 0 25px rgba(220, 38, 38, 0.7);
+    }
+}
+
+/* Emergency Stop Bar */
+.emergency-bar {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+/* Pulse animation for emergency state */
+@keyframes emergency-pulse {
+    0% { background-color: #b91c1c; }
+    50% { background-color: #dc2626; }
+    100% { background-color: #b91c1c; }
+}
+
+.animate-emergency-pulse {
+    animation: emergency-pulse 1s ease-in-out infinite;
+}

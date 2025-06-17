@@ -32,6 +32,7 @@ Main code base of Control Unit
    ```
 3. **启动系统**
 
+   **Linux:**
    ```bash
    # 使用启动脚本（推荐）
    chmod +x start_linux.sh
@@ -40,6 +41,16 @@ Main code base of Control Unit
    # 或直接运行
    cd webcontroller
    python3 uart_car_control.py
+   ```
+
+   **Windows:**
+   ```batch
+   # 使用启动脚本（推荐）
+   start_windows.bat
+
+   # 或直接运行
+   cd webcontroller
+   python uart_car_control.py
    ```
 4. **使用Web界面**
 
