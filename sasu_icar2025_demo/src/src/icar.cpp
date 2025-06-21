@@ -46,6 +46,23 @@ using namespace cv;
 
 void mouseCallback(int event, int x, int y, int flags, void *userdata);
 Display display; // 初始化UI显示窗口
+// 图像信息显示函数
+void displayImageInfo(const Mat& img, long preTime) {
+  static int frameCount = 0;
+  static auto lastTime = chrono::high_resolution_clock::now();
+  frameCount++;
+  
+  auto currentTime = chrono::high_resolution_clock::now();
+  auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - lastTime);
+  
+  if (duration.count() >= 1000) { // 每秒更新一次
+    double fps = frameCount * 1000.0 / duration.count();
+    printf("Resolution: %dx%d | FPS: %.2f\n", img.cols, img.rows, fps);
+    frameCount = 0;
+    lastTime = currentTime;
+  }
+}
+
 
 int main(int argc, char const *argv[]) {
   Preprocess preprocess;    // 图像预处理类
@@ -171,6 +188,10 @@ int main(int argc, char const *argv[]) {
 
     imshow("ICAR", imgCorrect);
     waitKey(1); // 等待1ms，使窗口能够刷新显示
+
+
+    // 调用图像信息显示函数
+    displayImageInfo(imgCorrect, preTime);
 
     //[03] 启动AI推理
     detection->inference(imgCorrect);
