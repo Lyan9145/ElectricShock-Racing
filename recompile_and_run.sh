@@ -27,6 +27,9 @@ cmake ..
 make -j$(nproc)
 
 if [ $? -eq 0 ]; then
+    cd ../
+    cp -f build/icar icar
+
     echo "Build successful, run programme?(y/n)"
     read run_choice
     if [ "$run_choice" = "y" ]; then
