@@ -102,8 +102,8 @@ int main(int argc, char const *argv[]) {
       // 使用 std::to_string 将 int 转换为字符串，以确保兼容性
       std::string gstreamer_pipeline =
           "v4l2src device=/dev/video0 ! "
-          "image/jpeg,width=" + std::to_string(COLSIMAGE) +
-          ",height=" + std::to_string(ROWSIMAGE) +
+          "image/jpeg,width=" + std::to_string(COLSIMAGE_CAM) +
+          ",height=" + std::to_string(ROWSIMAGE_CAM) +
           ",framerate=60/1 ! " // 60/1 表示 60fps
           "jpegdec ! "         // 解码 MJPG 压缩流到原始格式 (x-raw)
           "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
