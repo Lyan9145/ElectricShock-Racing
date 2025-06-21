@@ -98,20 +98,21 @@ int main(int argc, char const *argv[]) {
   }
 
   // 等待按键发车
-  if (!motion.params.debug) {
-    printf("--------------[等待按键发车!]-------------------\n");
-    uart->buzzerSound(uart->BUZZER_OK); // 祖传提示音效
-    while (!uart->keypress)
-      waitKey(300);
-    while (ret < 10) // 延时3s
-    {
-      uart->carControl(0, PWMSERVOMID); // 通信控制车辆停止运动
-      waitKey(300);
-      ret++;
-    }
-    uart->keypress = false;
-    uart->buzzerSound(uart->BUZZER_START); // 祖传提示音效
-  }
+  // if (!motion.params.debug) {
+  //   printf("--------------[等待按键发车!]-------------------\n");
+  //   uart->buzzerSound(uart->BUZZER_OK); // 祖传提示音效
+  //   while (!uart->keypress)
+  //     waitKey(300);
+  //   while (ret < 10) // 延时3s
+  //   {
+  //     uart->carControl(0, PWMSERVOMID); // 通信控制车辆停止运动
+  //     waitKey(300);
+  //     ret++;
+  //   }
+  //   uart->keypress = false;
+  //   uart->buzzerSound(uart->BUZZER_START); // 祖传提示音效
+  // }
+  uart->carControl(0, PWMSERVOMID);
 
   // 初始化参数
   Scene scene = Scene::NormalScene;     // 初始化场景：常规道路
