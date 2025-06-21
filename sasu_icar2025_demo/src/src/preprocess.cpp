@@ -79,7 +79,66 @@ public:
         }
         
         // 将图像缩放到标准尺寸320x240
-        resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_LINEAR);
+		resizedFrame = Mat(ROWSIMAGE, COLSIMAGE, frame.type());
+		
+		float scaleX = (float)frame.cols / COLSIMAGE;
+		float scaleY = (float)frame.rows / ROWSIMAGE;
+		
+		if (frame.channels() == 3) {
+			for (int y = 0; y < ROWSIMAGE; ++y) {
+			uchar* dst_row = resizedFrame.ptr<uchar>(y);
+			float src_y = y * scaleY;
+			int y0 = (int)src_y;
+			int y1 = min(y0 + 1, frame.rows - 1);
+			float dy = src_y - y0;
+			
+			for (int x = 0; x < COLSIMAGE; ++x) {
+				float src_x = x * scaleX;
+				int x0 = (int)src_x;
+				int x1 = min(x0 + 1, frame.cols - 1);
+				float dx = src_x - x0;
+				
+				uchar* p00 = frame.ptr<uchar>(y0) + x0 * 3;
+				uchar* p01 = frame.ptr<uchar>(y0) + x1 * 3;
+				uchar* p10 = frame.ptr<uchar>(y1) + x0 * 3;
+				uchar* p11 = frame.ptr<uchar>(y1) + x1 * 3;
+				
+				for (int c = 0; c < 3; ++c) {
+				float val = p00[c] * (1 - dx) * (1 - dy) + 
+					   p01[c] * dx * (1 - dy) + 
+					   p10[c] * (1 - dx) * dy + 
+					   p11[c] * dx * dy;
+				dst_row[x * 3 + c] = (uchar)val;
+				}
+			}
+			}
+		} else {
+			for (int y = 0; y < ROWSIMAGE; ++y) {
+			uchar* dst_row = resizedFrame.ptr<uchar>(y);
+			float src_y = y * scaleY;
+			int y0 = (int)src_y;
+			int y1 = min(y0 + 1, frame.rows - 1);
+			float dy = src_y - y0;
+			
+			for (int x = 0; x < COLSIMAGE; ++x) {
+				float src_x = x * scaleX;
+				int x0 = (int)src_x;
+				int x1 = min(x0 + 1, frame.cols - 1);
+				float dx = src_x - x0;
+				
+				uchar p00 = frame.at<uchar>(y0, x0);
+				uchar p01 = frame.at<uchar>(y0, x1);
+				uchar p10 = frame.at<uchar>(y1, x0);
+				uchar p11 = frame.at<uchar>(y1, x1);
+				
+				float val = p00 * (1 - dx) * (1 - dy) + 
+					   p01 * dx * (1 - dy) + 
+					   p10 * (1 - dx) * dy + 
+					   p11 * dx * dy;
+				dst_row[x] = (uchar)val;
+			}
+			}
+		}
         
         return resizedFrame;
     }
