@@ -183,12 +183,11 @@ int main(int argc, char const *argv[]) {
     //[02] 图像预处理
     Mat imgResized = preprocess.resizeImage(img);        // 图像尺寸标准化：320x240
     // Mat imgCorrect = preprocess.correction(imgResized);  // 图像矫正
-    Mat imgCorrect = img;
+    Mat imgCorrect = imgResized;
     Mat imgBinary = preprocess.binaryzation(imgCorrect); // 图像二值化
 
-    imshow("ICAR", imgCorrect);
-    waitKey(1); // 等待1ms，使窗口能够刷新显示
-
+    // imshow("ICAR", imgCorrect);
+    // waitKey(1); // 等待1ms，使窗口能够刷新显示
 
     // 调用图像信息显示函数
     displayImageInfo(imgCorrect, preTime);
