@@ -5,7 +5,6 @@ from flask import Flask, render_template, request, jsonify, Response, send_file
 import atexit
 import cv2
 import threading
-import queue
 import base64
 import json
 from datetime import datetime
@@ -155,27 +154,39 @@ def start_rtmp_server():
         # Kill any existing RTMP server process
         stop_rtmp_server()
         
-        # FFmpeg RTMP server command
+        # Simplified RTMP server using FFmpeg's built-in RTMP server
         rtmp_server_cmd = [
             'ffmpeg',
-            '-listen', '1',
             '-f', 'flv',
-            '-i', f'rtmp://localhost:{RTMP_PORT}/live/{RTMP_STREAM_KEY}',
+            '-listen', '1',
+            '-i', f'rtmp://0.0.0.0:{RTMP_PORT}/live/{RTMP_STREAM_KEY}',
             '-c', 'copy',
             '-f', 'flv',
-            f'rtmp://localhost:{RTMP_PORT}/live/{RTMP_STREAM_KEY}_output'
+            '-y',  # Overwrite output
+            '/dev/null'  # Discard output on Linux, use 'NUL' on Windows
         ]
+        
+        # Use NUL on Windows instead of /dev/null
+        if platform.system() == "Windows":
+            rtmp_server_cmd[-1] = 'NUL'
         
         # Start RTMP server process
         rtmp_server_process = subprocess.Popen(
             rtmp_server_cmd,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.PIPE,
+            bufsize=0
         )
         
         print(f"RTMP server started on port {RTMP_PORT}")
-        time.sleep(1)  # Give server time to start
-        return True
+        time.sleep(2)  # Give server more time to start
+        
+        # Check if process is still running
+        if rtmp_server_process.poll() is None:
+            return True
+        else:
+            print("RTMP server failed to start")
+            return False
         
     except Exception as e:
         print(f"Error starting RTMP server: {e}")
@@ -265,16 +276,17 @@ def init_camera(camera_index=0, width=640, height=480, fps=30, bitrate=1000000):
         return False
 
 def start_rtmp_ffmpeg():
-    """Start ffmpeg process for RTMP streaming"""
+    """Start ffmpeg process for RTMP streaming with better error handling"""
     global rtmp_stream_process, current_camera_width, current_camera_height, current_camera_fps, current_camera_bitrate
     
     try:
         # Stop any existing process first
         if rtmp_stream_process is not None:
             try:
-                rtmp_stream_process.stdin.close()
+                if rtmp_stream_process.stdin:
+                    rtmp_stream_process.stdin.close()
                 rtmp_stream_process.terminate()
-                rtmp_stream_process.wait(timeout=3)
+                rtmp_stream_process.wait(timeout=5)
             except:
                 try:
                     rtmp_stream_process.kill()
@@ -282,33 +294,33 @@ def start_rtmp_ffmpeg():
                     pass
             rtmp_stream_process = None
         
-        # High-performance RTMP streaming command
+        # More stable RTMP streaming command
         rtmp_cmd = [
             'ffmpeg',
             '-f', 'rawvideo',
             '-vcodec', 'rawvideo',
             '-pix_fmt', 'bgr24',
             '-s', f'{current_camera_width}x{current_camera_height}',
-            '-r', str(current_camera_fps),
+            '-r', str(int(current_camera_fps)),  # Ensure integer FPS
             '-i', '-',  # Input from stdin
             '-c:v', 'libx264',
-            '-preset', 'ultrafast',  # Fastest encoding
-            '-tune', 'zerolatency',  # Zero latency tuning
-            '-b:v', str(current_camera_bitrate),
+            '-preset', 'veryfast',  # More stable than ultrafast
+            '-tune', 'zerolatency',
+            '-crf', '23',  # Use CRF instead of bitrate for better quality
             '-maxrate', str(current_camera_bitrate),
-            '-bufsize', str(current_camera_bitrate // 2),  # Smaller buffer for lower latency
-            '-g', '15',  # Small GOP size for lower latency
-            '-keyint_min', '15',
+            '-bufsize', str(current_camera_bitrate),
+            '-g', '30',  # Increase GOP size for stability
+            '-keyint_min', '30',
             '-sc_threshold', '0',
-            '-profile:v', 'baseline',  # Baseline profile for better compatibility
-            '-level', '3.0',
+            '-profile:v', 'main',  # Use main profile instead of baseline
+            '-level', '3.1',
             '-pix_fmt', 'yuv420p',
-            '-flags', '+global_header',
-            '-bsf:v', 'dump_extra',
             '-f', 'flv',
             '-reconnect', '1',
-            '-reconnect_delay_max', '2',
-            RTMP_SERVER_URL
+            '-reconnect_streamed', '1',
+            '-reconnect_delay_max', '5',
+            '-rw_timeout', '10000000',  # 10 second timeout
+            f'rtmp://localhost:{RTMP_PORT}/live/{RTMP_STREAM_KEY}'
         ]
         
         # Start ffmpeg RTMP streaming process
@@ -317,16 +329,18 @@ def start_rtmp_ffmpeg():
             stdin=subprocess.PIPE,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
-            bufsize=0  # Unbuffered for real-time streaming
+            bufsize=1024*1024  # 1MB buffer for stability
         )
         
         # Verify process started correctly
-        time.sleep(0.5)
+        time.sleep(1)
         if rtmp_stream_process.poll() is not None:
-            print("FFmpeg process failed to start or exited immediately")
+            # Get error output
+            _, stderr = rtmp_stream_process.communicate()
+            print(f"FFmpeg process failed to start: {stderr.decode() if stderr else 'Unknown error'}")
             return False
         
-        print("FFmpeg RTMP streaming process started")
+        print("FFmpeg RTMP streaming process started successfully")
         return True
         
     except Exception as e:
@@ -334,27 +348,39 @@ def start_rtmp_ffmpeg():
         return False
 
 def rtmp_thread_func():
-    """RTMP capture and streaming thread"""
+    """RTMP capture and streaming thread with improved error handling"""
     global camera, rtmp_running, rtmp_stream_process
     
     frame_count = 0
     consecutive_errors = 0
-    max_consecutive_errors = 10
+    max_consecutive_errors = 5  # Reduced threshold
+    last_restart_time = 0
+    restart_cooldown = 5  # 5 seconds cooldown between restarts
     
     while rtmp_running and camera is not None:
         try:
+            current_time = time.time()
+            
             # Check if FFmpeg process is still alive
             if rtmp_stream_process is None or rtmp_stream_process.poll() is not None:
+                # Add cooldown to prevent rapid restarts
+                if current_time - last_restart_time < restart_cooldown:
+                    time.sleep(0.5)
+                    continue
+                
                 print("FFmpeg process not running, attempting restart...")
-                if not start_rtmp_ffmpeg():
+                if start_rtmp_ffmpeg():
+                    last_restart_time = current_time
+                    consecutive_errors = 0
+                else:
                     print("Failed to restart FFmpeg process")
-                    time.sleep(1)
+                    time.sleep(2)
                     continue
             
             # Check if stdin is available
-            if rtmp_stream_process.stdin is None:
+            if rtmp_stream_process.stdin is None or rtmp_stream_process.stdin.closed:
                 print("FFmpeg stdin not available")
-                time.sleep(0.1)
+                time.sleep(0.5)
                 continue
             
             ret, frame = camera.read()
@@ -366,20 +392,22 @@ def rtmp_thread_func():
                     frame_count += 1
                     consecutive_errors = 0  # Reset error counter on success
                     
-                    # Minimal delay for performance
-                    time.sleep(0.001)
+                    # Control frame rate
+                    time.sleep(1.0 / current_camera_fps)
                     
                 except (BrokenPipeError, OSError) as e:
                     print(f"Pipe error: {e}")
                     consecutive_errors += 1
                     if consecutive_errors >= max_consecutive_errors:
-                        print("Too many consecutive pipe errors, restarting FFmpeg...")
-                        if not start_rtmp_ffmpeg():
-                            print("Failed to restart FFmpeg after pipe errors")
-                            time.sleep(1)
+                        print(f"Too many consecutive pipe errors ({consecutive_errors}), marking for restart...")
+                        # Don't restart immediately, let the main loop handle it
+                        if rtmp_stream_process:
+                            try:
+                                rtmp_stream_process.terminate()
+                            except:
+                                pass
                         consecutive_errors = 0
-                    else:
-                        time.sleep(0.1)
+                    time.sleep(0.5)
                 
             else:
                 print("Failed to read frame from camera")
@@ -387,7 +415,7 @@ def rtmp_thread_func():
                 if consecutive_errors >= max_consecutive_errors:
                     print("Too many consecutive camera read errors")
                     break
-                time.sleep(0.01)
+                time.sleep(0.1)
                 
         except Exception as e:
             print(f"RTMP thread error: {e}")
@@ -395,38 +423,51 @@ def rtmp_thread_func():
             if consecutive_errors >= max_consecutive_errors:
                 print("Too many consecutive errors in RTMP thread")
                 break
-            time.sleep(0.1)
+            time.sleep(0.5)
     
-    print("RTMP thread exiting")
+    print(f"RTMP thread exiting (streamed {frame_count} frames)")
 
 def start_camera():
-    """Start RTMP camera streaming"""
+    """Start RTMP camera streaming with better initialization"""
     global rtmp_thread, rtmp_running
     
     if camera is None:
+        print("Camera not initialized")
         return False
     
     if rtmp_running:
+        print("RTMP streaming already running")
         return True
+    
+    print("Starting RTMP streaming...")
     
     # Start RTMP server first
     if not start_rtmp_server():
         print("Failed to start RTMP server")
         return False
     
-    # Wait a moment for server to be ready
-    time.sleep(2)
+    # Wait longer for server to be ready
+    print("Waiting for RTMP server to initialize...")
+    time.sleep(3)
+    
+    # Check if server is still running
+    if rtmp_server_process is None or rtmp_server_process.poll() is not None:
+        print("RTMP server failed to start properly")
+        return False
     
     # Start FFmpeg RTMP streaming process
     if not start_rtmp_ffmpeg():
+        print("Failed to start FFmpeg streaming")
         stop_rtmp_server()
         return False
     
+    # Start streaming thread
     rtmp_running = True
     rtmp_thread = threading.Thread(target=rtmp_thread_func, daemon=True)
     rtmp_thread.start()
     
-    print("RTMP streaming started")
+    print("RTMP streaming started successfully")
+    print(f"Stream URL: {RTMP_PLAYBACK_URL}")
     return True
 
 def stop_camera():
