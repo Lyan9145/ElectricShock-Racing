@@ -89,7 +89,7 @@ int main(int argc, char const *argv[]) {
           "v4l2src device=/dev/video0 ! "
           "image/jpeg,width=" + std::to_string(COLSIMAGE) +
           ",height=" + std::to_string(ROWSIMAGE) +
-          ",framerate=30/1 ! " // 30/1 表示 30fps
+          ",framerate=60/1 ! " // 60/1 表示 60fps
           "jpegdec ! "         // 解码 MJPG 压缩流到原始格式 (x-raw)
           "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
           "appsink";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
