@@ -155,7 +155,8 @@ int main(int argc, char const *argv[]) {
       display.save = true;
 
     //[02] 图像预处理
-    Mat imgCorrect = preprocess.correction(img);         // 图像矫正
+    Mat imgResized = preprocess.resizeImage(img);        // 图像尺寸标准化：320x240
+    Mat imgCorrect = preprocess.correction(imgResized);  // 图像矫正
     Mat imgBinary = preprocess.binaryzation(imgCorrect); // 图像二值化
 
     //[03] 启动AI推理

@@ -63,6 +63,28 @@ public:
 	};
 
 	/**
+     * @brief 图像尺寸标准化：确保输入图像为标准尺寸320x240
+     *
+     * @param frame 输入原始帧
+     * @return Mat  标准化尺寸后的图像
+     */
+    Mat resizeImage(Mat &frame)
+    {
+        Mat resizedFrame;
+        
+        // 如果图像尺寸已经是标准尺寸，直接返回
+        if (frame.cols == COLSIMAGE && frame.rows == ROWSIMAGE)
+        {
+            return frame;
+        }
+        
+        // 将图像缩放到标准尺寸320x240
+        resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_LINEAR);
+        
+        return resizedFrame;
+    }
+
+	/**
 	 * @brief 图像二值化
 	 *
 	 * @param frame	输入原始帧

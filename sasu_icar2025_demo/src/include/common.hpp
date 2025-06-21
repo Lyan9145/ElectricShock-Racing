@@ -32,8 +32,8 @@
 using namespace std;
 using namespace cv;
 
-#define COLSIMAGE 320    // 图像的列数
-#define ROWSIMAGE 240    // 图像的行数
+#define COLSIMAGE 1024    // 图像的列数
+#define ROWSIMAGE 768    // 图像的行数
 #define COLSIMAGEIPM 320 // IPM图像的列数
 #define ROWSIMAGEIPM 400 // IPM图像的行数
 #define PWMSERVOMAX 6000 // 舵机PWM最大值（左）
