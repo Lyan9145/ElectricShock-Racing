@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "forward_list": "cpp",
-        "list": "cpp",
-        "valarray": "cpp",
-        "vector": "cpp",
-        "xstring": "cpp"
-    }
-}

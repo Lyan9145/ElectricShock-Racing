@@ -326,12 +326,12 @@ int main(int argc, char const *argv[]) {
     {
       if (ctrlCenter.derailmentCheck(tracking)) // 车辆冲出赛道检测（保护车辆）
       {
-        uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
+        // uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
         cout << "PANIC: Out of track!" << endl;
-        sleep(2);
-        uart->carControl(0, 0); // 关闭舵机
-        printf("-----> System Exit!!! <-----\n");
-        exit(0); // 程序退出
+        // sleep(2);
+        // uart->carControl(0, 0); // 关闭舵机
+        // printf("-----> System Exit!!! <-----\n");
+        // exit(0); // 程序退出
       }
     }
 
