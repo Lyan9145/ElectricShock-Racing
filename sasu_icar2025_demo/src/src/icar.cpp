@@ -77,8 +77,6 @@ int main(int argc, char const *argv[]) {
   uart->startReceive(); // 启动数据接收子线程
 
   // USB摄像头初始化
-
-  // USB摄像头初始化
   if (motion.params.debug) {
       // 如果是调试模式，仍然打开本地视频文件
       capture = cv::VideoCapture(motion.params.video);
@@ -148,6 +146,14 @@ int main(int argc, char const *argv[]) {
     }
     else if (!capture.read(img))
       continue;
+
+    if (img.empty()) {
+      cout << "Error: Could not read frame from camera." << endl;
+      break; // 读取失败，退出循环
+    }
+
+    // 显示图像 (可选，如果你的环境支持图形界面)
+    cv::imshow("Camera Feed", frame);
     
     if (motion.params.saveImg && !motion.params.debug) // 存储原始图像
       savePicture(img);
