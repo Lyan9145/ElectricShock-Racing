@@ -137,11 +137,15 @@ public:
     servoPwm = (uint16_t)(PWMSERVOMID + pwmDiff); // PWM转换
     // 限幅
     if (servoPwm > PWMSERVOMAX)
+    {
       servoPwm = PWMSERVOMAX;
       cout << "Hit Max!" << endl; // 调试输出
+    }
     else if (servoPwm < PWMSERVOMIN)
+    {      
       servoPwm = PWMSERVOMIN;
       cout << "Hit Min!" << endl; // 调试输出
+    }    
     // cout << "Servo PWM:" << servoPwm << endl; // 调试输出
   }
 
