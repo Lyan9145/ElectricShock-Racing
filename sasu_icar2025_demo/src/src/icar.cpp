@@ -46,6 +46,27 @@ using namespace cv;
 
 void mouseCallback(int event, int x, int y, int flags, void *userdata);
 Display display; // 初始化UI显示窗口
+
+// 全局变量用于信号处理
+shared_ptr<Uart> g_uart = nullptr;
+volatile sig_atomic_t g_exit_flag = 0;
+
+// 信号处理函数
+void signalHandler(int signal) {
+    if (signal == SIGINT) {
+        printf("\n[INFO] Received Ctrl+C signal, stopping car safely...\n");
+        g_exit_flag = 1;
+        
+        if (g_uart != nullptr) {
+            g_uart->carControl(0, PWMSERVOMID); // 停车
+            printf("[INFO] Car stopped successfully.\n");
+            usleep(500000); // 等待500ms确保停车指令发送完成
+        }
+        
+        printf("[INFO] Exiting program...\n");
+        exit(0);
+    }
+}
 // 图像信息显示函数
 void displayImageInfo(const Mat& img, long preTime) {
   static int frameCount = 0;
@@ -86,6 +107,13 @@ int main(int argc, char const *argv[]) {
 
   // USB转串口初始化： /dev/ttyUSB0
   shared_ptr<Uart> uart = make_shared<Uart>("/dev/ttyUSB0"); // 初始化串口驱动
+  
+  // 设置全局uart指针用于信号处理
+  g_uart = uart;
+  
+  // 注册信号处理函数
+  signal(SIGINT, signalHandler);
+  
   int ret = uart->open();
   if (ret != 0) {
     printf("[Error] Uart Open failed!\n");
@@ -146,6 +174,11 @@ int main(int argc, char const *argv[]) {
   Mat img;
 
   while (1) {
+    // 检查退出标志
+    if (g_exit_flag) {
+        break;
+    }
+    
     //[01] 视频源读取
     if (motion.params.debug) // 综合显示调试UI窗口
     {
