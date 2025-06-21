@@ -154,8 +154,8 @@ int main(int argc, char const *argv[]) {
 
     // 实时显示视频流
     // if (motion.params.debug) {
-      imshow("ICAR", img);
-      waitKey(1); // 等待1ms，使窗口能够刷新显示
+      // imshow("ICAR", img);
+      // waitKey(1); // 等待1ms，使窗口能够刷新显示
     // }
     
     if (motion.params.saveImg && !motion.params.debug) // 存储原始图像
@@ -167,6 +167,9 @@ int main(int argc, char const *argv[]) {
     Mat imgResized = preprocess.resizeImage(img);        // 图像尺寸标准化：320x240
     Mat imgCorrect = preprocess.correction(imgResized);  // 图像矫正
     Mat imgBinary = preprocess.binaryzation(imgCorrect); // 图像二值化
+
+    imshow("ICAR", imgBinary);
+    waitKey(1); // 等待1ms，使窗口能够刷新显示
 
     //[03] 启动AI推理
     detection->inference(imgCorrect);
