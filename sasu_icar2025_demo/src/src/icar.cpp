@@ -152,8 +152,11 @@ int main(int argc, char const *argv[]) {
       break; // 读取失败，退出循环
     }
 
-    // 显示图像 (可选，如果你的环境支持图形界面)
-    cv::imshow("Camera Feed", img);
+    // 实时显示视频流
+    // if (motion.params.debug) {
+      imshow("ICAR", img);
+      waitKey(1); // 等待1ms，使窗口能够刷新显示
+    // }
     
     if (motion.params.saveImg && !motion.params.debug) // 存储原始图像
       savePicture(img);
