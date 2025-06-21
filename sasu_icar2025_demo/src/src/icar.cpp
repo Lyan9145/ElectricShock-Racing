@@ -186,7 +186,7 @@ int main(int argc, char const *argv[]) {
     Mat imgCorrect = imgResized;
     Mat imgBinary = preprocess.binaryzation(imgCorrect); // 图像二值化
 
-    imshow("ICAR", imgCorrect);
+    imshow("ICAR", imgBinary);
     waitKey(1); // 等待1ms，使窗口能够刷新显示
 
     // 调用图像信息显示函数
@@ -293,7 +293,7 @@ int main(int argc, char const *argv[]) {
       {
         uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
         cout << "PANIC: Out of track!" << endl;
-        sleep(1);
+        sleep(2);
         uart->carControl(0, 0); // 关闭舵机
         printf("-----> System Exit!!! <-----\n");
         exit(0); // 程序退出
