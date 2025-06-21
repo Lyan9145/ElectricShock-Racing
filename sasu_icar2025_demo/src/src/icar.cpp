@@ -153,7 +153,7 @@ int main(int argc, char const *argv[]) {
     }
 
     // 显示图像 (可选，如果你的环境支持图形界面)
-    cv::imshow("Camera Feed", frame);
+    cv::imshow("Camera Feed", img);
     
     if (motion.params.saveImg && !motion.params.debug) // 存储原始图像
       savePicture(img);
