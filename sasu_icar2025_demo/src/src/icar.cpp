@@ -77,17 +77,27 @@ int main(int argc, char const *argv[]) {
   uart->startReceive(); // 启动数据接收子线程
 
   // USB摄像头初始化
-  if (motion.params.debug)
-    capture = VideoCapture(motion.params.video); // 打开本地视频
-  else
-    capture = VideoCapture("/dev/video0"); // 打开摄像头
-  if (!capture.isOpened()) {
-    printf("can not open video device!!!\n");
-    return 0;
+
+  // USB摄像头初始化
+  if (motion.params.debug) {
+      // 如果是调试模式，仍然打开本地视频文件
+      capture = cv::VideoCapture(motion.params.video);
+  } else {
+      // 构造 GStreamer 管道字符串，明确指定 MJPG 格式、分辨率和帧率
+      // 使用 std::to_string 将 int 转换为字符串，以确保兼容性
+      std::string gstreamer_pipeline =
+          "v4l2src device=/dev/video0 ! "
+          "image/jpeg,width=" + std::to_string(COLSIMAGE) +
+          ",height=" + std::to_string(ROWSIMAGE) +
+          ",framerate=30/1 ! " // 30/1 表示 30fps
+          "jpegdec ! "         // 解码 MJPG 压缩流到原始格式 (x-raw)
+          "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
+          "appsink";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
+
+      // 使用 GStreamer 管道和 cv::CAP_GSTREAMER 标志初始化 VideoCapture
+      capture = cv::VideoCapture(gstreamer_pipeline, cv::CAP_GSTREAMER);
   }
-  capture.set(CAP_PROP_FRAME_WIDTH, COLSIMAGE);  // 设置图像分辨率
-  capture.set(CAP_PROP_FRAME_HEIGHT, ROWSIMAGE); // 设置图像分辨率
-  capture.set(CAP_PROP_FPS, 30);                 // 设置帧率
+
 
   if (motion.params.debug)
   {
