@@ -59,8 +59,10 @@ void signalHandler(int signal) {
         
         if (g_uart != nullptr) {
             g_uart->carControl(0, PWMSERVOMID); // 停车
+            sleep(1); // 等待1s确保停车指令发送完成
             printf("[INFO] Car stopped successfully.\n");
-            usleep(500000); // 等待500ms确保停车指令发送完成
+            g_uart->carControl(0,0);
+            sleep(1);
         }
         
         printf("[INFO] Exiting program...\n");
