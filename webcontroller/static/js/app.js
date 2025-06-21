@@ -4,12 +4,10 @@
 class CarControlSystem {
     constructor() {
         this.initializeElements();
-        this.initializeState();
-        this.bindEvents();
+        this.initializeState();        this.bindEvents();
         this.loadCameraSettings();
-        // Initialize RTMP player
-        this.videoPlayer = null;
-        this.rtmpUrl = null;
+        // Simple MJPEG player
+        this.mjpegStream = null;
     }
 
     initializeElements() {
@@ -44,13 +42,12 @@ class CarControlSystem {
         // IMPORTANT: Ensure 'cameraFeed' in your HTML is a <video> element, not <img> or <div>.
         // Example: <video id="cameraFeed" class="video-js vjs-default-skin w-full h-full object-contain"></video>
         this.cameraFeed = document.getElementById('cameraFeed');
-        
-        // Camera settings
+          // Camera settings
         this.cameraIndexInput = document.getElementById('cameraIndexInput');
         this.cameraWidthInput = document.getElementById('cameraWidthInput');
         this.cameraHeightInput = document.getElementById('cameraHeightInput');
         this.cameraFpsInput = document.getElementById('cameraFpsInput');
-        this.cameraBitrateInput = document.getElementById('cameraBitrateInput');
+        this.cameraQualityInput = document.getElementById('cameraQualityInput');
     }
 
     initializeState() {
@@ -292,23 +289,15 @@ class CarControlSystem {
             this.continuousSendToggle.classList.remove('bg-purple-600');
             this.showStatus(`▶️ Continuous send started (${this.currentContinuousInterval}ms).`, 'success');
         }
-    }
-
-    // Camera Methods
-    checkRTMPSupport() {
-        // Check if RTMP streaming is supported
-        // Check if Video.js is available for RTMP support
-        return typeof videojs !== 'undefined';
-    }
-
+    }    // Camera Methods
     async initCamera() {
         const cameraIndex = parseInt(this.cameraIndexInput.value);
         const width = parseInt(this.cameraWidthInput.value);
         const height = parseInt(this.cameraHeightInput.value);
         const fps = parseInt(this.cameraFpsInput.value);
-        const bitrate = parseInt(this.cameraBitrateInput.value) * 1000; // Convert kbps to bps
+        const quality = parseInt(this.cameraQualityInput.value);
 
-        this.showStatus('📷 Initializing camera for RTMP/H.264 streaming...', 'info');
+        this.showStatus('📷 Initializing camera for MJPEG streaming...', 'info');
 
         try {
             const response = await fetch('/camera/init', {
@@ -319,14 +308,13 @@ class CarControlSystem {
                     width: width, 
                     height: height, 
                     fps: fps,
-                    bitrate: bitrate
+                    quality: quality
                 }),
             });
             const result = await response.json();
             
             if (result.success) {
-                this.showStatus(`✅ Camera initialized for RTMP: ${result.message}`, 'success');
-                this.rtmpUrl = result.rtmp_url;
+                this.showStatus(`✅ Camera initialized for MJPEG: ${result.message}`, 'success');
             } else {
                 this.showStatus(`❌ Camera init failed: ${result.message}`, 'error');
             }
@@ -334,10 +322,8 @@ class CarControlSystem {
             this.showStatus(`🔌 Camera init error: ${error}`, 'error');
             console.error('Camera init error:', error);
         }
-    }
-
-    async startCameraStream() {
-        this.showStatus('📹 Starting RTMP camera stream...', 'info');
+    }    async startCameraStream() {
+        this.showStatus('📹 Starting MJPEG camera stream...', 'info');
 
         try {
             const response = await fetch('/camera/start', {
@@ -347,27 +333,24 @@ class CarControlSystem {
             const result = await response.json();
             
             if (result.success) {
-                this.showStatus(`✅ RTMP streaming started: ${result.message}`, 'success');
+                this.showStatus(`✅ MJPEG streaming started: ${result.message}`, 'success');
                 this.cameraContainer.classList.remove('hidden');
-                this.rtmpUrl = result.rtmp_url;
                 
-                // Initialize RTMP player
-                await this.initRTMPPlayer();
+                // Initialize MJPEG player
+                this.initMJPEGPlayer();
             } else {
-                this.showStatus(`❌ RTMP start failed: ${result.message}`, 'error');
+                this.showStatus(`❌ MJPEG start failed: ${result.message}`, 'error');
             }
         } catch (error) {
-            this.showStatus(`🔌 RTMP start error: ${error}`, 'error');
-            console.error('RTMP start error:', error);
+            this.showStatus(`🔌 MJPEG start error: ${error}`, 'error');
+            console.error('MJPEG start error:', error);
         }
-    }
-
-    async stopCameraStream() {
-        this.showStatus('⏹️ Stopping RTMP camera stream...', 'info');
+    }    async stopCameraStream() {
+        this.showStatus('⏹️ Stopping MJPEG camera stream...', 'info');
 
         try {
-            // Destroy RTMP player first
-            this.destroyRTMPPlayer();
+            // Stop MJPEG player first
+            this.stopMJPEGPlayer();
             
             const response = await fetch('/camera/stop', {
                 method: 'POST',
@@ -376,25 +359,23 @@ class CarControlSystem {
             const result = await response.json();
             
             if (result.success) {
-                this.showStatus(`⏹️ RTMP streaming stopped: ${result.message}`, 'warning');
+                this.showStatus(`⏹️ MJPEG streaming stopped: ${result.message}`, 'warning');
                 this.cameraContainer.classList.add('hidden');
             } else {
-                this.showStatus(`❌ RTMP stop failed: ${result.message}`, 'error');
+                this.showStatus(`❌ MJPEG stop failed: ${result.message}`, 'error');
             }
         } catch (error) {
-            this.showStatus(`🔌 RTMP stop error: ${error}`, 'error');
-            console.error('RTMP stop error:', error);
+            this.showStatus(`🔌 MJPEG stop error: ${error}`, 'error');
+            console.error('MJPEG stop error:', error);
         }
-    }
-
-    async updateCameraSettings() {
+    }    async updateCameraSettings() {
         const cameraIndex = parseInt(this.cameraIndexInput.value);
         const width = parseInt(this.cameraWidthInput.value);
         const height = parseInt(this.cameraHeightInput.value);
         const fps = parseInt(this.cameraFpsInput.value);
-        const bitrate = parseInt(this.cameraBitrateInput.value) * 1000; // Convert kbps to bps
+        const quality = parseInt(this.cameraQualityInput.value);
 
-        this.showStatus('⚙️ Updating RTMP camera settings...', 'info');
+        this.showStatus('⚙️ Updating MJPEG camera settings...', 'info');
 
         try {
             const response = await fetch('/camera/settings', {
@@ -405,35 +386,32 @@ class CarControlSystem {
                     width: width, 
                     height: height, 
                     fps: fps,
-                    bitrate: bitrate
+                    quality: quality
                 }),
             });
             const result = await response.json();
             
             if (result.success) {
-                this.showStatus(`✅ RTMP camera settings updated: ${result.message}`, 'success');
+                this.showStatus(`✅ MJPEG camera settings updated: ${result.message}`, 'success');
                 const settings = result.settings;
                 this.cameraIndexInput.value = settings.camera_index;
                 this.cameraWidthInput.value = settings.width;
                 this.cameraHeightInput.value = settings.height;
                 this.cameraFpsInput.value = settings.fps;
-                this.cameraBitrateInput.value = Math.round(settings.bitrate / 1000); // Convert bps to kbps
-                this.rtmpUrl = settings.rtmp_url;
+                this.cameraQualityInput.value = settings.quality;
                 
-                // Restart RTMP player if running
+                // Restart MJPEG player if running
                 if (settings.running) {
-                    await this.initRTMPPlayer();
+                    this.initMJPEGPlayer();
                 }
             } else {
-                this.showStatus(`❌ RTMP settings update failed: ${result.message}`, 'error');
+                this.showStatus(`❌ MJPEG settings update failed: ${result.message}`, 'error');
             }
         } catch (error) {
-            this.showStatus(`🔌 RTMP settings update error: ${error}`, 'error');
-            console.error('RTMP settings update error:', error);
+            this.showStatus(`🔌 MJPEG settings update error: ${error}`, 'error');
+            console.error('MJPEG settings update error:', error);
         }
-    }
-
-    async loadCameraSettings() {
+    }    async loadCameraSettings() {
         try {
             const response = await fetch('/camera/settings', {
                 method: 'GET',
@@ -445,131 +423,47 @@ class CarControlSystem {
             this.cameraWidthInput.value = settings.width;
             this.cameraHeightInput.value = settings.height;
             this.cameraFpsInput.value = settings.fps;
-            this.cameraBitrateInput.value = Math.round(settings.bitrate / 1000); // Convert bps to kbps
-            this.rtmpUrl = settings.rtmp_url;
+            this.cameraQualityInput.value = settings.quality;
             
             if (settings.running) {
                 this.cameraContainer.classList.remove('hidden');
-                await this.initRTMPPlayer();
-                this.showStatus('📹 RTMP streaming is already running with H.264 optimization', 'success');
+                this.initMJPEGPlayer();
+                this.showStatus('📹 MJPEG streaming is already running', 'success');
             } else {
-                // Ensure player is destroyed if not running
-                this.destroyRTMPPlayer();
+                // Ensure player is stopped if not running
+                this.stopMJPEGPlayer();
             }
         } catch (error) {
             console.error('Failed to load camera settings:', error);
-            this.showStatus('⚠️ Failed to load RTMP camera settings', 'warning');
+            this.showStatus('⚠️ Failed to load MJPEG camera settings', 'warning');
         }
     }
 
-    // RTMP Player Management
-    async initRTMPPlayer() {
-        this.destroyRTMPPlayer(); // Ensure any existing player is disposed of first
+    // MJPEG Player Management
+    initMJPEGPlayer() {
+        this.stopMJPEGPlayer(); // Stop any existing stream first
         
-        if (!this.rtmpUrl) {
-            this.showStatus('❌ No RTMP URL available', 'error');
-            return;
-        }
-
-        // IMPORTANT: For RTMP playback, ensure you have included the videojs-flash plugin
-        // and that the video-js.swf file is accessible.
-        // Example: <script src="https.unpkg.com/videojs-flash/dist/videojs-flash.min.js"></script>
-        // The SWF path is configured below.
-        const videoJsOptions = {
-            controls: true,
-            autoplay: true,
-            muted: true, // Muting helps with autoplay policies
-            preload: 'auto',
-            fluid: true, // Makes the player responsive
-            responsive: true,
-            playsinline: true,
-            // Prioritize Flash for RTMP, then HTML5 fallback (though HTML5 won't play RTMP directly)
-            techOrder: ['flash', 'html5'],
-            flash: {
-                // Path to the video-js.swf file.
-                // You might need to host this file locally or use a reliable CDN.
-                // Example using unpkg CDN:
-                swf: 'https://unpkg.com/videojs-swf/dist/video-js.swf',
-                // Other Flash-specific options can go here
-                // See https://github.com/videojs/videojs-flash
-            },
-            sources: [{
-                src: this.rtmpUrl,
-                type: 'rtmp/flv' // Standard type for RTMP with FLV container
-            }]
-        };
-
-        try {
-            if (typeof videojs === 'undefined') {
-                this.showStatus('⚠️ Video.js library not found. RTMP playback will likely fail.', 'error');
-                // Basic fallback (won't work for RTMP in most modern browsers)
-                if (this.cameraFeed instanceof HTMLMediaElement) {
-                    this.cameraFeed.src = this.rtmpUrl;
-                    this.cameraFeed.load();
-                }
-                return;
-            }
-
-            // Ensure cameraFeed is a video element and not already a Video.js player
-            if (!(this.cameraFeed instanceof HTMLVideoElement)) {
-                this.showStatus('❌ Camera feed element is not a <video> tag.', 'error');
-                console.error('Camera feed element is not a <video> tag:', this.cameraFeed);
-                return;
-            }
+        if (this.cameraFeed) {
+            // Simple MJPEG streaming - just set the src to the MJPEG endpoint
+            this.cameraFeed.src = '/video_feed';
+            this.mjpegStream = this.cameraFeed;
             
-            // Initialize Video.js player
-            this.videoPlayer = videojs(this.cameraFeed, videoJsOptions);
-
-            this.videoPlayer.ready(() => {
-                console.log('RTMP player initialized with low latency settings');
-                this.showStatus('📺 RTMP player initialized. Attempting to play...', 'success');
-                this.videoPlayer.play().catch(e => {
-                    console.warn('Autoplay was prevented:', e);
-                    this.showStatus('⚠️ Autoplay prevented. Click play on video.', 'warning');
-                });
-            });
-
-            this.videoPlayer.on('error', (e) => {
-                const error = this.videoPlayer.error();
-                console.error('RTMP player error:', error);
-                let errorMsg = 'Unknown playback error';
-                if (error) {
-                    errorMsg = `CODE:${error.code} ${error.message}`;
-                    if (error.code === 4) { // MEDIA_ERR_SRC_NOT_SUPPORTED
-                        errorMsg += " (Ensure Flash is enabled and videojs-flash plugin is loaded with correct SWF path if using RTMP)";
-                    }
-                }
-                this.showStatus(`❌ RTMP playback error: ${errorMsg}`, 'error');
-            });
-
-            this.videoPlayer.on('loadstart', () => console.log('RTMP stream loading started'));
-            this.videoPlayer.on('canplay', () => console.log('RTMP stream ready to play'));
+            this.cameraFeed.onload = () => {
+                console.log('MJPEG stream loaded successfully');
+                this.showStatus('📺 MJPEG player initialized and streaming', 'success');
+            };
             
-        } catch (error) {
-            console.error('Error initializing RTMP player:', error);
-            this.showStatus(`❌ RTMP player initialization error: ${error.message}`, 'error');
+            this.cameraFeed.onerror = (e) => {
+                console.error('MJPEG stream error:', e);
+                this.showStatus('❌ MJPEG stream error. Check camera connection.', 'error');
+            };
         }
     }
 
-    destroyRTMPPlayer() {
-        if (this.videoPlayer) {
-            try {
-                this.videoPlayer.dispose(); // Properly disposes of the Video.js player
-            } catch (e) {
-                console.warn('Error disposing video player:', e);
-            }
-            this.videoPlayer = null;
-        }
-        
-        // Reset the original video element if it's a media element
-        // This helps ensure it's clean for potential re-initialization
-        if (this.cameraFeed && typeof this.cameraFeed.src !== 'undefined') {
-            this.cameraFeed.src = ''; 
-            if (typeof this.cameraFeed.load === 'function') {
-                // Only call load if it's a native video element and not managed by Video.js anymore
-                // However, after dispose(), the element should be back to its original state.
-                // this.cameraFeed.load(); // Usually not needed after dispose
-            }
+    stopMJPEGPlayer() {
+        if (this.mjpegStream && this.cameraFeed) {
+            this.cameraFeed.src = '';
+            this.mjpegStream = null;
         }
     }
 
@@ -594,21 +488,3 @@ class CarControlSystem {
 document.addEventListener('DOMContentLoaded', () => {
     new CarControlSystem();
 });
-
-// RTMP player configuration for optimal low latency - This global variable is not used in the class.
-// Consider integrating these options into the initRTMPPlayer method if specific settings are desired beyond the defaults.
-// const videoConfig = {
-//     autoplay: true,
-//     muted: true,
-//     controls: true,
-//     preload: 'auto',
-//     playsinline: true,
-//     // RTMP specific low latency settings
-//     rtmpConfig: {
-//         bufferTime: 0.1,      // Minimal buffer
-//         liveStreamMode: true,
-//         lowLatencyMode: true,
-//         maxRetries: 5,
-//         retryDelay: 1000
-//     }
-// };

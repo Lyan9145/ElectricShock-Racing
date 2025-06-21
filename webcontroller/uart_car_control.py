@@ -32,13 +32,7 @@ CAMERA_DEFAULT_INDEX = 0
 CAMERA_DEFAULT_WIDTH = 640
 CAMERA_DEFAULT_HEIGHT = 480
 CAMERA_DEFAULT_FPS = 30
-CAMERA_DEFAULT_BITRATE = 1000000  # 1Mbps for RTMP
-
-# RTMP Configuration
-RTMP_PORT = 1935
-RTMP_STREAM_KEY = "live"
-RTMP_SERVER_URL = f"rtmp://localhost:{RTMP_PORT}/live/{RTMP_STREAM_KEY}"
-RTMP_PLAYBACK_URL = f"rtmp://localhost:{RTMP_PORT}/live/{RTMP_STREAM_KEY}"
+CAMERA_DEFAULT_QUALITY = 80  # JPEG quality (0-100)
 
 # Default values
 SPEED_DEFAULT = 0.0
@@ -59,20 +53,19 @@ UINT16_MAX = 65535
 # Global serial object
 ser = None
 
-# Camera and RTMP globals
+# Camera globals
 camera = None
-rtmp_server_process = None
-rtmp_stream_process = None
-rtmp_thread = None
-rtmp_running = False
-rtmp_lock = threading.Lock()
+camera_thread = None
+camera_running = False
+camera_lock = threading.Lock()
+current_frame = None
 
 # Camera settings
 current_camera_index = CAMERA_DEFAULT_INDEX
 current_camera_width = CAMERA_DEFAULT_WIDTH
 current_camera_height = CAMERA_DEFAULT_HEIGHT
 current_camera_fps = CAMERA_DEFAULT_FPS
-current_camera_bitrate = CAMERA_DEFAULT_BITRATE
+current_camera_quality = CAMERA_DEFAULT_QUALITY
 
 app = Flask(__name__)
 
@@ -135,95 +128,16 @@ def send_car_control_command(speed, servo):
         return False
 
 # --- Camera Functions ---
-def check_ffmpeg():
-    """Check if ffmpeg is available"""
-    try:
-        subprocess.run(['ffmpeg', '-version'], 
-                      stdout=subprocess.DEVNULL, 
-                      stderr=subprocess.DEVNULL, 
-                      check=True)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
-
-def start_rtmp_server():
-    """Start FFmpeg RTMP server"""
-    global rtmp_server_process
+def init_camera(camera_index=0, width=640, height=480, fps=30, quality=80):
+    """Initialize camera for MJPEG streaming"""
+    global camera, current_camera_index, current_camera_width
+    global current_camera_height, current_camera_fps, current_camera_quality
     
     try:
-        # Kill any existing RTMP server process
-        stop_rtmp_server()
-        
-        # Simplified RTMP server using FFmpeg's built-in RTMP server
-        rtmp_server_cmd = [
-            'ffmpeg',
-            '-f', 'flv',
-            '-listen', '1',
-            '-i', f'rtmp://0.0.0.0:{RTMP_PORT}/live/{RTMP_STREAM_KEY}',
-            '-c', 'copy',
-            '-f', 'flv',
-            '-y',  # Overwrite output
-            '/dev/null'  # Discard output on Linux, use 'NUL' on Windows
-        ]
-        
-        # Use NUL on Windows instead of /dev/null
-        if platform.system() == "Windows":
-            rtmp_server_cmd[-1] = 'NUL'
-        
-        # Start RTMP server process
-        rtmp_server_process = subprocess.Popen(
-            rtmp_server_cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            bufsize=0
-        )
-        
-        print(f"RTMP server started on port {RTMP_PORT}")
-        time.sleep(2)  # Give server more time to start
-        
-        # Check if process is still running
-        if rtmp_server_process.poll() is None:
-            return True
-        else:
-            print("RTMP server failed to start")
-            return False
-        
-    except Exception as e:
-        print(f"Error starting RTMP server: {e}")
-        return False
-
-def stop_rtmp_server():
-    """Stop RTMP server"""
-    global rtmp_server_process
-    
-    if rtmp_server_process is not None:
-        try:
-            rtmp_server_process.terminate()
-            rtmp_server_process.wait(timeout=5)
-        except:
-            try:
-                rtmp_server_process.kill()
-            except:
-                pass
-        rtmp_server_process = None
-        print("RTMP server stopped")
-
-def init_camera(camera_index=0, width=640, height=480, fps=30, bitrate=1000000):
-    """Initialize camera for RTMP streaming with H.264"""
-    global camera, rtmp_stream_process, current_camera_index, current_camera_width
-    global current_camera_height, current_camera_fps, current_camera_bitrate
-    
-    try:
-        # Check if ffmpeg is available
-        if not check_ffmpeg():
-            print("Error: ffmpeg not found. Please install ffmpeg for H.264/RTMP streaming")
-            return False
-        
-        # Stop existing processes
+        # Stop existing camera
         stop_camera()
         
         # Set platform-specific camera backend
-        backend = cv2.CAP_ANY
         if platform.system() == "Windows":
             try:
                 camera = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
@@ -245,15 +159,14 @@ def init_camera(camera_index=0, width=640, height=480, fps=30, bitrate=1000000):
             print(f"Error: Cannot open camera {camera_index}")
             return False
         
-        # Set camera properties for optimal performance
+        # Set camera properties
         camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         camera.set(cv2.CAP_PROP_FPS, fps)
         camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize buffer for low latency
         
-        # Try to set hardware acceleration if available
-        if platform.system() == "Windows":
-            camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        # Try to set MJPEG format for better performance
+        camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         
         # Get actual camera settings
         actual_width = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -265,9 +178,9 @@ def init_camera(camera_index=0, width=640, height=480, fps=30, bitrate=1000000):
         current_camera_width = actual_width
         current_camera_height = actual_height
         current_camera_fps = actual_fps
-        current_camera_bitrate = bitrate
+        current_camera_quality = quality
         
-        print(f"Camera {camera_index} initialized: {actual_width}x{actual_height} @ {actual_fps:.1f} FPS for H.264/RTMP")
+        print(f"Camera {camera_index} initialized: {actual_width}x{actual_height} @ {actual_fps:.1f} FPS for MJPEG streaming")
         return True
         
     except Exception as e:
@@ -275,236 +188,65 @@ def init_camera(camera_index=0, width=640, height=480, fps=30, bitrate=1000000):
         camera = None
         return False
 
-def start_rtmp_ffmpeg():
-    """Start ffmpeg process for RTMP streaming with better error handling"""
-    global rtmp_stream_process, current_camera_width, current_camera_height, current_camera_fps, current_camera_bitrate
+def camera_thread_func():
+    """Camera capture thread for MJPEG streaming"""
+    global camera, camera_running, current_frame
     
-    try:
-        # Stop any existing process first
-        if rtmp_stream_process is not None:
-            try:
-                if rtmp_stream_process.stdin:
-                    rtmp_stream_process.stdin.close()
-                rtmp_stream_process.terminate()
-                rtmp_stream_process.wait(timeout=5)
-            except:
-                try:
-                    rtmp_stream_process.kill()
-                except:
-                    pass
-            rtmp_stream_process = None
-        
-        # More stable RTMP streaming command
-        rtmp_cmd = [
-            'ffmpeg',
-            '-f', 'rawvideo',
-            '-vcodec', 'rawvideo',
-            '-pix_fmt', 'bgr24',
-            '-s', f'{current_camera_width}x{current_camera_height}',
-            '-r', str(int(current_camera_fps)),  # Ensure integer FPS
-            '-i', '-',  # Input from stdin
-            '-c:v', 'libx264',
-            '-preset', 'veryfast',  # More stable than ultrafast
-            '-tune', 'zerolatency',
-            '-crf', '23',  # Use CRF instead of bitrate for better quality
-            '-maxrate', str(current_camera_bitrate),
-            '-bufsize', str(current_camera_bitrate),
-            '-g', '30',  # Increase GOP size for stability
-            '-keyint_min', '30',
-            '-sc_threshold', '0',
-            '-profile:v', 'main',  # Use main profile instead of baseline
-            '-level', '3.1',
-            '-pix_fmt', 'yuv420p',
-            '-f', 'flv',
-            '-reconnect', '1',
-            '-reconnect_streamed', '1',
-            '-reconnect_delay_max', '5',
-            '-rw_timeout', '10000000',  # 10 second timeout
-            f'rtmp://localhost:{RTMP_PORT}/live/{RTMP_STREAM_KEY}'
-        ]
-        
-        # Start ffmpeg RTMP streaming process
-        rtmp_stream_process = subprocess.Popen(
-            rtmp_cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            bufsize=1024*1024  # 1MB buffer for stability
-        )
-        
-        # Verify process started correctly
-        time.sleep(1)
-        if rtmp_stream_process.poll() is not None:
-            # Get error output
-            _, stderr = rtmp_stream_process.communicate()
-            print(f"FFmpeg process failed to start: {stderr.decode() if stderr else 'Unknown error'}")
-            return False
-        
-        print("FFmpeg RTMP streaming process started successfully")
-        return True
-        
-    except Exception as e:
-        print(f"Error starting FFmpeg RTMP process: {e}")
-        return False
-
-def rtmp_thread_func():
-    """RTMP capture and streaming thread with improved error handling"""
-    global camera, rtmp_running, rtmp_stream_process
-    
-    frame_count = 0
-    consecutive_errors = 0
-    max_consecutive_errors = 5  # Reduced threshold
-    last_restart_time = 0
-    restart_cooldown = 5  # 5 seconds cooldown between restarts
-    
-    while rtmp_running and camera is not None:
+    while camera_running and camera is not None:
         try:
-            current_time = time.time()
-            
-            # Check if FFmpeg process is still alive
-            if rtmp_stream_process is None or rtmp_stream_process.poll() is not None:
-                # Add cooldown to prevent rapid restarts
-                if current_time - last_restart_time < restart_cooldown:
-                    time.sleep(0.5)
-                    continue
-                
-                print("FFmpeg process not running, attempting restart...")
-                if start_rtmp_ffmpeg():
-                    last_restart_time = current_time
-                    consecutive_errors = 0
-                else:
-                    print("Failed to restart FFmpeg process")
-                    time.sleep(2)
-                    continue
-            
-            # Check if stdin is available
-            if rtmp_stream_process.stdin is None or rtmp_stream_process.stdin.closed:
-                print("FFmpeg stdin not available")
-                time.sleep(0.5)
-                continue
-            
             ret, frame = camera.read()
             if ret:
-                try:
-                    # Write frame data to FFmpeg stdin
-                    rtmp_stream_process.stdin.write(frame.tobytes())
-                    rtmp_stream_process.stdin.flush()
-                    frame_count += 1
-                    consecutive_errors = 0  # Reset error counter on success
-                    
-                    # Control frame rate
-                    time.sleep(1.0 / current_camera_fps)
-                    
-                except (BrokenPipeError, OSError) as e:
-                    print(f"Pipe error: {e}")
-                    consecutive_errors += 1
-                    if consecutive_errors >= max_consecutive_errors:
-                        print(f"Too many consecutive pipe errors ({consecutive_errors}), marking for restart...")
-                        # Don't restart immediately, let the main loop handle it
-                        if rtmp_stream_process:
-                            try:
-                                rtmp_stream_process.terminate()
-                            except:
-                                pass
-                        consecutive_errors = 0
-                    time.sleep(0.5)
-                
+                with camera_lock:
+                    current_frame = frame.copy()
+                time.sleep(1.0 / current_camera_fps)
             else:
                 print("Failed to read frame from camera")
-                consecutive_errors += 1
-                if consecutive_errors >= max_consecutive_errors:
-                    print("Too many consecutive camera read errors")
-                    break
                 time.sleep(0.1)
-                
         except Exception as e:
-            print(f"RTMP thread error: {e}")
-            consecutive_errors += 1
-            if consecutive_errors >= max_consecutive_errors:
-                print("Too many consecutive errors in RTMP thread")
-                break
+            print(f"Camera thread error: {e}")
             time.sleep(0.5)
     
-    print(f"RTMP thread exiting (streamed {frame_count} frames)")
+    print("Camera thread exiting")
 
 def start_camera():
-    """Start RTMP camera streaming with better initialization"""
-    global rtmp_thread, rtmp_running
+    """Start camera streaming"""
+    global camera_thread, camera_running
     
     if camera is None:
         print("Camera not initialized")
         return False
     
-    if rtmp_running:
-        print("RTMP streaming already running")
+    if camera_running:
+        print("Camera streaming already running")
         return True
     
-    print("Starting RTMP streaming...")
+    print("Starting camera streaming...")
     
-    # Start RTMP server first
-    if not start_rtmp_server():
-        print("Failed to start RTMP server")
-        return False
+    # Start camera thread
+    camera_running = True
+    camera_thread = threading.Thread(target=camera_thread_func, daemon=True)
+    camera_thread.start()
     
-    # Wait longer for server to be ready
-    print("Waiting for RTMP server to initialize...")
-    time.sleep(3)
-    
-    # Check if server is still running
-    if rtmp_server_process is None or rtmp_server_process.poll() is not None:
-        print("RTMP server failed to start properly")
-        return False
-    
-    # Start FFmpeg RTMP streaming process
-    if not start_rtmp_ffmpeg():
-        print("Failed to start FFmpeg streaming")
-        stop_rtmp_server()
-        return False
-    
-    # Start streaming thread
-    rtmp_running = True
-    rtmp_thread = threading.Thread(target=rtmp_thread_func, daemon=True)
-    rtmp_thread.start()
-    
-    print("RTMP streaming started successfully")
-    print(f"Stream URL: {RTMP_PLAYBACK_URL}")
+    print("Camera streaming started successfully")
     return True
 
 def stop_camera():
-    """Stop RTMP camera streaming"""
-    global camera, rtmp_thread, rtmp_running, rtmp_stream_process
+    """Stop camera streaming"""
+    global camera, camera_thread, camera_running, current_frame
     
-    print("Stopping RTMP streaming...")
-    rtmp_running = False
+    print("Stopping camera streaming...")
+    camera_running = False
     
-    # Stop RTMP thread
-    if rtmp_thread is not None:
-        rtmp_thread.join(timeout=5)
-        if rtmp_thread.is_alive():
-            print("Warning: RTMP thread did not stop gracefully")
-        rtmp_thread = None
+    # Stop camera thread
+    if camera_thread is not None:
+        camera_thread.join(timeout=5)
+        if camera_thread.is_alive():
+            print("Warning: Camera thread did not stop gracefully")
+        camera_thread = None
     
-    # Stop FFmpeg streaming process
-    if rtmp_stream_process is not None:
-        try:
-            if rtmp_stream_process.stdin:
-                rtmp_stream_process.stdin.close()
-        except:
-            pass
-        
-        try:
-            rtmp_stream_process.terminate()
-            rtmp_stream_process.wait(timeout=3)
-        except:
-            try:
-                rtmp_stream_process.kill()
-                rtmp_stream_process.wait(timeout=2)
-            except:
-                pass
-        rtmp_stream_process = None
-    
-    # Stop RTMP server
-    stop_rtmp_server()
+    # Clear current frame
+    with camera_lock:
+        current_frame = None
     
     # Release camera
     if camera is not None:
@@ -514,14 +256,30 @@ def stop_camera():
             pass
         camera = None
     
-    print("RTMP streaming stopped")
+    print("Camera streaming stopped")
 
-def update_camera_settings(camera_index=None, width=None, height=None, fps=None, bitrate=None):
-    """Update camera settings for RTMP"""
-    global current_camera_index, current_camera_width, current_camera_height
-    global current_camera_fps, current_camera_bitrate
+def generate_mjpeg():
+    """Generate MJPEG stream"""
+    global current_frame
     
-    with rtmp_lock:
+    while True:
+        with camera_lock:
+            if current_frame is not None:
+                # Encode frame as JPEG
+                ret, buffer = cv2.imencode('.jpg', current_frame, 
+                                         [cv2.IMWRITE_JPEG_QUALITY, current_camera_quality])
+                if ret:
+                    frame_bytes = buffer.tobytes()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        time.sleep(1.0 / current_camera_fps)
+
+def update_camera_settings(camera_index=None, width=None, height=None, fps=None, quality=None):
+    """Update camera settings"""
+    global current_camera_index, current_camera_width, current_camera_height
+    global current_camera_fps, current_camera_quality
+    
+    with camera_lock:
         restart_needed = False
         
         # Check if restart is needed
@@ -533,11 +291,11 @@ def update_camera_settings(camera_index=None, width=None, height=None, fps=None,
             restart_needed = True
         if fps is not None and fps != current_camera_fps:
             restart_needed = True
-        if bitrate is not None and bitrate != current_camera_bitrate:
-            restart_needed = True
+        if quality is not None and quality != current_camera_quality:
+            current_camera_quality = quality  # Quality can be updated without restart
         
         if restart_needed:
-            was_running = rtmp_running
+            was_running = camera_running
             if was_running:
                 stop_camera()
             
@@ -546,9 +304,9 @@ def update_camera_settings(camera_index=None, width=None, height=None, fps=None,
             new_width = width if width is not None else current_camera_width
             new_height = height if height is not None else current_camera_height
             new_fps = fps if fps is not None else current_camera_fps
-            new_bitrate = bitrate if bitrate is not None else current_camera_bitrate
+            new_quality = quality if quality is not None else current_camera_quality
             
-            success = init_camera(new_index, new_width, new_height, new_fps, new_bitrate)
+            success = init_camera(new_index, new_width, new_height, new_fps, new_quality)
             
             if success and was_running:
                 start_camera()
@@ -642,27 +400,16 @@ def control_car():
     else:
         return jsonify({'success': False, 'message': 'Failed to send command (check console).'}), 200
 
-# --- Flask RTMP Routes ---
-@app.route('/rtmp/stream')
-def rtmp_stream_url():
-    """Get RTMP stream URL"""
-    return jsonify({
-        'rtmp_url': RTMP_PLAYBACK_URL,
-        'port': RTMP_PORT,
-        'stream_key': RTMP_STREAM_KEY
-    })
-
+# --- Flask Routes ---
 @app.route('/video_feed')
 def video_feed():
-    """Redirect to RTMP stream for compatibility"""
-    return Response(
-        f"RTMP streaming active. Use {RTMP_PLAYBACK_URL} for video stream",
-        mimetype='text/plain'
-    )
+    """MJPEG video stream endpoint"""
+    return Response(generate_mjpeg(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/camera/start', methods=['POST'])
 def start_camera_route():
-    """Start RTMP camera streaming"""
+    """Start camera streaming"""
     if camera is None:
         return jsonify({'success': False, 'message': 'Camera not initialized'})
     
@@ -670,23 +417,23 @@ def start_camera_route():
     if success:
         return jsonify({
             'success': True, 
-            'message': 'RTMP streaming started',
-            'rtmp_url': RTMP_PLAYBACK_URL
+            'message': 'Camera streaming started',
+            'stream_url': '/video_feed'
         })
     else:
-        return jsonify({'success': False, 'message': 'Failed to start RTMP streaming'})
+        return jsonify({'success': False, 'message': 'Failed to start camera streaming'})
 
 @app.route('/camera/stop', methods=['POST'])
 def stop_camera_route():
-    """Stop RTMP camera streaming"""
+    """Stop camera streaming"""
     stop_camera()
-    return jsonify({'success': True, 'message': 'RTMP streaming stopped'})
+    return jsonify({'success': True, 'message': 'Camera streaming stopped'})
 
 @app.route('/camera/settings', methods=['GET', 'POST'])
 def camera_settings_route():
-    """Get or update camera settings for RTMP"""
+    """Get or update camera settings"""
     global current_camera_index, current_camera_width, current_camera_height
-    global current_camera_fps, current_camera_bitrate, rtmp_running
+    global current_camera_fps, current_camera_quality, camera_running
     
     if request.method == 'GET':
         return jsonify({
@@ -694,10 +441,10 @@ def camera_settings_route():
             'width': current_camera_width,
             'height': current_camera_height,
             'fps': current_camera_fps,
-            'bitrate': current_camera_bitrate,
-            'running': rtmp_running,
-            'streaming_type': 'RTMP/H.264',
-            'rtmp_url': RTMP_PLAYBACK_URL
+            'quality': current_camera_quality,
+            'running': camera_running,
+            'streaming_type': 'MJPEG',
+            'stream_url': '/video_feed'
         })
     
     elif request.method == 'POST':
@@ -707,50 +454,50 @@ def camera_settings_route():
         width = data.get('width')
         height = data.get('height')
         fps = data.get('fps')
-        bitrate = data.get('bitrate')
+        quality = data.get('quality')
         
-        success = update_camera_settings(camera_index, width, height, fps, bitrate)
+        success = update_camera_settings(camera_index, width, height, fps, quality)
         
         if success:
             return jsonify({
                 'success': True,
-                'message': 'RTMP camera settings updated',
+                'message': 'Camera settings updated',
                 'settings': {
                     'camera_index': current_camera_index,
                     'width': current_camera_width,
                     'height': current_camera_height,
                     'fps': current_camera_fps,
-                    'bitrate': current_camera_bitrate,
-                    'running': rtmp_running,
-                    'streaming_type': 'RTMP/H.264',
-                    'rtmp_url': RTMP_PLAYBACK_URL
+                    'quality': current_camera_quality,
+                    'running': camera_running,
+                    'streaming_type': 'MJPEG',
+                    'stream_url': '/video_feed'
                 }
             })
         else:
-            return jsonify({'success': False, 'message': 'Failed to update RTMP camera settings'})
+            return jsonify({'success': False, 'message': 'Failed to update camera settings'})
 
 @app.route('/camera/init', methods=['POST'])
 def init_camera_route():
-    """Initialize camera for RTMP streaming"""
+    """Initialize camera"""
     data = request.get_json()
     
     camera_index = data.get('camera_index', CAMERA_DEFAULT_INDEX)
     width = data.get('width', CAMERA_DEFAULT_WIDTH)
     height = data.get('height', CAMERA_DEFAULT_HEIGHT)
     fps = data.get('fps', CAMERA_DEFAULT_FPS)
-    bitrate = data.get('bitrate', CAMERA_DEFAULT_BITRATE)
+    quality = data.get('quality', CAMERA_DEFAULT_QUALITY)
     
-    success = init_camera(camera_index, width, height, fps, bitrate)
+    success = init_camera(camera_index, width, height, fps, quality)
     
     if success:
         return jsonify({
             'success': True, 
-            'message': 'Camera initialized for RTMP streaming',
-            'streaming_type': 'RTMP/H.264',
-            'rtmp_url': RTMP_PLAYBACK_URL
+            'message': 'Camera initialized for MJPEG streaming',
+            'streaming_type': 'MJPEG',
+            'stream_url': '/video_feed'
         })
     else:
-        return jsonify({'success': False, 'message': 'Failed to initialize camera for RTMP'})
+        return jsonify({'success': False, 'message': 'Failed to initialize camera'})
 
 @app.route('/serial/settings', methods=['GET', 'POST'])
 def serial_settings_route():
@@ -826,26 +573,23 @@ def serial_disconnect_route():
     close_serial_port()
     return jsonify({'success': True, 'message': 'Serial port disconnected'})
 
-# Add RTMP status endpoint
-@app.route('/rtmp/status')
-def rtmp_status():
-    """Get RTMP streaming status"""
-    global rtmp_running, rtmp_stream_process, rtmp_server_process, camera
+# Add MJPEG status endpoint
+@app.route('/camera/status')
+def camera_status():
+    """Get camera streaming status"""
+    global camera_running, camera
     
     status = {
-        'running': rtmp_running,
+        'running': camera_running,
         'camera_available': camera is not None,
-        'rtmp_server_active': rtmp_server_process is not None and rtmp_server_process.poll() is None,
-        'rtmp_stream_active': rtmp_stream_process is not None and rtmp_stream_process.poll() is None,
-        'rtmp_url': RTMP_PLAYBACK_URL if rtmp_running else None,
-        'port': RTMP_PORT,
-        'stream_key': RTMP_STREAM_KEY,
+        'stream_url': '/video_feed' if camera_running else None,
+        'streaming_type': 'MJPEG',
         'camera_settings': {
             'index': current_camera_index,
             'width': current_camera_width,
             'height': current_camera_height,
             'fps': current_camera_fps,
-            'bitrate': current_camera_bitrate
+            'quality': current_camera_quality
         }
     }
     
@@ -853,13 +597,6 @@ def rtmp_status():
 
 if __name__ == '__main__':
     print(f"Starting application on {platform.system()}")
-    
-    # Check for ffmpeg availability
-    if not check_ffmpeg():
-        print("Warning: ffmpeg not found. Please install ffmpeg for H.264/RTMP streaming")
-        print("On Windows: Download from https://ffmpeg.org/download.html")
-        print("On Linux: sudo apt install ffmpeg (Ubuntu/Debian) or equivalent")
-        print("On macOS: brew install ffmpeg")
     
     # Load serial configuration from file
     print("Loading serial configuration...")
@@ -872,24 +609,17 @@ if __name__ == '__main__':
             SERIAL_PORT = default_port
         save_serial_config()
     
-    # Initialize camera for RTMP streaming
-    print(f"Initializing camera on {platform.system()} for RTMP/H.264 streaming...")
-    if init_camera(CAMERA_DEFAULT_INDEX, CAMERA_DEFAULT_WIDTH, CAMERA_DEFAULT_HEIGHT, CAMERA_DEFAULT_FPS, CAMERA_DEFAULT_BITRATE):
-        print(f"Camera initialized successfully for RTMP streaming")
-        
-        # Auto-start RTMP streaming
-        if start_camera():
-            print("RTMP streaming started automatically")
-            print(f"RTMP stream URL: {RTMP_PLAYBACK_URL}")
-        else:
-            print("Warning: Failed to start RTMP streaming automatically")
+    # Initialize camera for MJPEG streaming
+    print(f"Initializing camera on {platform.system()} for MJPEG streaming...")
+    if init_camera(CAMERA_DEFAULT_INDEX, CAMERA_DEFAULT_WIDTH, CAMERA_DEFAULT_HEIGHT, CAMERA_DEFAULT_FPS, CAMERA_DEFAULT_QUALITY):
+        print(f"Camera initialized successfully for MJPEG streaming")
     else:
         print("Warning: Camera initialization failed, camera features will be unavailable")
 
     if init_serial(SERIAL_PORT):
         print(f"Flask server starting on http://0.0.0.0:5000")
         print("Open this address in your web browser.")
-        print(f"RTMP video streaming available at: {RTMP_PLAYBACK_URL}")
+        print("MJPEG video streaming available at: http://0.0.0.0:5000/video_feed")
         try:
             app.run(host='0.0.0.0', port=5000, debug=False)
         except KeyboardInterrupt:
