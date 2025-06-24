@@ -250,19 +250,18 @@ int main(int argc, char const *argv[]) {
     Mat imgCorrect = imgResized;
     Mat imgBinary = preprocess.binaryzation(imgCorrect); // 图像二值化
     stepEnd = chrono::high_resolution_clock::now();
-    stepTimes[1] = chrono::duration<double, milli>(stepEnd - stepStart).count();
-
-    imshow("ICAR", imgBinary);
-    waitKey(1); // 等待1ms，使窗口能够刷新显示
-
-    // 调用图像信息显示函数
-    displayImageInfo(imgCorrect, preTime);
-
-    //[03] 启动AI推理
+    stepTimes[1] = chrono::duration<double, milli>(stepEnd - stepStart).count();    // 调用图像信息显示函数
+    displayImageInfo(imgCorrect, preTime);    //[03] 启动AI推理
     stepStart = chrono::high_resolution_clock::now();
     detection->inference(imgCorrect);
     stepEnd = chrono::high_resolution_clock::now();
     stepTimes[2] = chrono::duration<double, milli>(stepEnd - stepStart).count();
+    
+    // 实时显示AI检测结果框
+    Mat imgWithDetection = imgCorrect.clone();
+    detection->drawBox(imgWithDetection);
+    imshow("AI Detection", imgWithDetection);
+    waitKey(1); // 等待1ms，使窗口能够刷新显示
 
     //[04] 赛道识别
     stepStart = chrono::high_resolution_clock::now();
