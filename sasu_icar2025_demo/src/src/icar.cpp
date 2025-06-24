@@ -51,6 +51,23 @@ Display display; // 初始化UI显示窗口
 shared_ptr<Uart> g_uart = nullptr;
 volatile sig_atomic_t g_exit_flag = 0;
 
+// 命令行调试输出 - 添加sceneToString函数实现
+auto sceneToString = [](Scene scene) -> string {
+  switch (scene) {
+    case Scene::NormalScene: return "Normal";
+    case Scene::CrossScene: return "Cross";
+    case Scene::RingScene: return "Ring";
+    case Scene::CateringScene: return "Catering";
+    case Scene::LaybyScene: return "Layby";
+    case Scene::ParkingScene: return "Parking";
+    case Scene::BridgeScene: return "Bridge";
+    case Scene::ObstacleScene: return "Obstacle";
+    case Scene::StopScene: return "Stop";
+    default: return "Unknown";
+  }
+};
+    
+
 // 信号处理函数
 void signalHandler(int signal) {
     if (signal == SIGINT) {
@@ -419,9 +436,10 @@ int main(int argc, char const *argv[]) {
     stepTimes[13] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     // 命令行调试输出
+
     printf(">> Speed: %.2fm/s | Servo: %d | Scene: %s\n",
-           motion.speed, motion.servoPwm,
-           sceneToString(scene).c_str());
+         motion.speed, motion.servoPwm,
+         sceneToString(scene).c_str());
 
     //[15] 综合显示调试UI窗口
     stepStart = chrono::high_resolution_clock::now();
