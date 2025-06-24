@@ -228,7 +228,7 @@ int main(int argc, char const *argv[]) {
 
     //[02] 图像预处理
     stepStart = chrono::high_resolution_clock::now();
-    Mat imgResized = preprocess.resizeImage(img);        // 图像尺寸标准化：320x240
+    Mat imgResized = preprocess.resizeImage(img);        // 图像尺寸标准化：1024x768->320x240
     // Mat imgCorrect = preprocess.correction(imgResized);  // 图像矫正
     Mat imgCorrect = imgResized;
     Mat imgBinary = preprocess.binaryzation(imgCorrect); // 图像二值化
@@ -411,7 +411,8 @@ int main(int argc, char const *argv[]) {
         motion.speedCtrl(true, false, ctrlCenter); // 车速控制
 
       motion.poseCtrl(ctrlCenter.controlCenter); // 姿态控制（舵机）
-      uart->carControl(motion.speed, motion.servoPwm); // 串口通信控制车辆
+      uart->carControl(motion.speed, motion.servoPwm); // 串口通信控制车辆 
+      // TODO:串口现在为阻塞发送，改为异步
     } else
       countInit++;
     stepEnd = chrono::high_resolution_clock::now();

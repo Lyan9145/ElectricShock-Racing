@@ -79,7 +79,7 @@ public:
         }
         
         // 将图像缩放到标准尺寸320x240
-        resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_AREA);
+		resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_LINEAR);
         
         return resizedFrame;
     }
