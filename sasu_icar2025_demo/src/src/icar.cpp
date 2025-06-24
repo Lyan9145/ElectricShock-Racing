@@ -175,13 +175,22 @@ int main(int argc, char const *argv[]) {
   long preTime;
   Mat img;
 
+  // 性能统计变量
+  auto stepStart = chrono::high_resolution_clock::now();
+  auto stepEnd = chrono::high_resolution_clock::now();
+  vector<double> stepTimes(20, 0.0); // 存储各步骤耗时
+
   while (1) {
     // 检查退出标志
     if (g_exit_flag) {
         break;
     }
     
+    // 开始计时 - 整体循环
+    auto loopStart = chrono::high_resolution_clock::now();
+    
     //[01] 视频源读取
+    stepStart = chrono::high_resolution_clock::now();
     if (motion.params.debug) // 综合显示调试UI窗口
     {
       if (display.indexLast == display.index) // 图像帧未更新
@@ -203,6 +212,8 @@ int main(int argc, char const *argv[]) {
       cout << "Error: Could not read frame from camera." << endl;
       break; // 读取失败，退出循环
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[0] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     // 实时显示视频流
     // if (motion.params.debug) {
@@ -216,10 +227,13 @@ int main(int argc, char const *argv[]) {
       display.save = true;
 
     //[02] 图像预处理
+    stepStart = chrono::high_resolution_clock::now();
     Mat imgResized = preprocess.resizeImage(img);        // 图像尺寸标准化：320x240
     // Mat imgCorrect = preprocess.correction(imgResized);  // 图像矫正
     Mat imgCorrect = imgResized;
     Mat imgBinary = preprocess.binaryzation(imgCorrect); // 图像二值化
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[1] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     imshow("ICAR", imgBinary);
     waitKey(1); // 等待1ms，使窗口能够刷新显示
@@ -228,12 +242,18 @@ int main(int argc, char const *argv[]) {
     displayImageInfo(imgCorrect, preTime);
 
     //[03] 启动AI推理
+    stepStart = chrono::high_resolution_clock::now();
     // detection->inference(imgCorrect);
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[2] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[04] 赛道识别
+    stepStart = chrono::high_resolution_clock::now();
     tracking.rowCutUp = motion.params.rowCutUp; // 图像顶部切行（前瞻距离）
     tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
     tracking.trackRecognition(imgBinary);
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[3] = chrono::duration<double, milli>(stepEnd - stepStart).count();
     if (motion.params.debug) // 综合显示调试UI窗口
     {
       Mat imgTrack = imgCorrect.clone();
@@ -242,6 +262,7 @@ int main(int argc, char const *argv[]) {
     }
 
     //[05] 停车区检测
+    stepStart = chrono::high_resolution_clock::now();
     if (motion.params.stop) {
       if (stopArea.process(detection->results)) 
       {
@@ -254,8 +275,11 @@ int main(int argc, char const *argv[]) {
         }
       }
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[4] = chrono::duration<double, milli>(stepEnd - stepStart).count();
     
     //[06] 快餐店检测
+    stepStart = chrono::high_resolution_clock::now();
     if ((scene == Scene::NormalScene || scene == Scene::CateringScene) &&
         motion.params.catering) {
       if (catering.process(tracking,imgBinary,detection->results))  // 传入二值化图像进行再处理
@@ -263,8 +287,11 @@ int main(int argc, char const *argv[]) {
       else
         scene = Scene::NormalScene;
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[5] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[07] 临时停车区检测
+    stepStart = chrono::high_resolution_clock::now();
     if ((scene == Scene::NormalScene || scene == Scene::LaybyScene) &&
         motion.params.catering) {
       if (layby.process(tracking,imgBinary,detection->results))  // 传入二值化图像进行再处理
@@ -272,8 +299,11 @@ int main(int argc, char const *argv[]) {
       else
         scene = Scene::NormalScene;
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[6] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[08] 充电停车场检测
+    stepStart = chrono::high_resolution_clock::now();
     if ((scene == Scene::NormalScene || scene == Scene::ParkingScene) &&
         motion.params.parking) {
       if (parking.process(tracking,imgBinary,detection->results))  // 传入二值化图像进行再处理
@@ -281,8 +311,11 @@ int main(int argc, char const *argv[]) {
       else
         scene = Scene::NormalScene;
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[7] = chrono::duration<double, milli>(stepEnd - stepStart).count();
     
     //[09] 坡道区检测
+    stepStart = chrono::high_resolution_clock::now();
     if ((scene == Scene::NormalScene || scene == Scene::BridgeScene) &&
         motion.params.bridge) {
       if (bridge.process(tracking, detection->results))
@@ -290,8 +323,11 @@ int main(int argc, char const *argv[]) {
       else
         scene = Scene::NormalScene;
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[8] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     // [10] 障碍区检测
+    stepStart = chrono::high_resolution_clock::now();
     if ((scene == Scene::NormalScene || scene == Scene::ObstacleScene) &&
         motion.params.obstacle) {
       if (obstacle.process(tracking, detection->results)) {
@@ -300,8 +336,11 @@ int main(int argc, char const *argv[]) {
       } else
         scene = Scene::NormalScene;
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[9] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[11] 十字道路识别与路径规划
+    stepStart = chrono::high_resolution_clock::now();
     if ((scene == Scene::NormalScene || scene == Scene::CrossScene) &&
         motion.params.cross) {
       if (crossroad.crossRecognition(tracking))
@@ -309,8 +348,11 @@ int main(int argc, char const *argv[]) {
       else
         scene = Scene::NormalScene;
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[10] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[12] 环岛识别与路径规划
+    stepStart = chrono::high_resolution_clock::now();
     if ((scene == Scene::NormalScene || scene == Scene::RingScene) &&
         motion.params.ring && catering.noRing) {
       if (ring.process(tracking, imgBinary))
@@ -318,8 +360,11 @@ int main(int argc, char const *argv[]) {
       else
         scene = Scene::NormalScene;
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[11] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[13] 车辆控制中心拟合
+    stepStart = chrono::high_resolution_clock::now();
     ctrlCenter.fitting(tracking);
     
     if (scene != Scene::ParkingScene)
@@ -334,8 +379,11 @@ int main(int argc, char const *argv[]) {
         // exit(0); // 程序退出
       }
     }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[12] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[14] 运动控制(速度+方向)
+    stepStart = chrono::high_resolution_clock::now();
     if (!motion.params.debug && countInit > 30) // 非调试模式下
     {
       // 触发停车
@@ -366,8 +414,11 @@ int main(int argc, char const *argv[]) {
       uart->carControl(motion.speed, motion.servoPwm); // 串口通信控制车辆
     } else
       countInit++;
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[13] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
     //[15] 综合显示调试UI窗口
+    stepStart = chrono::high_resolution_clock::now();
     if (motion.params.debug) {
       // 帧率计算
       auto startTime = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
@@ -426,6 +477,36 @@ int main(int argc, char const *argv[]) {
       display.setNewWindow(3, getScene(scene), imgRes);   // 图像绘制特殊场景识别结果
       display.setNewWindow(4, "Ctrl", imgCorrect);
       display.show(); // 显示综合绘图
+    }
+    stepEnd = chrono::high_resolution_clock::now();
+    stepTimes[14] = chrono::duration<double, milli>(stepEnd - stepStart).count();
+
+    // 计算总循环时间
+    auto loopEnd = chrono::high_resolution_clock::now();
+    stepTimes[15] = chrono::duration<double, milli>(loopEnd - loopStart).count();
+
+    // 定期输出性能统计（每50帧输出一次）
+    static int frameCounter = 0;
+    frameCounter++;
+    if (frameCounter % 50 == 0) {
+      printf("\n=== Performance Statistics (ms) ===\n");
+      printf("[01] Video Read:    %.2f ms\n", stepTimes[0]);
+      printf("[02] Preprocess:    %.2f ms\n", stepTimes[1]);
+      printf("[03] AI Inference:  %.2f ms\n", stepTimes[2]);
+      printf("[04] Track Detect:  %.2f ms\n", stepTimes[3]);
+      printf("[05] Stop Area:     %.2f ms\n", stepTimes[4]);
+      printf("[06] Catering:      %.2f ms\n", stepTimes[5]);
+      printf("[07] Layby:         %.2f ms\n", stepTimes[6]);
+      printf("[08] Parking:       %.2f ms\n", stepTimes[7]);
+      printf("[09] Bridge:        %.2f ms\n", stepTimes[8]);
+      printf("[10] Obstacle:      %.2f ms\n", stepTimes[9]);
+      printf("[11] Crossroad:     %.2f ms\n", stepTimes[10]);
+      printf("[12] Ring:          %.2f ms\n", stepTimes[11]);
+      printf("[13] Control Fit:   %.2f ms\n", stepTimes[12]);
+      printf("[14] Motion Ctrl:   %.2f ms\n", stepTimes[13]);
+      printf("[15] UI Display:    %.2f ms\n", stepTimes[14]);
+      printf("--- Total Loop:     %.2f ms ---\n", stepTimes[15]);
+      printf("--- Loop FPS:       %.2f fps ---\n\n", 1000.0 / stepTimes[15]);
     }
 
     //[16] 状态复位
