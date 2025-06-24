@@ -418,6 +418,11 @@ int main(int argc, char const *argv[]) {
     stepEnd = chrono::high_resolution_clock::now();
     stepTimes[13] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
+    // 命令行调试输出
+    printf(">> Speed: %.2fm/s | Servo: %d | Scene: %s\n",
+           motion.speed, motion.servoPwm,
+           sceneToString(scene).c_str());
+
     //[15] 综合显示调试UI窗口
     stepStart = chrono::high_resolution_clock::now();
     if (motion.params.debug) {

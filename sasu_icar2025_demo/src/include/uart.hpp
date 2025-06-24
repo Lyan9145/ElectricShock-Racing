@@ -331,8 +331,8 @@ public:
     else
       speed = 0.0f; // 暂时强制设为0.0，速度反馈暂未实现
 
-    cout << "Car Control: Speed = " << speed
-         << ", Servo = " << servo << endl; // 调试输出
+    // cout << "Car Control: Speed = " << speed
+    //      << ", Servo = " << servo << endl; // 调试输出
 
     bit32U.float32 = speed; // X轴线速度
     for (int i = 0; i < 4; i++)
