@@ -243,7 +243,7 @@ int main(int argc, char const *argv[]) {
 
     //[03] 启动AI推理
     stepStart = chrono::high_resolution_clock::now();
-    // detection->inference(imgCorrect);
+    detection->inference(imgCorrect);
     stepEnd = chrono::high_resolution_clock::now();
     stepTimes[2] = chrono::duration<double, milli>(stepEnd - stepStart).count();
 
