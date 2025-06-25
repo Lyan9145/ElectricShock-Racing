@@ -136,7 +136,7 @@ int main(int argc, char const *argv[]) {
   int ret = uart->open();
   if (ret != 0) {
     printf("[Error] Uart Open failed!\n");
-    return -1;
+    exit(-1);
   }
   uart->startReceive(); // 启动数据接收子线程
 

@@ -12,7 +12,7 @@
     "runP2": 0.0085,
     "runP3": 0.01,
     "turnP": -9.5,
-    "turnD": 5.0,
+    "turnD": 0.0,
     "debug": false,
     "saveImg": false,
     "rowCutUp": 40,
