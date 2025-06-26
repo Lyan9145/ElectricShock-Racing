@@ -76,7 +76,7 @@ enum Scene
  * @param scene
  * @return string
  */
-string getScene(Scene scene)
+string sceneToString(Scene scene)
 {
     switch (scene)
     {
@@ -99,7 +99,7 @@ string getScene(Scene scene)
     case Scene::StopScene:
         return "Stop";
     default:
-        return "Error";
+        return "Unknown";
     }
 }
 

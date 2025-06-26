@@ -35,7 +35,8 @@ using namespace cv;
  * @brief 运动控制器
  *
  */
-class Motion {
+class Motion
+{
 private:
   int countShift = 0; // 变速计数器
 
@@ -44,10 +45,12 @@ public:
    * @brief 初始化：加载配置文件
    *
    */
-  Motion() {
+  Motion()
+  {
     string jsonPath = "../src/config/config.json";
     std::ifstream config_is(jsonPath);
-    if (!config_is.good()) {
+    if (!config_is.good())
+    {
       std::cout << "Error: Params file path:[" << jsonPath << "] not find .\n";
       exit(-1);
     }
@@ -55,9 +58,12 @@ public:
     nlohmann::json js_value;
     config_is >> js_value;
 
-    try {
+    try
+    {
       params = js_value.get<Params>();
-    } catch (const nlohmann::detail::exception &e) {
+    }
+    catch (const nlohmann::detail::exception &e)
+    {
       std::cerr << "Json Params Parse failed :" << e.what() << '\n';
       exit(-1);
     }
@@ -74,7 +80,8 @@ public:
    * @brief 控制器核心参数
    *
    */
-  struct Params {
+  struct Params
+  {
     float speedLow = 0.8;       // 智能车最低速
     float speedHigh = 0.8;      // 智能车最高速
     float speedBridge = 0.6;    // 坡道速度
@@ -101,16 +108,16 @@ public:
     bool ring = true;           // 环岛使能
     bool cross = true;          // 十字道路使能
     bool stop = true;           // 停车区使能
-    
-    float score = 0.5;          // AI检测置信度
+
+    float score = 0.5;                                 // AI检测置信度
     string model = "../res/model/yolov3_mobilenet_v1"; // 模型路径
     string video = "../res/samples/demo.mp4";          // 视频路径
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Params, speedLow, speedHigh, speedBridge,
                                    speedCatering, speedLayby, speedObstacle,
-                                   speedParking,speedRing, speedDown, runP1, runP2, runP3,
+                                   speedParking, speedRing, speedDown, runP1, runP2, runP3,
                                    turnP, turnD, debug, saveImg, rowCutUp,
                                    rowCutBottom, bridge, catering, layby, obstacle,
-                                   parking, ring, cross,stop, score, model,
+                                   parking, ring, cross, stop, score, model,
                                    video); // 添加构造函数
   };
 
@@ -122,10 +129,12 @@ public:
    *
    * @param controlCenter 智能车控制中心
    */
-  void poseCtrl(int controlCenter) {
+  void poseCtrl(int controlCenter)
+  {
     float error = controlCenter - COLSIMAGE / 2; // 图像控制中心转换偏差
     static int errorLast = 0;                    // 记录前一次的偏差
-    if (abs(error - errorLast) > COLSIMAGE / 10) {
+    if (abs(error - errorLast) > COLSIMAGE / 10)
+    {
       error = error > errorLast ? errorLast + COLSIMAGE / 10
                                 : errorLast - COLSIMAGE / 10;
     }
@@ -142,10 +151,10 @@ public:
       cout << "Hit Max!" << endl; // 调试输出
     }
     else if (servoPwm < PWMSERVOMIN)
-    {      
+    {
       servoPwm = PWMSERVOMIN;
       cout << "Hit Min!" << endl; // 调试输出
-    }    
+    }
     // cout << "Servo PWM:" << servoPwm << endl; // 调试输出
   }
 
@@ -155,32 +164,40 @@ public:
    * @param enable 加速使能
    * @param control
    */
-  void speedCtrl(bool enable, bool slowDown, ControlCenter control) {
+  void speedCtrl(bool enable, bool slowDown, ControlCenter control)
+  {
     // 控制率
     uint8_t controlLow = 0;   // 速度控制下限
     uint8_t controlMid = 5;   // 控制率
     uint8_t controlHigh = 10; // 速度控制上限
 
-    if (slowDown) {
+    if (slowDown)
+    {
       countShift = controlLow;
       speed = params.speedDown;
-    } else if (enable) // 加速使能
+    }
+    else if (enable) // 加速使能
     {
-      if (control.centerEdge.size() < 10) {
+      if (control.centerEdge.size() < 10)
+      {
         speed = params.speedLow;
         countShift = controlLow;
         return;
       }
-      if (control.centerEdge[control.centerEdge.size() - 1].x > ROWSIMAGE / 2) {
+      if (control.centerEdge[control.centerEdge.size() - 1].x > ROWSIMAGE / 2)
+      {
         speed = params.speedLow;
         countShift = controlLow;
         return;
       }
-      if (abs(control.sigmaCenter) < 100.0) {
+      if (abs(control.sigmaCenter) < 100.0)
+      {
         countShift++;
         if (countShift > controlHigh)
           countShift = controlHigh;
-      } else {
+      }
+      else
+      {
         countShift--;
         if (countShift < controlLow)
           countShift = controlLow;
@@ -190,7 +207,9 @@ public:
         speed = params.speedHigh;
       else
         speed = params.speedLow;
-    } else {
+    }
+    else
+    {
       countShift = controlLow;
       speed = params.speedLow;
     }
