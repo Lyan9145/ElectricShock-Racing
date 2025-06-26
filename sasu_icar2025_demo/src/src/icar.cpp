@@ -257,11 +257,7 @@ int main(int argc, char const *argv[]) {
     stepEnd = chrono::high_resolution_clock::now();
     stepTimes[2] = chrono::duration<double, milli>(stepEnd - stepStart).count();
     
-    // 实时显示AI检测结果框
-    Mat imgWithDetection = imgCorrect.clone();
-    detection->drawBox(imgWithDetection);
-    imshow("AI Detection", imgWithDetection);
-    waitKey(1); // 等待1ms，使窗口能够刷新显示
+
 
     //[04] 赛道识别
     stepStart = chrono::high_resolution_clock::now();
@@ -276,6 +272,13 @@ int main(int argc, char const *argv[]) {
       tracking.drawImage(imgTrack); // 图像绘制赛道识别结果
       display.setNewWindow(2, "Track", imgTrack);
     }
+
+        // 实时显示AI检测结果框
+    Mat imgWithDetection = imgCorrect.clone();
+    detection->drawBox(imgWithDetection);
+    ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
+    imshow("AI Detection", imgWithDetection);
+    waitKey(1); // 等待1ms，使窗口能够刷新显示
 
     //[05] 停车区检测
     stepStart = chrono::high_resolution_clock::now();
