@@ -11,7 +11,7 @@
     "runP1": 2.7,
     "runP2": 0.0085,
     "runP3": 0.01,
-    "turnP": -9.5,
+    "turnP": 9.5,
     "turnD": 0.0,
     "debug": false,
     "saveImg": false,

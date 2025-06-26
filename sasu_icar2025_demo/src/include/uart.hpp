@@ -309,7 +309,7 @@ public:
    * @brief 速度+方向控制
    *
    * @param speed 速度：m/s
-   * @param servo 方向：PWM（500~2500）
+   * @param servo 方向：PWM（4000-6000）
    */
   void carControl(float speed, uint16_t servo) {
     if (!isOpen)
@@ -325,9 +325,9 @@ public:
     buff[2] = 10;               // 帧长
 
     if (speed > 0.0)
-      speed = 0.5f; // 暂时强制设为0.2，速度反馈暂未实现
+      speed = 0.7f; // 暂时强制设为0.2，速度反馈暂未实现
     else if (speed < 0.0)
-      speed = -0.5f; // 暂时强制设为-0.2，速度反馈暂未实现
+      speed = -0.7f; // 暂时强制设为-0.2，速度反馈暂未实现
     else
       speed = 0.0f; // 暂时强制设为0.0，速度反馈暂未实现
 
@@ -338,7 +338,9 @@ public:
     for (int i = 0; i < 4; i++)
       buff[i + 3] = bit32U.buff[i];
 
-    bit16U.uint16 = servo; // Y轴线速度
+
+    // 反转（4000-6000）->（6000-4000）
+    bit16U.uint16 = 2 * PWMSERVOMID - servo; // Y轴线速度
     buff[7] = bit16U.buff[0];
     buff[8] = bit16U.buff[1];
 
