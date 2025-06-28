@@ -81,11 +81,11 @@ bool Factory<T>::consume(T &product) {
 	return true;
 }
 // ------------------------------------ //
-void signalHandler(int signal)
+void signalHandler(int signal);
 
-bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, Capture &capture)
-bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Motion &motion)
-bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Motion &motion, Uart &uart)
+bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, Capture &capture);
+bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Motion &motion);
+bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Motion &motion, Uart &uart);
 // void drawBox(Mat &img, std::vector<PredictResult> results);
 bool debugDataConsumer(Factory<DebugData> & debug_data);
 
