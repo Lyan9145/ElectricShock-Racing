@@ -21,10 +21,11 @@
  * @copyright Copyright (c) 2023
  *
  */
+class ControlCenter; // <--- 添加这行前向声明
 
 #include "common.hpp"
 #include "json.hpp"
-#include "controlcenter.hpp"
+// #include "controlcenter.hpp"
 #include <cmath>
 #include <fstream>
 #include <iostream>

@@ -1,5 +1,8 @@
 #pragma once
 
+class Motion; // 前向声明 Motion 类
+class Uart;   // 你的代码中也用到了 Uart&，可能也需要前向声明
+
 #include <thread>
 #include <mutex>
 #include <vector>
@@ -8,18 +11,10 @@
 #include <deque>
 #include <unistd.h>
 
-
-// #include "../detector/detection.hpp"
-// #include "../param/param.hpp"
-// #include "../capture/capture.h"
-// #include "../track/standard/standard.h"
-// // #include "../port/canPort.hpp"
-// #include "../port/serialPort.hpp"
-
 #include "common.hpp"     //公共类方法文件
 #include "detection.hpp"  //百度Paddle框架移动端部署
 #include "uart.hpp"       //串口通信驱动
-#include "motion.hpp"      //运动控制类
+// #include "motion.hpp"      //运动控制类
 
 struct DebugData{
 	cv::Mat img;
