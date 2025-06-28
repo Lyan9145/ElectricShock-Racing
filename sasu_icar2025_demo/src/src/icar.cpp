@@ -23,8 +23,8 @@
 #include "../include/common.hpp"     //公共类方法文件
 #include "../include/detection.hpp"  //百度Paddle框架移动端部署
 #include "../include/uart.hpp"       //串口通信驱动
-#include "../include/thread.hpp"      //
 #include "../include/motion.hpp"      //运动控制类
+#include "../include/thread.hpp"      //
 #include "../include/controlcenter.hpp"
 #include "detection/bridge.cpp"      //AI检测：坡道区
 #include "detection/obstacle.cpp"    //AI检测：障碍区
