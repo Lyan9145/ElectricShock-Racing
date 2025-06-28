@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "tracking.cpp"
+#include "tracking.hpp"
 #include <cmath>
 #include <fstream>
 #include <iostream>
