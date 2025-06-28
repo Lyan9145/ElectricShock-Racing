@@ -1,5 +1,4 @@
-#ifndef CONTROLCENTER_HPP
-#define CONTROLCENTER_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -30,4 +29,3 @@ private:
     // Add other private methods and members as needed
 };
 
-#endif // CONTROLCENTER_HPP
