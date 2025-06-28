@@ -54,15 +54,17 @@ volatile sig_atomic_t g_exit_flag = 0;
 
 
 // 图像信息显示函数
-void displayImageInfo(const Mat& img, long preTime) {
+void displayImageInfo(const Mat &img, long preTime)
+{
   static int frameCount = 0;
   static auto lastTime = chrono::high_resolution_clock::now();
   frameCount++;
-  
+
   auto currentTime = chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - lastTime);
-  
-  if (duration.count() >= 1000) { // 每秒更新一次
+
+  if (duration.count() >= 1000)
+  { // 每秒更新一次
     double fps = frameCount * 1000.0 / duration.count();
     printf("Resolution: %dx%d | FPS: %.2f\n", img.cols, img.rows, fps);
     frameCount = 0;
@@ -77,15 +79,16 @@ int main(int argc, char const *argv[]) {
   
   // USB转串口初始化： /dev/ttyUSB0
   shared_ptr<Uart> uart = make_shared<Uart>("/dev/ttyUSB0"); // 初始化串口驱动
-  
+
   // 设置全局uart指针用于信号处理
   g_uart = uart;
-  
+
   // 注册信号处理函数
   signal(SIGINT, signalHandler);
-  
+
   int ret = uart->open();
-  if (ret != 0) {
+  if (ret != 0)
+  {
     printf("[Error] Uart Open failed!\n");
     exit(-1);
   }
