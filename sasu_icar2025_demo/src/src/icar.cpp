@@ -23,6 +23,7 @@
 #include "../include/common.hpp"     //公共类方法文件
 #include "../include/detection.hpp"  //百度Paddle框架移动端部署
 #include "../include/uart.hpp"       //串口通信驱动
+#include "../include/thread.hpp"      //线程工厂类
 #include "controlcenter.cpp"         //控制中心计算类
 #include "detection/bridge.cpp"      //AI检测：坡道区
 #include "detection/obstacle.cpp"    //AI检测：障碍区
@@ -50,7 +51,6 @@ Display display; // 初始化UI显示窗口
 // 全局变量用于信号处理
 shared_ptr<Uart> g_uart = nullptr;
 volatile sig_atomic_t g_exit_flag = 0;
-    
 
 
 // 图像信息显示函数
@@ -72,7 +72,9 @@ void displayImageInfo(const Mat& img, long preTime) {
 
 
 int main(int argc, char const *argv[]) {
-
+  // 初始化配置文件
+  Motion motion;
+  
   // USB转串口初始化： /dev/ttyUSB0
   shared_ptr<Uart> uart = make_shared<Uart>("/dev/ttyUSB0"); // 初始化串口驱动
   
@@ -91,50 +93,41 @@ int main(int argc, char const *argv[]) {
   uart->carControl(0, PWMSERVOMID); // 停车舵机中位
 
   // USB摄像头初始化
-  if (motion.params.debug) {
-      // 如果是调试模式，仍然打开本地视频文件
-      capture = cv::VideoCapture(motion.params.video);
-  } else {
-      // 构造 GStreamer 管道字符串，明确指定 MJPG 格式、分辨率和帧率
-      // 使用 std::to_string 将 int 转换为字符串，以确保兼容性
-      std::string gstreamer_pipeline =
-          "v4l2src device=/dev/video0 ! "
-          "image/jpeg,width=" + std::to_string(COLSIMAGE_CAM) +
-          ",height=" + std::to_string(ROWSIMAGE_CAM) +
-          ",framerate=60/1 ! " // 60/1 表示 60fps
-          "jpegdec ! "         // 解码 MJPG 压缩流到原始格式 (x-raw)
-          "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
-          "appsink";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
+  // 构造 GStreamer 管道字符串，明确指定 MJPG 格式、分辨率和帧率
+  // 使用 std::to_string 将 int 转换为字符串，以确保兼容性
+  std::string gstreamer_pipeline =
+      "v4l2src device=/dev/video0 ! "
+      "image/jpeg,width=" + std::to_string(COLSIMAGE_CAM) +
+      ",height=" + std::to_string(ROWSIMAGE_CAM) +
+      ",framerate=60/1 ! " // 60/1 表示 60fps
+      "jpegdec ! "         // 解码 MJPG 压缩流到原始格式 (x-raw)
+      "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
+      "appsink";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
 
-      // 使用 GStreamer 管道和 cv::CAP_GSTREAMER 标志初始化 VideoCapture
-      capture = cv::VideoCapture(gstreamer_pipeline, cv::CAP_GSTREAMER);
+  // 使用 GStreamer 管道和 cv::CAP_GSTREAMER 标志初始化 VideoCapture
+  capture = cv::VideoCapture(gstreamer_pipeline, cv::CAP_GSTREAMER);
+  if (!capture.isOpened()) {
+    std::cerr << "Error: Could not open video capture with GStreamer pipeline." << std::endl;
+    return -1;
   }
 
 
-  // if (motion.params.debug)
-  // {
-  //   display.init(4); // 调试UI初始化
-  //   display.frameMax = capture.get(CAP_PROP_FRAME_COUNT) - 1;
-  //   createTrackbar("Frame", "ICAR", &display.index, display.frameMax, [](int, void *) {}); // 创建Opencv图像滑条控件
-  //   setMouseCallback("ICAR", mouseCallback);                                               // 创建鼠标键盘快捷键事件
-  // }
 
 	Factory<TaskData> task_factory(3);
 	Factory<TaskData> AI_task_factory(3);
 	Factory<DebugData> debug_factory(5);
 	std::vector<PredictResult> predict_result;
 	
-	std::thread task_producer(&producer, std::ref(task_factory), std::ref(AI_task_factory), std::ref(config));
-	std::thread AI_producer(&AIConsumer, std::ref(task_factory), std::ref(predict_result), std::ref(config));
-	std::thread task_consumer(&consumer, std::ref(task_factory), std::ref(debug_factory), std::ref(predict_result), std::ref(config), std::ref(uart));
-	if (config.debug) {
-		std::thread debug_data_consumer(&debugDataConsumer, std::ref(debug_factory));
-		debug_data_consumer.join();
-	}
+	std::thread task_producer(&producer, std::ref(task_factory), std::ref(AI_task_factory), std::ref(capture));
+	std::thread AI_consumer(&AIConsumer, std::ref(task_factory), std::ref(predict_result), std::ref(motion));
+	std::thread task_consumer(&consumer, std::ref(task_factory), std::ref(debug_factory), std::ref(predict_result), std::ref(motion), std::ref(uart));
+		// std::thread debug_data_consumer(&debugDataConsumer, std::ref(debug_factory));
+		// debug_data_consumer.join();
+
 	
 	task_producer.join();
 	task_consumer.join();
-	AI_producer.join();
+	AI_consumer.join();
 
 
 

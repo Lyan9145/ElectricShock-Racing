@@ -44,22 +44,23 @@ void signalHandler(int signal)
 			g_uart->carControl(0, PWMSERVOMID); // 停车
 			sleep(1);							// 等待1s确保停车指令发送完成
 			printf("[INFO] Car stopped successfully.\n");
-			g_uart->carControl(0, 0);
-			sleep(1);
+			g_uart->close();
 		}
-
+		sleep(1); // 等待串口关闭完成
 		printf("[INFO] Exiting program...\n");
 		exit(0);
 	}
 }
 
-bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, Config &config)
+bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, Capture &capture)
 {
-	Capture capture;
 	Preprocess preprocess;
 	cv::Mat img_buffer;
 	while (true)
 	{
+		if (g_exit_flag) {
+			break;
+		}
 		if (!capture.getImage(img_buffer))
 		{
 			usleep(50);
@@ -79,13 +80,17 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, Con
 	return true;
 }
 
-bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Config &config)
+bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Motion &motion)
 {
-	shared_ptr<Detection> detection = make_shared<Detection>(config.model_path);
-	detection->score = config.model_score;
+  	// 目标检测类(AI模型文件)
+  	shared_ptr<Detection> detection = make_shared<Detection>(motion.params.model);
+	detection->score = motion.params.score; // AI检测置信度
 	std::mutex lock;
 	while (true)
 	{
+		if (g_exit_flag) {
+			break;
+		}
 		TaskData dst;
 		task_data.consume(dst);
 		detection->inference(dst.img);
@@ -96,11 +101,11 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 	return true;
 }
 
-bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Config &config, Uart &uart)
+bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Motion &motion, Uart &uart)
 {
 	// Standard standard(config);
 	Preprocess preprocess;	  // 图像预处理类
-	Motion motion;			  // 运动控制类
+	// Motion motion;			  // 运动控制类
 	Tracking tracking;		  // 赛道识别类
 	Crossroad crossroad;	  // 十字道路识别类
 	Ring ring;				  // 环岛识别类
@@ -144,12 +149,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
 		tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 		tracking.trackRecognition(imgBinary);
-		if (motion.params.debug) // 综合显示调试UI窗口
-		{
-			Mat imgTrack = src.img.clone();
-			tracking.drawImage(imgTrack); // 图像绘制赛道识别结果
-			display.setNewWindow(2, "Track", imgTrack);
-		}
+
 
 		//[05] 停车区检测
 		if (motion.params.stop)
@@ -161,8 +161,9 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				{
 					uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
 					sleep(1);
-					printf("-----> System Exit!!! <-----\n");
-					exit(0); // 程序退出
+					printf("Car stopping in stop area...\n");
+					g_exit_flag = 1;; // 程序退出
+					break;
 				}
 			}
 		}
@@ -250,9 +251,9 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				// uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
 				cout << "PANIC: Out of track!" << endl;
 				// sleep(2);
-				// uart->carControl(0, 0); // 关闭舵机
-				// printf("-----> System Exit!!! <-----\n");
-				// exit(0); // 程序退出
+				// printf("Car stopping due to derailment...\n");
+				// g_exit_flag = 1;; // 程序退出
+				// break;
 			}
 		}
 
@@ -294,6 +295,58 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		printf(">> Speed: %.2fm/s | Servo: %d | Scene: %s\n",
 			   motion.speed, motion.servoPwm,
 			   sceneToString(scene).c_str());
+
+		//[15] 综合显示调试UI窗口
+		Mat imgWithDetection = imgCorrect.clone();
+		detection->drawBox(imgWithDetection);
+		ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
+		Mat imgRes = imgWithDetection.clone(); // 复制图像用于后续处理
+		switch (scene)
+		{
+		case Scene::NormalScene:
+		break;
+		case Scene::CrossScene:                  // [ 十字区 ]
+		crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+		// putText(imgCorrect, "+", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+		break;
+		case Scene::RingScene:              // [ 环岛 ]
+		ring.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+		// putText(imgCorrect, "H", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+		break;
+		case Scene::CateringScene:              // [ 餐饮区 ]
+		catering.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+		// putText(imgCorrect, "C", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+		break;
+		case Scene::LaybyScene:              // [ 临时停车区 ]
+		layby.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+		// putText(imgCorrect, "T", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+		break;
+		case Scene::ParkingScene:              // [ 充电停车场 ]
+		parking.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+		// putText(imgCorrect, "P", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+		break;
+		case Scene::BridgeScene:              // [ 坡道区 ]
+		bridge.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+		// putText(imgCorrect, "S", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+		break;
+		case Scene::ObstacleScene:    //[ 障碍区 ]
+		obstacle.drawImage(imgRes); // 图像绘制特殊赛道识别结果
+		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+		// putText(imgCorrect, "X", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+		break;
+		default: // 常规道路场景：无特殊路径规划
+		break;
+		}
+		imshow("AI Detection", imgRes);
+		waitKey(1); // 等待1ms，使窗口能够刷新显示
+
+
 
 		//[16] 状态复位
 		if (sceneLast != scene)
