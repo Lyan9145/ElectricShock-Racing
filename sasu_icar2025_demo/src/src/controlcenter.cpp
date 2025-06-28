@@ -3,6 +3,13 @@
 using namespace cv;
 using namespace std;
 
+/**
+ * @brief 控制中心计算
+ *
+ * @param pointsEdgeLeft 赛道左边缘点集
+ * @param pointsEdgeRight 赛道右边缘点集
+ */
+
 void ControlCenter::fitting(Tracking &track)
 {
   sigmaCenter = 0;
@@ -252,6 +259,12 @@ void ControlCenter::drawImage(Tracking track, Mat &centerImage)
           Scalar(0, 0, 255), 1); // 中心
 }
 
+/**
+ * @brief 搜索十字赛道突变行（左下）
+ *
+ * @param pointsEdgeLeft
+ * @return uint16_t
+ */
 uint16_t ControlCenter::searchBreakLeftDown(vector<POINT> pointsEdgeLeft)
 {
   uint16_t counter = 0;
