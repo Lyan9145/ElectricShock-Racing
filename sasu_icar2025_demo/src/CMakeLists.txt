@@ -84,7 +84,12 @@ target_link_libraries(${DETECTION_PROJECT_NAME} ${OpenCV_LIBS})
 target_link_libraries(${DETECTION_PROJECT_NAME} pthread )
 
 set(ICAR_PROJECT_NAME "icar")
-set(ICAR_PROJECT_SOURCES ${PROJECT_SOURCE_DIR}/src/icar.cpp) # 只保留 icer.cpp
+# set(ICAR_PROJECT_SOURCES ${PROJECT_SOURCE_DIR}/src/icar.cpp) # 只保留 icer.cpp
+file(GLOB_RECURSE ICAR_PROJECT_SOURCES
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/detection/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/recognition/*.cpp"
+)
 add_executable(${ICAR_PROJECT_NAME} ${ICAR_PROJECT_SOURCES})
 target_link_libraries(${ICAR_PROJECT_NAME} ${PPNC_LIBRARIES})
 target_link_libraries(${ICAR_PROJECT_NAME} ${ONNX_LIBRARIES})

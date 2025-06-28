@@ -31,9 +31,7 @@
 
 using namespace std;
 using namespace cv;
-// using namespace Motion;//like this?
 
-// Remove the class definition from here
 
 /**
  * @brief 初始化：加载配置文件
