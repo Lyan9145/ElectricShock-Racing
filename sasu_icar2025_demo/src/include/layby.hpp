@@ -26,7 +26,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "common.hpp
+#include "common.hpp"
 #include "detection.hpp"
 #include "tracking.hpp"
 
