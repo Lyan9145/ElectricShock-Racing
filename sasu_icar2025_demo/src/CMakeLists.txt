@@ -58,13 +58,13 @@ include_directories(${ONNX_INCLUDE_DIRS})
 # 主程序 "icar" 的源文件列表
 # 需要包含所有相关的 .cpp 文件才能成功链接
 set(ICAR_SOURCES
-    ${SRC_DIR}/src/icar.cpp
-    ${SRC_DIR}/src/controlcenter.cpp
-    ${SRC_DIR}/src/detection.cpp
-    ${SRC_DIR}/src/mapping.cpp
-    ${SRC_DIR}/src/motion.cpp
-    ${SRC_DIR}/src/preprocess.cpp
-    ${SRC_DIR}/src/thread.cpp
+    ${SRC_DIR}/icar.cpp
+    ${SRC_DIR}/controlcenter.cpp
+    ${SRC_DIR}/detection.cpp
+    ${SRC_DIR}/mapping.cpp
+    ${SRC_DIR}/motion.cpp
+    ${SRC_DIR}/preprocess.cpp
+    ${SRC_DIR}/thread.cpp
 )
 
 # 工具程序的源文件
@@ -76,7 +76,7 @@ set(IMG2VIDEO_SOURCES   ${SRC_DIR}/tool/img2video.cpp)
 
 # 独立的 detection 测试程序 (如果需要)
 # 注意：这会和 icar 程序里的 detection.cpp 重复编译，但遵循了您原始文件的意图
-set(DETECTION_TEST_SOURCES ${SRC_DIR}/src/detection.cpp)
+set(DETECTION_TEST_SOURCES ${SRC_DIR}/detection.cpp)
 
 
 # --- 4. 创建可执行文件并链接库 ---
