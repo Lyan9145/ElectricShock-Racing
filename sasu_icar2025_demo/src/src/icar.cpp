@@ -4,6 +4,7 @@
 #include "../include/motion.hpp"      //运动控制类
 #include "../include/thread.hpp"      //
 #include "../include/controlcenter.hpp"
+
 #include "detection/bridge.cpp"      //AI检测：坡道区
 #include "detection/obstacle.cpp"    //AI检测：障碍区
 #include "detection/catering.cpp"    //AI检测：餐饮区

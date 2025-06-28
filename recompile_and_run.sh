@@ -24,7 +24,7 @@ fi
 mkdir -p sasu_icar2025_demo/src/build
 cd sasu_icar2025_demo/src/build
 cmake ..
-make -j$(nproc)
+make -j4
 
 if [ $? -eq 0 ]; then
     cd ../
