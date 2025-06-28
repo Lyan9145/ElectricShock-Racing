@@ -13,7 +13,7 @@
 #include "motion.hpp"
 #include "thread.hpp"
 #include "uart.hpp"
-#include "tracking.hpp
+#include "tracking.hpp"
 
 class ControlCenter {
 public:

@@ -1,3 +1,9 @@
+#include <iostream>
+#include <opencv2/highgui.hpp> //OpenCV终端部署
+#include <opencv2/opencv.hpp>  //OpenCV终端部署
+#include <signal.h>
+#include <unistd.h>
+
 #include "../include/common.hpp"     // 公共类方法文件
 #include "../include/detection.hpp"  // 百度Paddle框架移动端部署
 #include "../include/uart.hpp"       // 串口通信驱动
@@ -14,11 +20,6 @@
 #include "../include/crossroad.hpp"
 #include "../include/ring.hpp"
 
-#include <iostream>
-#include <opencv2/highgui.hpp> //OpenCV终端部署
-#include <opencv2/opencv.hpp>  //OpenCV终端部署
-#include <signal.h>
-#include <unistd.h>
 
 using namespace std;
 using namespace cv;

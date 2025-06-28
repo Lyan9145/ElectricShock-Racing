@@ -33,7 +33,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "common.hpp
-#include "tracking.hpp
+#include "tracking.hpp"
 
 using namespace cv;
 using namespace std;
