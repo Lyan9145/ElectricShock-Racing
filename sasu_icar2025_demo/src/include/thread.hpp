@@ -19,6 +19,8 @@
 #include "common.hpp"     //公共类方法文件
 #include "detection.hpp"  //百度Paddle框架移动端部署
 #include "uart.hpp"       //串口通信驱动
+#include "../motion.cpp"
+
 
 struct DebugData{
 	cv::Mat img;
@@ -83,7 +85,7 @@ bool Factory<T>::consume(T &product) {
 // ------------------------------------ //
 void signalHandler(int signal);
 
-bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, Capture &capture);
+bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv::VideoCapture &capture);
 bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Motion &motion);
 bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Motion &motion, Uart &uart);
 // void drawBox(Mat &img, std::vector<PredictResult> results);

@@ -52,7 +52,7 @@ void signalHandler(int signal)
 	}
 }
 
-bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, Capture &capture)
+bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv::VideoCapture &capture)
 {
 	Preprocess preprocess;
 	cv::Mat img_buffer;
