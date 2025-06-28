@@ -108,6 +108,7 @@ int main(int argc, char const *argv[]) {
       "appsink";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
 
   // 使用 GStreamer 管道和 cv::CAP_GSTREAMER 标志初始化 VideoCapture
+  cv::VideoCapture capture;
   capture = cv::VideoCapture(gstreamer_pipeline, cv::CAP_GSTREAMER);
   if (!capture.isOpened()) {
     std::cerr << "Error: Could not open video capture with GStreamer pipeline." << std::endl;
