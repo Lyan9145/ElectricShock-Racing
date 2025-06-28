@@ -2,14 +2,14 @@
 #include "../include/common.hpp"	 //公共类方法文件
 #include "../include/detection.hpp"	 //百度Paddle框架移动端部署
 #include "../include/uart.hpp"		 //串口通信驱动
-#include "controlcenter.cpp"		 //控制中心计算类
+#include "../include/motion.hpp"	 //智能车运动控制类
+#include "../include/controlcenter.hpp"
 #include "detection/bridge.cpp"		 //AI检测：坡道区
 #include "detection/obstacle.cpp"	 //AI检测：障碍区
 #include "detection/catering.cpp"	 //AI检测：餐饮区
 #include "detection/layby.cpp"		 //AI检测：临时停车区
 #include "detection/parking.cpp"	 //AI检测：充电停车场
 #include "detection/crosswalk.cpp"	 //AI检测：停车区
-#include "motion.cpp"				 //智能车运动控制类
 #include "preprocess.cpp"			 //图像预处理类
 #include "recognition/crossroad.cpp" //十字道路识别与路径规划类
 #include "recognition/ring.cpp"		 //环岛道路识别与路径规划类
@@ -385,7 +385,7 @@ bool debugDataConsumer(Factory<DebugData> & debug_data)
 		if (dst.img.empty())
 			continue;
 		drawBox(dst.img, dst.results);
-		cv::resize(dst.img, dst.img, cv::Size(640, 480));
+		cv::resize(dst.img, cv::Size(640, 480));
 		cv::imshow("output", dst.img);
 		cv::waitKey(1);
 	}

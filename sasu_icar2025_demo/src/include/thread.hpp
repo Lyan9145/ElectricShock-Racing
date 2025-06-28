@@ -19,7 +19,7 @@
 #include "common.hpp"     //公共类方法文件
 #include "detection.hpp"  //百度Paddle框架移动端部署
 #include "uart.hpp"       //串口通信驱动
-#include "../src/motion.cpp"
+#include "motion.hpp"      //运动控制类
 
 struct DebugData{
 	cv::Mat img;

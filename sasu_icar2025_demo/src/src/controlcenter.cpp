@@ -23,6 +23,7 @@
  */
 
 #include "../include/common.hpp"
+#include "../include/controlcenter.hpp"
 #include "recognition/tracking.cpp"
 #include <cmath>
 #include <fstream>

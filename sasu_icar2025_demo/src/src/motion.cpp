@@ -23,7 +23,8 @@
 
 #include "../include/common.hpp"
 #include "../include/json.hpp"
-#include "controlcenter.cpp"
+#include "../include/motion.hpp"
+#include "../include/controlcenter.hpp"
 #include <cmath>
 #include <fstream>
 #include <iostream>

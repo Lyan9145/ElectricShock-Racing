@@ -21,7 +21,7 @@
  */
 #include "../include/common.hpp"     //公共类方法文件
 #include "../include/detection.hpp"  //百度Paddle框架移动端部署
-#include "motion.cpp"                //智能车运动控制类
+#include "../include/motion.hpp"                //智能车运动控制类
 #include "preprocess.cpp"            //图像预处理类
 #include <iostream>
 #include <opencv2/highgui.hpp> //OpenCV终端部署

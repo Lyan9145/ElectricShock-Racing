@@ -24,7 +24,7 @@
 #include "../include/detection.hpp"  //百度Paddle框架移动端部署
 #include "../include/uart.hpp"       //串口通信驱动
 #include "../include/thread.hpp"      //线程工厂类
-#include "controlcenter.cpp"         //控制中心计算类
+#include "../include/controlcenter.hpp"
 #include "detection/bridge.cpp"      //AI检测：坡道区
 #include "detection/obstacle.cpp"    //AI检测：障碍区
 #include "detection/catering.cpp"    //AI检测：餐饮区
