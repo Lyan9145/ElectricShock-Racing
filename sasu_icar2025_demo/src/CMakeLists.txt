@@ -90,16 +90,6 @@ set(ICAR_PROJECT_NAME "icar")
 set(ICAR_PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/src/icar.cpp
     ${PROJECT_SOURCE_DIR}/src/motion.cpp # 添加 motion.cpp 到 icar 的源文件
-    ${PROJECT_SOURCE_DIR}/src/preprocess.cpp # 补充：根据icar.cpp的include，还需要加入preprocess.cpp等
-    ${PROJECT_SOURCE_DIR}/src/recognition/crossroad.cpp
-    ${PROJECT_SOURCE_DIR}/src/recognition/ring.cpp
-    ${PROJECT_SOURCE_DIR}/src/recognition/tracking.cpp
-    ${PROJECT_SOURCE_DIR}/src/detection/bridge.cpp
-    ${PROJECT_SOURCE_DIR}/src/detection/obstacle.cpp
-    ${PROJECT_SOURCE_DIR}/src/detection/catering.cpp
-    ${PROJECT_SOURCE_DIR}/src/detection/layby.cpp
-    ${PROJECT_SOURCE_DIR}/src/detection/parking.cpp
-    ${PROJECT_SOURCE_DIR}/src/detection/crosswalk.cpp
 )
 add_executable(${ICAR_PROJECT_NAME} ${ICAR_PROJECT_SOURCES})
 target_link_libraries(${ICAR_PROJECT_NAME} ${PPNC_LIBRARIES})
