@@ -11,7 +11,7 @@
 #include "detection/layby.cpp"       //AI检测：临时停车区
 #include "detection/parking.cpp"     //AI检测：充电停车场
 #include "detection/crosswalk.cpp"   //AI检测：停车区
-// #include "motion.cpp"                //智能车运动控制类
+#include "motion.cpp"                //智能车运动控制类
 #include "preprocess.cpp"            //图像预处理类
 #include "recognition/crossroad.cpp" //十字道路识别与路径规划类
 #include "recognition/ring.cpp"      //环岛道路识别与路径规划类
