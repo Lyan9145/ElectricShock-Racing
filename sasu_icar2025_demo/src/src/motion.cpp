@@ -31,6 +31,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace Motion;//like this?
 
 // Remove the class definition from here
 
