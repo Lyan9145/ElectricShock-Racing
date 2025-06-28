@@ -1,21 +1,19 @@
-#include "../include/common.hpp"     //公共类方法文件
-#include "../include/detection.hpp"  //百度Paddle框架移动端部署
-#include "../include/uart.hpp"       //串口通信驱动
-#include "../include/motion.hpp"      //运动控制类
-#include "../include/thread.hpp"      //
-#include "../include/controlcenter.hpp"
+#include "../include/common.hpp"     // 公共类方法文件
+#include "../include/detection.hpp"  // 百度Paddle框架移动端部署
+#include "../include/uart.hpp"       // 串口通信驱动
+#include "../include/motion.hpp"     // 运动控制类
+#include "../include/thread.hpp"     // 线程管理
+#include "../include/controlcenter.hpp" // 控制中心
+#include "../include/tracking.hpp"   // 跟踪算法
+#include "../include/bridge.hpp"
+#include "../include/catering.hpp"
+#include "../include/crosswalk.hpp"
+#include "../include/layby.hpp"
+#include "../include/obstacle.hpp"
+#include "../include/parking.hpp"
+#include "../include/crossroad.hpp"
+#include "../include/ring.hpp"
 
-#include "detection/bridge.cpp"      //AI检测：坡道区
-#include "detection/obstacle.cpp"    //AI检测：障碍区
-#include "detection/catering.cpp"    //AI检测：餐饮区
-#include "detection/layby.cpp"       //AI检测：临时停车区
-#include "detection/parking.cpp"     //AI检测：充电停车场
-#include "detection/crosswalk.cpp"   //AI检测：停车区
-#include "motion.cpp"                //智能车运动控制类
-#include "preprocess.cpp"            //图像预处理类
-#include "recognition/crossroad.cpp" //十字道路识别与路径规划类
-#include "recognition/ring.cpp"      //环岛道路识别与路径规划类
-#include "recognition/tracking.cpp"  //赛道识别基础类
 #include <iostream>
 #include <opencv2/highgui.hpp> //OpenCV终端部署
 #include <opencv2/opencv.hpp>  //OpenCV终端部署
