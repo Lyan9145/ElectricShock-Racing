@@ -1,26 +1,3 @@
-/**
- ********************************************************************************************************
- *                                               示例代码
- *                                             EXAMPLE  CODE
- *
- *                      (c) Copyright 2024; SaiShu.Lcc.; Leo;
- *https://bjsstech.com 版权所属[SASU-北京赛曙科技有限公司]
- *
- *            The code is for internal use only, not for commercial
- *transactions(开源学习,请勿商用). The code ADAPTS the corresponding hardware
- *circuit board(代码适配百度Edgeboard-智能汽车赛事版), The specific details
- *consult the professional(欢迎联系我们,代码持续更正，敬请关注相关开源渠道).
- *********************************************************************************************************
- * @file motion.cpp
- * @author Leo
- * @brief 运动控制器：PD姿态控制||速度控制
- * @version 0.1
- * @date 2023-12-26
- *
- * @copyright Copyright (c) 2023
- *
- */
-
 #include "../include/common.hpp"
 #include "../include/json.hpp"
 #include "../include/motion.hpp" // Include the header with the class definition
