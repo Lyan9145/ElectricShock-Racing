@@ -1,10 +1,11 @@
-#include "../include/common.hpp"     // 公共类方法文件
-#include "../include/detection.hpp"  // 百度Paddle框架移动端部署
-#include "../include/uart.hpp"       // 串口通信驱动
-#include "../include/motion.hpp"     // 运动控制类
-#include "../include/thread.hpp"     // 线程管理
+#include "../include/common.hpp"		// 公共类方法文件
+#include "../include/detection.hpp"		// 百度Paddle框架移动端部署
+#include "../include/uart.hpp"			// 串口通信驱动
+#include "../include/motion.hpp"		// 运动控制类
+#include "../include/thread.hpp"		// 线程管理
+#include "../include/preprocess.hpp"	// 图像预处理类
 #include "../include/controlcenter.hpp" // 控制中心
-#include "../include/tracking.hpp"   // 跟踪算法
+#include "../include/tracking.hpp"		// 跟踪算法
 #include "../include/bridge.hpp"
 #include "../include/catering.hpp"
 #include "../include/crosswalk.hpp"
@@ -20,6 +21,89 @@
 #include <unistd.h>
 
 using namespace cv;
+
+void drawUI(Mat &img)
+{
+	for (size_t i = 0; i < results.size(); i++)
+	{
+		PredictResult result = results[i];
+
+		auto score = std::to_string(result.score);
+		int pointY = result.y - 20;
+		if (pointY < 0)
+			pointY = 0;
+		cv::Rect rectText(result.x, pointY, result.width, 20);
+		cv::rectangle(img, rectText, getCvcolor(result.type), -1);
+		std::string label_name = result.label + " [" + score.substr(0, score.find(".") + 3) + "]";
+		cv::Rect rect(result.x, result.y, result.width, result.height);
+		cv::rectangle(img, rect, getCvcolor(result.type), 1);
+		cv::putText(img, label_name, Point(result.x, result.y), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0, 0, 254), 1);
+	}
+}
+
+/**
+ * @brief 获取Opencv颜色
+ *
+ * @param index 序号
+ * @return cv::Scalar
+ */
+cv::Scalar getCvcolor(int index)
+{
+	switch (index)
+	{
+	case 0:
+		return cv::Scalar(0, 255, 0); // 绿
+		break;
+	case 1:
+		return cv::Scalar(255, 255, 0); // 天空蓝
+		break;
+	case 2:
+		return cv::Scalar(0, 0, 255); // 大红
+		break;
+	case 3:
+		return cv::Scalar(0, 250, 250); // 大黄
+		break;
+	case 4:
+		return cv::Scalar(250, 0, 250); // 粉色
+		break;
+	case 5:
+		return cv::Scalar(0, 102, 255); // 橙黄
+		break;
+	case 6:
+		return cv::Scalar(255, 0, 0); // 深蓝
+		break;
+	case 7:
+		return cv::Scalar(255, 255, 255); // 大白
+		break;
+	case 8:
+		return cv::Scalar(247, 43, 113);
+		break;
+	case 9:
+		return cv::Scalar(40, 241, 245);
+		break;
+	case 10:
+		return cv::Scalar(237, 226, 19);
+		break;
+	case 11:
+		return cv::Scalar(245, 117, 233);
+		break;
+	case 12:
+		return cv::Scalar(55, 13, 19);
+		break;
+	case 13:
+		return cv::Scalar(255, 255, 255);
+		break;
+	case 14:
+		return cv::Scalar(237, 226, 19);
+		break;
+	case 15:
+		return cv::Scalar(0, 255, 0);
+		break;
+	default:
+		return cv::Scalar(255, 0, 0);
+		break;
+	}
+}
 
 extern Uart uart;
 bool flag = false;
@@ -57,7 +141,8 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 	cv::Mat img_buffer;
 	while (true)
 	{
-		if (g_exit_flag) {
+		if (g_exit_flag)
+		{
 			break;
 		}
 		if (!capture.getImage(img_buffer))
@@ -81,13 +166,14 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 
 bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Motion &motion)
 {
-  	// 目标检测类(AI模型文件)
-  	shared_ptr<Detection> detection = make_shared<Detection>(motion.params.model);
+	// 目标检测类(AI模型文件)
+	shared_ptr<Detection> detection = make_shared<Detection>(motion.params.model);
 	detection->score = motion.params.score; // AI检测置信度
 	std::mutex lock;
 	while (true)
 	{
-		if (g_exit_flag) {
+		if (g_exit_flag)
+		{
 			break;
 		}
 		TaskData dst;
@@ -103,8 +189,9 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Motion &motion, Uart &uart)
 {
 	// Standard standard(config);
-	Preprocess preprocess;	  // 图像预处理类
+	Preprocess preprocess; // 图像预处理类
 	// Motion motion;			  // 运动控制类
+
 	Tracking tracking;		  // 赛道识别类
 	Crossroad crossroad;	  // 十字道路识别类
 	Ring ring;				  // 环岛识别类
@@ -117,25 +204,21 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 	ControlCenter ctrlCenter; // 控制中心计算类
 	VideoCapture capture;	  // Opencv相机类
 
-	int countInit = 0;		  // 初始化计数器
-	Scene scene = Scene::NormalScene;     // 初始化场景：常规道路
-  	Scene sceneLast = Scene::NormalScene; // 记录上一次场景状态
+	int countInit = 0;					  // 初始化计数器
+	Scene scene = Scene::NormalScene;	  // 初始化场景：常规道路
+	Scene sceneLast = Scene::NormalScene; // 记录上一次场景状态
 	long preTime;
-  	Mat img;
+	Mat img;
 	std::vector<PredictResult> predict_result_buffer;
-
-	if (!uart.isOpen)
-	{
-		printf("[Error] Uart is not open!\n");
-		return false;
-	}
 
 	while (true)
 	{
-		if (g_exit_flag) {
-        	break;
+		if (g_exit_flag)
+		{
+			break;
 		}
 
+		TaskData src;
 		task_data.consume(src);
 		if (src.img.empty())
 		{
@@ -153,12 +236,11 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		{
 			printf("[Warning] Failed to read predict result: %s\n", e.what());
 		}
-		
+
 		//[04] 赛道识别
 		tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
 		tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 		tracking.trackRecognition(imgBinary);
-
 
 		//[05] 停车区检测
 		if (motion.params.stop)
@@ -171,7 +253,8 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 					uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
 					sleep(1);
 					printf("Car stopping in stop area...\n");
-					g_exit_flag = 1;; // 程序退出
+					g_exit_flag = 1;
+					; // 程序退出
 					break;
 				}
 			}
@@ -223,7 +306,6 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		{
 			if (obstacle.process(tracking, predict_result_buffer))
 			{
-				uart->buzzerSound(uart->BUZZER_DING); // 祖传提示音效
 				scene = Scene::ObstacleScene;
 			}
 			else
@@ -307,64 +389,62 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 		//[15] 综合显示调试UI窗口
 		Mat imgWithDetection = img.clone();
-		detection->drawBox(imgWithDetection);
+		drawUI(imgWithDetection);
 		ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
-		Mat imgRes = imgWithDetection.clone(); // 复制图像用于后续处理
+		Mat imgRes = imgWithDetection.clone();			  // 复制图像用于后续处理
 		switch (scene)
 		{
 		case Scene::NormalScene:
-		break;
-		case Scene::CrossScene:                  // [ 十字区 ]
-		crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-		// putText(imgCorrect, "+", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
-		break;
-		case Scene::RingScene:              // [ 环岛 ]
-		ring.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-		// putText(imgCorrect, "H", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
-		break;
-		case Scene::CateringScene:              // [ 餐饮区 ]
-		catering.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-		// putText(imgCorrect, "C", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
-		break;
-		case Scene::LaybyScene:              // [ 临时停车区 ]
-		layby.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-		// putText(imgCorrect, "T", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
-		break;
-		case Scene::ParkingScene:              // [ 充电停车场 ]
-		parking.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-		// putText(imgCorrect, "P", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
-		break;
-		case Scene::BridgeScene:              // [ 坡道区 ]
-		bridge.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-		// putText(imgCorrect, "S", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
-		break;
-		case Scene::ObstacleScene:    //[ 障碍区 ]
-		obstacle.drawImage(imgRes); // 图像绘制特殊赛道识别结果
-		// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-		// putText(imgCorrect, "X", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
-		break;
+			break;
+		case Scene::CrossScene:					   // [ 十字区 ]
+			crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+			// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+			// putText(imgCorrect, "+", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+			break;
+		case Scene::RingScene:				  // [ 环岛 ]
+			ring.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+			// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+			// putText(imgCorrect, "H", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+			break;
+		case Scene::CateringScene:				  // [ 餐饮区 ]
+			catering.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+			// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+			// putText(imgCorrect, "C", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+			break;
+		case Scene::LaybyScene:				   // [ 临时停车区 ]
+			layby.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+			// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+			// putText(imgCorrect, "T", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+			break;
+		case Scene::ParkingScene:				 // [ 充电停车场 ]
+			parking.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+			// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+			// putText(imgCorrect, "P", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+			break;
+		case Scene::BridgeScene:				// [ 坡道区 ]
+			bridge.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+			// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+			// putText(imgCorrect, "S", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+			break;
+		case Scene::ObstacleScene:		//[ 障碍区 ]
+			obstacle.drawImage(imgRes); // 图像绘制特殊赛道识别结果
+			// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
+			// putText(imgCorrect, "X", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
+			break;
 		default: // 常规道路场景：无特殊路径规划
-		break;
+			break;
 		}
 		imshow("AI Detection", imgRes);
 		waitKey(1); // 等待1ms，使窗口能够刷新显示
 
-
-
 		//[16] 状态复位
-		if (sceneLast != scene)
-		{
-			if (scene == Scene::NormalScene)
-				uart->buzzerSound(uart->BUZZER_DING); // 祖传提示音效
-			else
-				uart->buzzerSound(uart->BUZZER_OK); // 祖传提示音效
-		}
+		// if (sceneLast != scene)
+		// {
+		// 	if (scene == Scene::NormalScene)
+		// 		// uart->buzzerSound(uart->BUZZER_DING); // 祖传提示音效
+		// 	else
+		// 		// uart->buzzerSound(uart->BUZZER_OK); // 祖传提示音效
+		// }
 		sceneLast = scene; // 记录当前状态
 		if (scene == Scene::ObstacleScene)
 			scene = Scene::NormalScene;
@@ -385,7 +465,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 	}
 }
 
-bool debugDataConsumer(Factory<DebugData> & debug_data)
+bool debugDataConsumer(Factory<DebugData> &debug_data)
 {
 	while (true)
 	{
@@ -393,7 +473,7 @@ bool debugDataConsumer(Factory<DebugData> & debug_data)
 		// debug_data.consume(dst);
 		// if (dst.img.empty())
 		// 	continue;
-		// drawBox(dst.img, dst.results);
+		// drawUI(dst.img, dst.results);
 		// cv::resize(dst.img, cv::Size(640, 480));
 		// cv::imshow("output", dst.img);
 		// cv::waitKey(1);
