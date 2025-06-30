@@ -23,7 +23,7 @@
 using namespace cv;
 
 shared_ptr<Uart> g_uart = nullptr;
-sig_atomic_t g_exit_flag = 0;
+volatile sig_atomic_t g_exit_flag = 0;
 
 void drawUI(Mat &img, std::vector<PredictResult> results)
 {
