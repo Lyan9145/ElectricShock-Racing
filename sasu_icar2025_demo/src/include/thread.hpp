@@ -10,11 +10,17 @@ class Uart;   // 你的代码中也用到了 Uart&，可能也需要前向声明
 #include <opencv2/opencv.hpp>
 #include <deque>
 #include <unistd.h>
+#include <signal.h>
+
 
 #include "common.hpp"     //公共类方法文件
 #include "detection.hpp"  //百度Paddle框架移动端部署
 #include "uart.hpp"       //串口通信驱动
 // #include "motion.hpp"      //运动控制类
+
+// 全局变量用于信号处理
+shared_ptr<Uart> g_uart = nullptr;
+volatile sig_atomic_t g_exit_flag = 0;
 
 struct DebugData{
 	cv::Mat img;

@@ -122,6 +122,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
   	Scene sceneLast = Scene::NormalScene; // 记录上一次场景状态
 	long preTime;
   	Mat img;
+	std::vector<PredictResult> predict_result_buffer;
 
 	if (!uart.isOpen)
 	{
@@ -141,8 +142,17 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			printf("[Warning] No image data received in consumer\n");
 			continue;
 		}
-
 		Mat imgBinary = preprocess.binaryzation(src.img);
+
+		// 读取模型结果
+		try
+		{
+			predict_result_buffer = predict_result;
+		}
+		catch (const std::exception &e)
+		{
+			printf("[Warning] Failed to read predict result: %s\n", e.what());
+		}
 		
 		//[04] 赛道识别
 		tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
@@ -153,7 +163,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		//[05] 停车区检测
 		if (motion.params.stop)
 		{
-			if (stopArea.process(detection->results))
+			if (stopArea.process(predict_result_buffer))
 			{
 				scene = Scene::StopScene;
 				if (stopArea.countExit > 20)
@@ -171,7 +181,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		if ((scene == Scene::NormalScene || scene == Scene::CateringScene) &&
 			motion.params.catering)
 		{
-			if (catering.process(tracking, imgBinary, detection->results)) // 传入二值化图像进行再处理
+			if (catering.process(tracking, imgBinary, predict_result_buffer)) // 传入二值化图像进行再处理
 				scene = Scene::CateringScene;
 			else
 				scene = Scene::NormalScene;
@@ -181,7 +191,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		if ((scene == Scene::NormalScene || scene == Scene::LaybyScene) &&
 			motion.params.catering)
 		{
-			if (layby.process(tracking, imgBinary, detection->results)) // 传入二值化图像进行再处理
+			if (layby.process(tracking, imgBinary, predict_result_buffer)) // 传入二值化图像进行再处理
 				scene = Scene::LaybyScene;
 			else
 				scene = Scene::NormalScene;
@@ -191,7 +201,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		if ((scene == Scene::NormalScene || scene == Scene::ParkingScene) &&
 			motion.params.parking)
 		{
-			if (parking.process(tracking, imgBinary, detection->results)) // 传入二值化图像进行再处理
+			if (parking.process(tracking, imgBinary, predict_result_buffer)) // 传入二值化图像进行再处理
 				scene = Scene::ParkingScene;
 			else
 				scene = Scene::NormalScene;
@@ -201,7 +211,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		if ((scene == Scene::NormalScene || scene == Scene::BridgeScene) &&
 			motion.params.bridge)
 		{
-			if (bridge.process(tracking, detection->results))
+			if (bridge.process(tracking, predict_result_buffer))
 				scene = Scene::BridgeScene;
 			else
 				scene = Scene::NormalScene;
@@ -211,7 +221,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		if ((scene == Scene::NormalScene || scene == Scene::ObstacleScene) &&
 			motion.params.obstacle)
 		{
-			if (obstacle.process(tracking, detection->results))
+			if (obstacle.process(tracking, predict_result_buffer))
 			{
 				uart->buzzerSound(uart->BUZZER_DING); // 祖传提示音效
 				scene = Scene::ObstacleScene;
@@ -296,7 +306,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			   sceneToString(scene).c_str());
 
 		//[15] 综合显示调试UI窗口
-		Mat imgWithDetection = imgCorrect.clone();
+		Mat imgWithDetection = img.clone();
 		detection->drawBox(imgWithDetection);
 		ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
 		Mat imgRes = imgWithDetection.clone(); // 复制图像用于后续处理
@@ -379,14 +389,14 @@ bool debugDataConsumer(Factory<DebugData> & debug_data)
 {
 	while (true)
 	{
-		DebugData dst;
-		debug_data.consume(dst);
-		if (dst.img.empty())
-			continue;
-		drawBox(dst.img, dst.results);
-		cv::resize(dst.img, cv::Size(640, 480));
-		cv::imshow("output", dst.img);
-		cv::waitKey(1);
+		// DebugData dst;
+		// debug_data.consume(dst);
+		// if (dst.img.empty())
+		// 	continue;
+		// drawBox(dst.img, dst.results);
+		// cv::resize(dst.img, cv::Size(640, 480));
+		// cv::imshow("output", dst.img);
+		// cv::waitKey(1);
 	}
 	return true;
 }

@@ -26,9 +26,7 @@ using namespace cv;
 void mouseCallback(int event, int x, int y, int flags, void *userdata);
 Display display; // 初始化UI显示窗口
 
-// 全局变量用于信号处理
-shared_ptr<Uart> g_uart = nullptr;
-volatile sig_atomic_t g_exit_flag = 0;
+
 
 // 图像信息显示函数
 void displayImageInfo(const Mat &img, long preTime)
