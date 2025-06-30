@@ -40,19 +40,7 @@ string sceneToString(Scene scene)
     }
 }
 
-/**
- * @brief 构建二维坐标
- *
- */
-struct POINT
-{
-    int x = 0;
-    int y = 0;
-    float slope = 0.0f;
 
-    POINT() {};
-    POINT(int x, int y) : x(x), y(y) {};
-};
 
 /**
  * @brief 存储图像至本地

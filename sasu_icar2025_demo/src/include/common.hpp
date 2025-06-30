@@ -32,15 +32,15 @@
 using namespace std;
 using namespace cv;
 
-#define COLSIMAGE 320    // 图像的列数
-#define ROWSIMAGE 240    // 图像的行数
-#define COLSIMAGE_CAM 1024    // 图像的列数
-#define ROWSIMAGE_CAM 768    // 图像的行数
-#define COLSIMAGEIPM 320 // IPM图像的列数
-#define ROWSIMAGEIPM 400 // IPM图像的行数
-#define PWMSERVOMAX 6000 // 舵机PWM最大值（左）
-#define PWMSERVOMID 5000 // 舵机PWM中值 
-#define PWMSERVOMIN 4000 // 舵机PWM最小值（右）
+#define COLSIMAGE 320      // 图像的列数
+#define ROWSIMAGE 240      // 图像的行数
+#define COLSIMAGE_CAM 1024 // 图像的列数
+#define ROWSIMAGE_CAM 768  // 图像的行数
+#define COLSIMAGEIPM 320   // IPM图像的列数
+#define ROWSIMAGEIPM 400   // IPM图像的行数
+#define PWMSERVOMAX 6000   // 舵机PWM最大值（左）
+#define PWMSERVOMID 5000   // 舵机PWM中值
+#define PWMSERVOMIN 4000   // 舵机PWM最小值（右）
 
 #define LABEL_BATTERY 0    // AI标签：充电站
 #define LABEL_BLOCK 1      // AI标签：障碍物
@@ -70,7 +70,6 @@ enum Scene
     StopScene        // 停车（结束）
 };
 
-
 string sceneToString(Scene scene);
 
 /**
@@ -83,8 +82,8 @@ struct POINT
     int y = 0;
     float slope = 0.0f;
 
-    POINT(){};
-    POINT(int x, int y) : x(x), y(y){};
+    POINT() {};
+    POINT(int x, int y) : x(x), y(y) {};
 };
 
 /**
