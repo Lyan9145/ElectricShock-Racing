@@ -22,24 +22,26 @@
 
 using namespace cv;
 
-void drawUI(Mat &img)
-{
-	for (size_t i = 0; i < results.size(); i++)
-	{
-		PredictResult result = results[i];
 
-		auto score = std::to_string(result.score);
-		int pointY = result.y - 20;
-		if (pointY < 0)
-			pointY = 0;
-		cv::Rect rectText(result.x, pointY, result.width, 20);
-		cv::rectangle(img, rectText, getCvcolor(result.type), -1);
-		std::string label_name = result.label + " [" + score.substr(0, score.find(".") + 3) + "]";
-		cv::Rect rect(result.x, result.y, result.width, result.height);
-		cv::rectangle(img, rect, getCvcolor(result.type), 1);
-		cv::putText(img, label_name, Point(result.x, result.y), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0, 0, 254), 1);
-	}
+void drawUI(Mat &img, std::vector<PredictResult> results)
+{
+    for (int i = 0; i < results.size(); i++)
+    {
+        PredictResult result = results[i];
+
+        auto score = std::to_string(result.score);
+        int pointY = result.y - 20;
+        if (pointY < 0)
+            pointY = 0;
+        cv::Rect rectText(result.x, pointY, result.width, 20);
+        cv::rectangle(img, rectText, getCvcolor(result.type), -1);
+        std::string label_name = result.label + " [" + score.substr(0, score.find(".") + 3) + "]";
+        cv::Rect rect(result.x, result.y, result.width, result.height);
+        cv::rectangle(img, rect, getCvcolor(result.type), 1);
+        cv::putText(img, label_name, Point(result.x, result.y), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0, 0, 254), 1);
+    }
 }
+
 
 /**
  * @brief 获取Opencv颜色
@@ -250,7 +252,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				scene = Scene::StopScene;
 				if (stopArea.countExit > 20)
 				{
-					uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
+					uart.carControl(0, PWMSERVOMID); // 控制车辆停止运动
 					sleep(1);
 					printf("Car stopping in stop area...\n");
 					g_exit_flag = 1;
@@ -376,7 +378,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				motion.speedCtrl(true, false, ctrlCenter); // 车速控制
 
 			motion.poseCtrl(ctrlCenter.controlCenter);		 // 姿态控制（舵机）
-			uart->carControl(motion.speed, motion.servoPwm); // 串口通信控制车辆
+			uart.carControl(motion.speed, motion.servoPwm); // 串口通信控制车辆
 															 // TODO:串口现在为阻塞发送，改为异步
 		}
 		else
@@ -389,7 +391,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 		//[15] 综合显示调试UI窗口
 		Mat imgWithDetection = img.clone();
-		drawUI(imgWithDetection);
+		drawUI(imgWithDetection, predict_result_buffer); // 绘制检测结果
 		ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
 		Mat imgRes = imgWithDetection.clone();			  // 复制图像用于后续处理
 		switch (scene)
