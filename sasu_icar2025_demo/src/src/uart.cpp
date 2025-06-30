@@ -10,7 +10,7 @@ using namespace std;
  * @param msTimeout
  * @return int
  */
-int Uart::receiveBytes(unsigned char &charBuffer, size_t msTimeout = 0)
+int Uart::receiveBytes(unsigned char &charBuffer, size_t msTimeout)
 {
     /*try检测语句块有没有异常。如果没有发生异常,就检测不到。
     如果发生异常，則交给 catch 处理，执行 catch 中的语句* */
