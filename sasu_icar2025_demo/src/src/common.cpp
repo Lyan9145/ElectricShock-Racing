@@ -321,5 +321,3 @@ void Display::show(void)
         }
     }
 }
-}
-;
