@@ -47,8 +47,7 @@ link_directories(${ONNX_LIBRARY_DIRS})
 #---------------------------------------------------------------------
 # 图像采集
 set(COL_PROJECT_NAME "collection")
-set(COL_PROJECT_SOURCES ${PROJECT_SOURCE_DIR}/tool/collection.cpp)
-add_executable(${COL_PROJECT_NAME} ${COL_PROJECT_SOURCES})
+set(COL_PROJECT_SOURCES ${PROJECT_SOURCE_DIR}/tool/collection.cpp ${PROJECT_SOURCE_DIR}/src/uart.cpp)add_executable(${COL_PROJECT_NAME} ${COL_PROJECT_SOURCES})
 target_link_libraries(${COL_PROJECT_NAME} pthread )
 target_link_libraries(${COL_PROJECT_NAME} ${OpenCV_LIBS})
 target_link_libraries(${COL_PROJECT_NAME} ${SERIAL_LIBRARIES})
