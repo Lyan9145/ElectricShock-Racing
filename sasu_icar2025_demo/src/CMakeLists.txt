@@ -90,6 +90,7 @@ file(GLOB_RECURSE ICAR_PROJECT_SOURCES
     "${PROJECT_SOURCE_DIR}/src/detection/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/recognition/*.cpp"
 )
+list(REMOVE_ITEM ICAR_PROJECT_SOURCES "${PROJECT_SOURCE_DIR}/src/detection.cpp")
 add_executable(${ICAR_PROJECT_NAME} ${ICAR_PROJECT_SOURCES})
 target_link_libraries(${ICAR_PROJECT_NAME} ${PPNC_LIBRARIES})
 target_link_libraries(${ICAR_PROJECT_NAME} ${ONNX_LIBRARIES})
