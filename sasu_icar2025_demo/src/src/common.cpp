@@ -178,7 +178,7 @@ vector<POINT> Bezier(double dt, vector<POINT> input)
     return output;
 }
 
-auto formatDoble2String(double val, int fixed)
+std::string formatDoble2String(double val, int fixed)
 {
     auto str = std::to_string(val);
     return str.substr(0, str.find(".") + fixed + 1);

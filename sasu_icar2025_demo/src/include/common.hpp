@@ -135,7 +135,7 @@ int factorial(int x);
  */
 vector<POINT> Bezier(double dt, vector<POINT> input);
 
-auto formatDoble2String(double val, int fixed);
+std::string formatDoble2String(double val, int fixed);
 
 /**
  * @brief 点到直线的距离计算
