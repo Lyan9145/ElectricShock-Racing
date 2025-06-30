@@ -28,6 +28,7 @@
 
 #include "common.hpp"
 #include "detection.hpp"
+#include "tracking.hpp"
 
 using namespace std;
 using namespace cv;
