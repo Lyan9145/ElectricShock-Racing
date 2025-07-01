@@ -78,7 +78,7 @@ bool Factory<T>::consume(T &product) {
 		lock.unlock();
 		usleep(50);
 		wait_count++;
-		if (wait_count > 1000000) { // 5s超时
+		if (wait_count > 100000) { // 0.5s超时
 			printf("[Warning] Consumer thread waiting too long, exiting...\n");
 			return false;
 		}
