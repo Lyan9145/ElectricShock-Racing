@@ -42,5 +42,5 @@ private:
     const cv::Mat PRECOMPUTED_NEW_MTX_LOW_RES = (cv::Mat_<double>(3, 3) << 99.59942626953125, 0.0, 170.52866866446857, 0.0, 105.8468017578125, 125.79756609980541, 0.0, 0.0, 1.0);
 
     // Region of Interest (ROI) for cropping black borders at 320x240.
-    const cv::Rect PRECOMPUTED_ROI_LOW_RES(81, 55, 171, 137);
+    const cv::Rect precomputedRoiLowRes = (cv::Rect(81, 55, 171, 137));
 };

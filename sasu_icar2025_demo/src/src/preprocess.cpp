@@ -100,11 +100,11 @@ Mat Preprocess::correction(Mat &image)
 
     	// 1. Undistort the low-resolution image using the pre-calculated matrices.
 		cv::Mat dst;
-		cv::undistort(img_low_res, dst, PRECOMPUTED_MTX_LOW_RES, PRECOMPUTED_DIST, PRECOMPUTED_NEW_MTX_LOW_RES);      
+		cv::undistort(image, dst, PRECOMPUTED_MTX_LOW_RES, PRECOMPUTED_DIST, PRECOMPUTED_NEW_MTX_LOW_RES);      
 
 		// 2. Crop to the valid region using the pre-calculated ROI.
 		// .clone() creates a deep copy, making the returned Mat independent.   
-		cv::Mat cropped_dst = dst(PRECOMPUTED_ROI_LOW_RES).clone();
+		cv::Mat cropped_dst = dst(precomputedRoiLowRes).clone();
 
 		return cropped_dst;
 	}
