@@ -70,13 +70,20 @@ bool Factory<T>::produce(T &product) {
 
 template<typename T>
 bool Factory<T>::consume(T &product) {
+	unsigned int wait_count = 0;
 	while (true) {
 		lock.lock();
 		if(!buffer.empty()) 
 			break;
 		lock.unlock();
 		usleep(50);
+		wait_count++;
+		if (wait_count > 1000000) { // 5s超时
+			printf("[Warning] Consumer thread waiting too long, exiting...\n");
+			return false;
+		}
 	}
+	
 	product = buffer.front();
 	buffer.pop_front();
 	lock.unlock();
