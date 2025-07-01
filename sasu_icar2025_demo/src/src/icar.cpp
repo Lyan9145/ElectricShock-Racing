@@ -32,7 +32,7 @@ int main(int argc, char const *argv[])
   Motion motion;
 
   // USB转串口初始化： /dev/ttyUSB0
-  shared_ptr<Uart> uart = make_shared<Uart>("/dev/ttyUSB0"); // 初始化串口驱动
+  shared_ptr<Uart> uart = make_shared<Uart>("/dev/ttyPX0"); // 初始化串口驱动
 
   // 设置全局uart指针用于信号处理
   g_uart = uart;
