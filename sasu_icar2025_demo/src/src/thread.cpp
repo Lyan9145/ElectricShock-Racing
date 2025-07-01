@@ -112,6 +112,25 @@ cv::Scalar getCvcolor(int index)
 extern Uart uart;
 bool flag = false;
 
+// 图像信息显示函数
+void displayImageInfo(const Mat &img, long preTime, string info = "")
+{
+  static int frameCount = 0;
+  static auto lastTime = chrono::high_resolution_clock::now();
+  frameCount++;
+
+  auto currentTime = chrono::high_resolution_clock::now();
+  auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - lastTime);
+
+  if (duration.count() >= 1000)
+  { // 每秒更新一次
+    double fps = frameCount * 1000.0 / duration.count();
+    printf("[%s] Resolution: %dx%d | FPS: %.2f\n", info.c_str(), img.cols, img.rows, fps);
+    frameCount = 0;
+    lastTime = currentTime;
+  }
+}
+
 /**
  * @brief 系统信号回调函数：系统退出
  *
@@ -145,6 +164,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 	{
 		Preprocess preprocess;
 		cv::Mat img_buffer;
+		long preTime1;
 		while (true)
 		{
 			if (g_exit_flag)
@@ -164,7 +184,8 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			// 图像预处理
 			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
 			// src.img = preprocess.correction(src.img); // 图像矫正 TODO: 需要相机标定
-	
+			displayImageInfo(src.img, preTime1, "producer capture");
+
 			task_data.produce(src);
 			AI_task_data.produce(src);
 		}
@@ -172,7 +193,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr << "[Error] Exception in producer thread: " << e.what() << '\n';
 		g_exit_flag = 1; // 设置退出标志
 	}
 	return false;
@@ -187,6 +208,7 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 		shared_ptr<Detection> detection = make_shared<Detection>(motion.params.model);
 		detection->score = motion.params.score; // AI检测置信度
 		std::mutex lock;
+		long preTime1;
 		while (true)
 		{
 			if (g_exit_flag)
@@ -197,6 +219,7 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 			TaskData dst;
 			task_data.consume(dst);
 			detection->inference(dst.img);
+			displayImageInfo(dst.img, preTime1, "AI inference");
 			lock.lock();
 			predict_result = detection->results;
 			lock.unlock();
@@ -205,7 +228,7 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr << "[Error] Exception in AI Consumer thread: " << e.what() << '\n';
 		g_exit_flag = 1; // 设置退出标志
 	}
 	return false;
@@ -234,7 +257,9 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		int countInit = 0;					  // 初始化计数器
 		Scene scene = Scene::NormalScene;	  // 初始化场景：常规道路
 		Scene sceneLast = Scene::NormalScene; // 记录上一次场景状态
-		long preTime;
+		long preTime1;
+		long preTime2;
+		long preTime3;
 		Mat img;
 		std::vector<PredictResult> predict_result_buffer;
 	
@@ -250,10 +275,11 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			task_data.consume(src);
 			if (src.img.empty())
 			{
-				printf("[Warning] No image data received in consumer\n");
+				// printf("[Warning] No image data received in consumer\n");
 				continue;
 			}
 			Mat imgBinary = preprocess.binaryzation(src.img);
+			displayImageInfo(src.img, preTime1, "consumer capture");
 	
 			// 读取模型结果
 			try
@@ -416,7 +442,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				   sceneToString(scene).c_str());
 	
 			//[15] 综合显示调试UI窗口
-			Mat imgWithDetection = img.clone();
+			Mat imgWithDetection = src.img.clone();
 			drawUI(imgWithDetection, predict_result_buffer); // 绘制检测结果
 			ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
 			Mat imgRes = imgWithDetection.clone();			  // 复制图像用于后续处理
@@ -462,6 +488,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			default: // 常规道路场景：无特殊路径规划
 				break;
 			}
+			displayImageInfo(imgRes, preTime2, "consumer drawUI");
 			imshow("AI Detection", imgRes);
 			waitKey(1); // 等待1ms，使窗口能够刷新显示
 	
@@ -494,7 +521,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr << "[Error] Exception in consumer thread: " << e.what() << '\n';
 		g_exit_flag = 1; // 设置退出标志
 	}
 	return false;

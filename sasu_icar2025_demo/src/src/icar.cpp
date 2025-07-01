@@ -23,29 +23,8 @@
 using namespace std;
 using namespace cv;
 
-void mouseCallback(int event, int x, int y, int flags, void *userdata);
 Display display; // 初始化UI显示窗口
 
-
-
-// 图像信息显示函数
-void displayImageInfo(const Mat &img, long preTime)
-{
-  static int frameCount = 0;
-  static auto lastTime = chrono::high_resolution_clock::now();
-  frameCount++;
-
-  auto currentTime = chrono::high_resolution_clock::now();
-  auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - lastTime);
-
-  if (duration.count() >= 1000)
-  { // 每秒更新一次
-    double fps = frameCount * 1000.0 / duration.count();
-    printf("Resolution: %dx%d | FPS: %.2f\n", img.cols, img.rows, fps);
-    frameCount = 0;
-    lastTime = currentTime;
-  }
-}
 
 int main(int argc, char const *argv[])
 {
@@ -106,6 +85,8 @@ int main(int argc, char const *argv[])
   task_producer.join();
   task_consumer.join();
   AI_consumer.join();
+
+  std::cout << "[INFO] All threads have finished." << std::endl;
 
   uart->close(); // 串口通信关闭
   capture.release();

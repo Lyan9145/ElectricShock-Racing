@@ -11,7 +11,7 @@ class Uart;   // 你的代码中也用到了 Uart&，可能也需要前向声明
 #include <deque>
 #include <unistd.h>
 #include <signal.h>
-
+#include <string>
 
 #include "common.hpp"     //公共类方法文件
 #include "detection.hpp"  //百度Paddle框架移动端部署
@@ -92,3 +92,4 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 void drawUI(Mat &img, std::vector<PredictResult> results);
 cv::Scalar getCvcolor(int index);
 bool debugDataConsumer(Factory<DebugData> & debug_data);
+void displayImageInfo(const Mat &img, long preTime, string info);
