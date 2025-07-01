@@ -240,12 +240,12 @@ void Uart::carControl(float speed, uint16_t servo)
     buff[1] = USB_ADDR_CARCTRL; // 地址
     buff[2] = 10;               // 帧长
 
-    if (speed > 0.0)
-        speed = 0.7f; // 暂时强制设为0.2，速度反馈暂未实现
-    else if (speed < 0.0)
-        speed = -0.7f; // 暂时强制设为-0.2，速度反馈暂未实现
-    else
-        speed = 0.0f; // 暂时强制设为0.0，速度反馈暂未实现
+    // if (speed > 0.0)
+    //     speed = 0.7f; // 暂时强制设为0.2，速度反馈暂未实现
+    // else if (speed < 0.0)
+    //     speed = -0.7f; // 暂时强制设为-0.2，速度反馈暂未实现
+    // else
+    //     speed = 0.0f; // 暂时强制设为0.0，速度反馈暂未实现
 
     // cout << "Car Control: Speed = " << speed
     //      << ", Servo = " << servo << endl; // 调试输出
