@@ -518,8 +518,8 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			else if (scene == Scene::StopScene)
 				scene = Scene::NormalScene;
 	
-			return true;
 		}
+		return true;
 	}
 	catch(const std::exception& e)
 	{
