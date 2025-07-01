@@ -489,8 +489,10 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				break;
 			}
 			displayImageInfo(imgRes, preTime2, "consumer drawUI");
+			printf(">> Scene: %s\n", sceneToString(scene).c_str());
 			imshow("AI Detection", imgRes);
 			waitKey(1); // 等待1ms，使窗口能够刷新显示
+			printf(">> UI displayed successfully\n");
 	
 			//[16] 状态复位
 			// if (sceneLast != scene)
