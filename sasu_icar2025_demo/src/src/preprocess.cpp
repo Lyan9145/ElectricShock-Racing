@@ -97,33 +97,14 @@ Mat Preprocess::correction(Mat &image)
 		// //  undistort(image, imageCorrect, cameraMatrix, distCoeffs);
 
 		// return imageCorrect;
-		// 获取图像尺寸
-		int w = image.cols;
-		int h = image.rows;
-		cv::Size imageSize(w, h);
-		
-		cv::Mat newCameraMtx;
-		cv::Rect roi;
 
-		// 1. 计算新的相机矩阵和有效区域
-		// Python: newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
-		// C++ 中 alpha=1.0 表示保留所有原始像素，可能会有黑边。
-		// roi 会被此函数填充，因此需要传递其地址。
-		newCameraMtx = cv::getOptimalNewCameraMatrix(mtx, dist, imageSize, 1.0, imageSize, &roi);
-
-		// 2. 去畸变
-		// Python: dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
-		// C++ 中，直接将 newCameraMtx 作为第五个参数传入。
+    	// 1. Undistort the low-resolution image using the pre-calculated matrices.
 		cv::Mat dst;
-		cv::undistort(image, dst, mtx, dist, newCameraMtx);
+		cv::undistort(img_low_res, dst, PRECOMPUTED_MTX_LOW_RES, PRECOMPUTED_DIST, PRECOMPUTED_NEW_MTX_LOW_RES);      
 
-		// 3. 裁剪掉黑边，仅保留有效区域
-		// Python:
-		//   x, y, w, h = roi
-		//   dst = dst[y:y+h, x:x+w]
-		// C++ 中，可以直接使用 roi (cv::Rect) 来创建一个指向子图像的 Mat Header。
-		// 使用 .clone() 来创建一个独立的、深拷贝的裁剪后图像，以供返回。
-		cv::Mat cropped_dst = dst(roi).clone();
+		// 2. Crop to the valid region using the pre-calculated ROI.
+		// .clone() creates a deep copy, making the returned Mat independent.   
+		cv::Mat cropped_dst = dst(PRECOMPUTED_ROI_LOW_RES).clone();
 
 		return cropped_dst;
 	}
