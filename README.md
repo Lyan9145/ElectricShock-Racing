@@ -2,6 +2,17 @@
 
 Main code base of Control Unit
 
+
+### TODO
+
+* [ ] 边缘识别优化
+* [ ] 避障 - 大黑块
+* [ ] 环岛识别 单侧三条断边
+* [ ] 十字路口优化 两侧断边
+* [ ] 临时停车区 x2
+* [ ] 餐厅调参
+
+
 ## 新增功能 - USB摄像头视频流监控
 
 现在系统支持Linux平台的USB摄像头实时视频流监控功能！
@@ -33,6 +44,7 @@ Main code base of Control Unit
 3. **启动系统**
 
    **Linux:**
+
    ```bash
    # 使用启动脚本（推荐）
    chmod +x start_linux.sh
@@ -44,6 +56,7 @@ Main code base of Control Unit
    ```
 
    **Windows:**
+
    ```batch
    # 使用启动脚本（推荐）
    start_windows.bat

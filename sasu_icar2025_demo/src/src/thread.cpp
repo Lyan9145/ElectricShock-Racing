@@ -396,7 +396,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			{
 				if (ctrlCenter.derailmentCheck(tracking)) // 车辆冲出赛道检测（保护车辆）
 				{
-					// uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
+					uart->carControl(0, PWMSERVOMID); // 控制车辆停止运动
 					cout << "PANIC: Out of track!" << endl;
 					// sleep(2);
 					// printf("Car stopping due to derailment...\n");
