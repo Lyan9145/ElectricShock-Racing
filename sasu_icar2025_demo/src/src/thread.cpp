@@ -183,6 +183,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			src.timestamp = time_now;
 			// 图像预处理
 			src.img = preprocess.correction(src.img); // 图像矫正 TODO: 需要相机标定
+			imshow("Camera", src.img); // 显示图像
 			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
 			displayImageInfo(src.img, preTime1, "producer capture");
 
