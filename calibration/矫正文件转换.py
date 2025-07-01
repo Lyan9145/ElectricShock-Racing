@@ -18,8 +18,8 @@ ORIG_WIDTH = 1024
 ORIG_HEIGHT = 768
 
 # 目标低分辨率 (最终处理时使用的分辨率)
-TARGET_WIDTH = 320
-TARGET_HEIGHT = 240
+TARGET_WIDTH = 640
+TARGET_HEIGHT = 480
 
 # 原始高分辨率下的相机内参矩阵 (mtx)
 MTX_ORIG = mtx
@@ -95,7 +95,7 @@ def generate_cpp(mtx, dist, new_mtx, roi):
 {format_mat_for_cpp(new_mtx, "PRECOMPUTED_NEW_MTX_LOW_RES")}
 
 // Region of Interest (ROI) for cropping black borders at {TARGET_WIDTH}x{TARGET_HEIGHT}.
-const cv::Rect PRECOMPUTED_ROI_LOW_RES({roi[0]}, {roi[1]}, {roi[2]}, {roi[3]});
+const cv::Rect PRECOMPUTED_ROI_LOW_RES = (cv::Rect({roi[0]}, {roi[1]}, {roi[2]}, {roi[3]}));
 
 
 /**

@@ -178,13 +178,13 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 				continue;
 			}
 			TaskData src;
-			src.img = img_buffer.clone();
 			auto time_now = std::chrono::high_resolution_clock::now();
 			src.timestamp = time_now;
 			// 图像预处理
-			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
-			imshow("Camera1", src.img); // 显示图像
+			resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
 			src.img = preprocess.correction(src.img); // 图像矫正 TODO: 需要相机标定
+			imshow("Camera1", src.img); // 显示图像
+			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
 			imshow("Camera2", src.img); // 显示图像
 			displayImageInfo(src.img, preTime1, "producer capture");
 

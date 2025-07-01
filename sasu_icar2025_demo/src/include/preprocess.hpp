@@ -32,15 +32,15 @@ private:
     bool enable = false; // 图像矫正使能：初始化完成
     Mat cameraMatrix;    // 摄像机内参矩阵
     Mat distCoeffs;      // 相机的畸变矩阵
-    // Scaled camera matrix for 320x240 input images.
-    const cv::Mat PRECOMPUTED_MTX_LOW_RES = (cv::Mat_<double>(3, 3) << 186.5517098331297, 0.0, 167.08490140903737, 0.0, 185.7452458436099, 123.59342696925486, 0.0, 0.0, 1.0);
+    // Scaled camera matrix for 640x480 input images.
+    const cv::Mat PRECOMPUTED_MTX_LOW_RES = (cv::Mat_<double>(3, 3) << 373.1034196662594, 0.0, 334.16980281807474, 0.0, 371.4904916872198, 247.18685393850973, 0.0, 0.0, 1.0);
 
     // Distortion coefficients (resolution-independent).
     const cv::Mat PRECOMPUTED_DIST = (cv::Mat_<double>(1, 5) << -0.3692941216884664, 0.14635301101349377, -0.0012768867661858236, 0.0008188111919998465, -0.027400821365335705);
 
-    // Optimal new camera matrix for undistortion at 320x240.
-    const cv::Mat PRECOMPUTED_NEW_MTX_LOW_RES = (cv::Mat_<double>(3, 3) << 99.59942626953125, 0.0, 170.52866866446857, 0.0, 105.8468017578125, 125.79756609980541, 0.0, 0.0, 1.0);
+    // Optimal new camera matrix for undistortion at 640x480.       
+    const cv::Mat PRECOMPUTED_NEW_MTX_LOW_RES = (cv::Mat_<double>(3, 3) << 199.51107788085938, 0.0, 341.59191241490043, 0.0, 212.136474609375, 252.12147881343844, 0.0, 0.0, 1.0);
 
-    // Region of Interest (ROI) for cropping black borders at 320x240.
-    const cv::Rect precomputedRoiLowRes = (cv::Rect(81, 55, 171, 137));
+    // Region of Interest (ROI) for cropping black borders at 640x480.
+    const cv::Rect PRECOMPUTED_ROI_LOW_RES = (cv::Rect(163, 111, 342, 274));
 };
