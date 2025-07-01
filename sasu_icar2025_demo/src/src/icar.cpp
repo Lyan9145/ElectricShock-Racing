@@ -73,7 +73,7 @@ int main(int argc, char const *argv[])
 
   Factory<TaskData> task_factory(sizeof(TaskData)); // 任务数据工厂
   Factory<TaskData> AI_task_factory(sizeof(TaskData)); // AI任务数据工厂
-  // Factory<DebugData> debug_factory(5);
+  Factory<DebugData> debug_factory(5);
   std::vector<PredictResult> predict_result;
 
   std::thread task_producer(&producer, std::ref(task_factory), std::ref(AI_task_factory), std::ref(capture));
