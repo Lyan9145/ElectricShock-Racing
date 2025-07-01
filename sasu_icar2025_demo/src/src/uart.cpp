@@ -130,9 +130,9 @@ void Uart::startReceive(void)
  */
 void Uart::close(void)
 {
-    printf(" uart thread exit!\n");
+    // printf(" uart thread exit!\n");
     carControl(0, PWMSERVOMID);
-    threadRec->join();
+    // threadRec->join();
     if (serialPort != nullptr)
     {
         serialPort->Close();

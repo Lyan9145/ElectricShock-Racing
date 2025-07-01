@@ -46,7 +46,7 @@ int main(int argc, char const *argv[])
     printf("[Error] Uart Open failed!\n");
     exit(-1);
   }
-  uart->startReceive();             // 启动数据接收子线程
+  // uart->startReceive();             // 启动数据接收子线程
   uart->carControl(0, PWMSERVOMID); // 停车舵机中位
 
   // USB摄像头初始化
@@ -67,7 +67,7 @@ int main(int argc, char const *argv[])
   capture = cv::VideoCapture(gstreamer_pipeline, cv::CAP_GSTREAMER);
   if (!capture.isOpened())
   {
-    std::cerr << "Error: Could not open video capture with GStreamer pipeline." << std::endl;
+    std::cerr << "[Error] Could not open video capture with GStreamer pipeline." << std::endl;
     return -1;
   }
 
@@ -90,7 +90,7 @@ int main(int argc, char const *argv[])
 
   std::cout << "[INFO] All threads have finished." << std::endl;
 
-  uart->close(); // 串口通信关闭
+  uart->close(); // 串口通信关闭 去掉接收线程
   capture.release();
   return 0;
 }

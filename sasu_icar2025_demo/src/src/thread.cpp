@@ -279,7 +279,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				continue;
 			}
 			Mat imgBinary = preprocess.binaryzation(src.img);
-			displayImageInfo(src.img, preTime1, "consumer capture");
+			displayImageInfo(src.img, preTime1, "Control loop");
 	
 			// 读取模型结果
 			try
@@ -437,9 +437,9 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				countInit++;
 	
 			// 命令行调试输出
-			printf(">> Speed: %.2fm/s | Servo: %d | Scene: %s\n",
-				   motion.speed, motion.servoPwm,
-				   sceneToString(scene).c_str());
+			// printf(">> Speed: %.2fm/s | Servo: %d | Scene: %s\n",
+			// 	   motion.speed, motion.servoPwm,
+			// 	   sceneToString(scene).c_str());
 	
 			//[15] 综合显示调试UI窗口
 			Mat imgWithDetection = src.img.clone();
@@ -495,13 +495,14 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// printf(">> UI displayed successfully\n");
 	
 			//[16] 状态复位
-			// if (sceneLast != scene)
-			// {
-			// 	if (scene == Scene::NormalScene)
-			// 		// uart->buzzerSound(uart->BUZZER_DING); // 祖传提示音效
-			// 	else
-			// 		// uart->buzzerSound(uart->BUZZER_OK); // 祖传提示音效
-			// }
+			if (sceneLast != scene)
+			{
+				printf(">> Scene changed from %s to %s\n", sceneToString(sceneLast).c_str(), sceneToString(scene).c_str());
+				// if (scene == Scene::NormalScene)
+				// 	// uart->buzzerSound(uart->BUZZER_DING); // 祖传提示音效
+				// else
+				// 	// uart->buzzerSound(uart->BUZZER_OK); // 祖传提示音效
+			}
 			sceneLast = scene; // 记录当前状态
 			if (scene == Scene::ObstacleScene)
 				scene = Scene::NormalScene;
