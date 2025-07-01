@@ -82,6 +82,8 @@ int main(int argc, char const *argv[])
   // std::thread debug_data_consumer(&debugDataConsumer, std::ref(debug_factory));
   // debug_data_consumer.join();
 
+  sleep(3);
+
   task_producer.join();
   task_consumer.join();
   AI_consumer.join();
