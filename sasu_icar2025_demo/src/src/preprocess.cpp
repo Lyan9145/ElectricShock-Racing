@@ -115,7 +115,7 @@ Mat Preprocess::correction(Mat &image)
 		// Python: dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
 		// C++ 中，直接将 newCameraMtx 作为第五个参数传入。
 		cv::Mat dst;
-		cv::undistort(image, dst, cameraMatrix, distCoeffs, newCameraMtx);
+		cv::undistort(image, dst, mtx, dist, newCameraMtx);
 
 		// 3. 裁剪掉黑边，仅保留有效区域
 		// Python:
