@@ -18,6 +18,8 @@ class CarControlSystem {
             D: { speed: null, servo: this.SERVO_MID_DEFAULT + 700 }
         };
         this.loadWASDSettings();
+
+        this.activeKeys = new Set(); // 新增：追踪当前按下的键
     }
 
     initializeElements() {
@@ -114,7 +116,8 @@ class CarControlSystem {
         this.emergencyStopButton.addEventListener('click', () => this.handleEmergencyStop());
         
         // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        document.addEventListener('keydown', (e) => this.handleKeyboardDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyboardUp(e));
         
         // Continuous send
         this.continuousSendIntervalInput.addEventListener('change', () => this.handleIntervalChange());
@@ -286,7 +289,7 @@ class CarControlSystem {
         }, 2000);
     }
 
-    handleKeyboard(event) {
+    handleKeyboardDown(event) {
         // Emergency stop with ESC key
         if (event.key === 'Escape') {
             event.preventDefault();
@@ -301,24 +304,58 @@ class CarControlSystem {
             this.showStatus('⚡ 快速停车: 速度设为0', 'warning');
             return;
         }
-        // WASD control
         const key = event.key.toUpperCase();
         if (['W', 'A', 'S', 'D'].includes(key)) {
+            if (!this.activeKeys.has(key)) {
+                this.activeKeys.add(key);
+                this.updateWASDControl();
+            }
             event.preventDefault();
-            const setting = this.wasdSettings[key];
-            let changed = false;
-            if (setting.speed !== null && setting.speed !== undefined) {
-                this.updateSpeedControls(setting.speed);
-                changed = true;
+        }
+    }
+
+    handleKeyboardUp(event) {
+        const key = event.key.toUpperCase();
+        if (['W', 'A', 'S', 'D'].includes(key)) {
+            if (this.activeKeys.has(key)) {
+                this.activeKeys.delete(key);
+                this.updateWASDControl();
             }
-            if (setting.servo !== null && setting.servo !== undefined) {
-                this.updateServoControls(setting.servo);
-                changed = true;
-            }
-            if (changed) {
-                this.sendControlCommand(true, false);
-                this.showStatus(`WASD 控制: ${key} 键`, 'info');
-            }
+            event.preventDefault();
+        }
+    }
+
+    updateWASDControl() {
+        // 计算速度和舵机目标值
+        // 优先级：W/S互斥，A/D互斥
+        let speed = 0.0;
+        let servo = this.SERVO_MID_DEFAULT;
+        // 速度
+        if (this.activeKeys.has('W') && !this.activeKeys.has('S')) {
+            if (this.wasdSettings.W.speed !== null && this.wasdSettings.W.speed !== undefined)
+                speed = this.wasdSettings.W.speed;
+        } else if (this.activeKeys.has('S') && !this.activeKeys.has('W')) {
+            if (this.wasdSettings.S.speed !== null && this.wasdSettings.S.speed !== undefined)
+                speed = this.wasdSettings.S.speed;
+        }
+        // 舵机
+        if (this.activeKeys.has('A') && !this.activeKeys.has('D')) {
+            if (this.wasdSettings.A.servo !== null && this.wasdSettings.A.servo !== undefined)
+                servo = this.wasdSettings.A.servo;
+        } else if (this.activeKeys.has('D') && !this.activeKeys.has('A')) {
+            if (this.wasdSettings.D.servo !== null && this.wasdSettings.D.servo !== undefined)
+                servo = this.wasdSettings.D.servo;
+        }
+        // 更新界面
+        this.updateSpeedControls(speed);
+        this.updateServoControls(servo);
+        this.sendControlCommand(true, false);
+
+        // 状态提示
+        if (this.activeKeys.size === 0) {
+            this.showStatus('松开所有WASD键，已停车回正', 'info');
+        } else {
+            this.showStatus(`WASD 控制: ${Array.from(this.activeKeys).join('+')} 按下`, 'info');
         }
     }
 

@@ -650,12 +650,12 @@ if __name__ == '__main__':
     # Initialize camera for MJPEG streaming
     print(f"Initializing camera on {platform.system()} for MJPEG streaming...")
     if init_camera(CAMERA_DEFAULT_INDEX, CAMERA_DEFAULT_WIDTH, CAMERA_DEFAULT_HEIGHT, CAMERA_DEFAULT_FPS, CAMERA_DEFAULT_QUALITY):
-        print(f"Camera initialized successfully for MJPEG streaming")
+        print("Camera initialized successfully for MJPEG streaming")
     else:
         print("Warning: Camera initialization failed, camera features will be unavailable")
 
     if init_serial(SERIAL_PORT):
-        print(f"Flask server starting on http://0.0.0.0:5000")
+        print("Flask server starting on http://0.0.0.0:5000")
         print("Open this address in your web browser.")
         print("MJPEG video streaming available at: http://0.0.0.0:5000/video_feed")
         try:
