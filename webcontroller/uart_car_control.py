@@ -13,7 +13,7 @@ import platform
 import subprocess
 import shutil
 from pathlib import Path
-from serial_proxy.uart_proxy import UartProxy
+from uart_proxy import UartProxy
 
 # USB通信帧
 USB_FRAME_HEAD = 0x42
