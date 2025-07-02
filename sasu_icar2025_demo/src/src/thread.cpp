@@ -404,7 +404,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			}
 	
 			//[14] 运动控制(速度+方向)
-			if (!motion.params.debug && countInit > 30) // 非调试模式下
+			if (countInit > 30)
 			{
 				// 触发停车
 				if ((catering.stopEnable && scene == Scene::CateringScene) || (layby.stopEnable && scene == Scene::LaybyScene) || (parking.step == parking.ParkStep::stop))
@@ -443,40 +443,43 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// 	   sceneToString(scene).c_str());
 	
 			//[15] 综合显示调试UI窗口
-			Mat imgWithDetection = src.img.clone();
-			drawUI(imgWithDetection, predict_result_buffer); // 绘制检测结果
-			ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
-			Mat imgRes = imgWithDetection.clone();			  // 复制图像用于后续处理
-			switch (scene)
+			if (motion.params.debug)
 			{
-			case Scene::NormalScene:
-				break;
-			case Scene::CrossScene:					   // [ 十字区 ]
-				crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				break;
-			case Scene::RingScene:				  // [ 环岛 ]
-				ring.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				break;
-			case Scene::CateringScene:				  // [ 餐饮区 ]
-				catering.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				break;
-			case Scene::LaybyScene:				   // [ 临时停车区 ]
-				layby.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				break;
-			case Scene::ParkingScene:				 // [ 充电停车场 ]
-				parking.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				break;
-			case Scene::BridgeScene:				// [ 坡道区 ]
-				bridge.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				break;
-			case Scene::ObstacleScene:		//[ 障碍区 ]
-				obstacle.drawImage(imgRes); // 图像绘制特殊赛道识别结果
-				break;
-			default: // 常规道路场景：无特殊路径规划
-				break;
+				Mat imgWithDetection = src.img.clone();
+				drawUI(imgWithDetection, predict_result_buffer); // 绘制检测结果
+				ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
+				Mat imgRes = imgWithDetection.clone();			  // 复制图像用于后续处理
+				switch (scene)
+				{
+				case Scene::NormalScene:
+					break;
+				case Scene::CrossScene:					   // [ 十字区 ]
+					crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+					break;
+				case Scene::RingScene:				  // [ 环岛 ]
+					ring.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+					break;
+				case Scene::CateringScene:				  // [ 餐饮区 ]
+					catering.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+					break;
+				case Scene::LaybyScene:				   // [ 临时停车区 ]
+					layby.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+					break;
+				case Scene::ParkingScene:				 // [ 充电停车场 ]
+					parking.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+					break;
+				case Scene::BridgeScene:				// [ 坡道区 ]
+					bridge.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
+					break;
+				case Scene::ObstacleScene:		//[ 障碍区 ]
+					obstacle.drawImage(imgRes); // 图像绘制特殊赛道识别结果
+					break;
+				default: // 常规道路场景：无特殊路径规划
+					break;
+				}
+				imshow("AI Detection", imgRes);
+				waitKey(1); // 等待1ms，使窗口能够刷新显示
 			}
-			imshow("AI Detection", imgRes);
-			waitKey(1); // 等待1ms，使窗口能够刷新显示
 	
 			//[16] 状态复位
 			if (sceneLast != scene)

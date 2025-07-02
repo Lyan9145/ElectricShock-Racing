@@ -1,6 +1,6 @@
 {
-    "speedLow": 0.8,
-    "speedHigh": 0.8,
+    "speedLow": 1.4,
+    "speedHigh": 1.8,
     "speedBridge": 0.8,
     "speedCatering": 0.6,
     "speedLayby": 0.6,
@@ -13,7 +13,7 @@
     "runP3": 0.01,
     "turnP": 9.5,
     "turnD": 0.0,
-    "debug": false,
+    "debug": true,
     "saveImg": false,
     "rowCutUp": 40,
     "rowCutBottom": 25,
