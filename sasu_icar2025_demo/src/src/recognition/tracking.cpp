@@ -3,7 +3,7 @@
 using namespace cv;
 using namespace std;
 
-void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
+void Tracking:: trackRecognition(bool isResearch, uint16_t rowStart)
 {
   bool flagStartBlock = true;                    // 搜索到色块起始行的标志（行）
   int counterSearchRows = pointsEdgeLeft.size(); // 搜索行计数

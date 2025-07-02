@@ -183,10 +183,8 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			// 图像预处理
 			src.img = img_buffer.clone(); // 克隆图像数据
 			// resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
-			// src.img = preprocess.correction(src.img); // 图像矫正 TODO: 需要相机标定
-			// imshow("Camera1", src.img); // 显示图像
+			// src.img = preprocess.correction(src.img); // 图像矫正 
 			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
-			// imshow("Camera2", src.img); // 显示图像
 			displayImageInfo(src.img, preTime1, "producer capture");
 
 			task_data.produce(src);
@@ -312,7 +310,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 						printf("Car stopping in stop area...\n");
 						g_exit_flag = 1;
 						// 程序退出
-						break;
+						continue;
 					}
 				}
 			}
@@ -455,56 +453,35 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				break;
 			case Scene::CrossScene:					   // [ 十字区 ]
 				crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-				// putText(imgCorrect, "+", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
 				break;
 			case Scene::RingScene:				  // [ 环岛 ]
 				ring.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-				// putText(imgCorrect, "H", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
 				break;
 			case Scene::CateringScene:				  // [ 餐饮区 ]
 				catering.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-				// putText(imgCorrect, "C", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
 				break;
 			case Scene::LaybyScene:				   // [ 临时停车区 ]
 				layby.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-				// putText(imgCorrect, "T", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
 				break;
 			case Scene::ParkingScene:				 // [ 充电停车场 ]
 				parking.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-				// putText(imgCorrect, "P", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
 				break;
 			case Scene::BridgeScene:				// [ 坡道区 ]
 				bridge.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-				// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-				// putText(imgCorrect, "S", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
 				break;
 			case Scene::ObstacleScene:		//[ 障碍区 ]
 				obstacle.drawImage(imgRes); // 图像绘制特殊赛道识别结果
-				// circle(imgCorrect, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 40, Scalar(40, 120, 250), -1);
-				// putText(imgCorrect, "X", Point(COLSIMAGE / 2 - 25, ROWSIMAGE / 2 + 27), FONT_HERSHEY_PLAIN, 5, Scalar(255, 255, 255), 3);
 				break;
 			default: // 常规道路场景：无特殊路径规划
 				break;
 			}
-			// displayImageInfo(imgRes, preTime2, "consumer drawUI");
-			// printf(">> Scene: %s\n", sceneToString(scene).c_str());
 			imshow("AI Detection", imgRes);
 			waitKey(1); // 等待1ms，使窗口能够刷新显示
-			// printf(">> UI displayed successfully\n");
 	
 			//[16] 状态复位
 			if (sceneLast != scene)
 			{
-				printf(">> Scene changed from %s to %s\n", sceneToString(sceneLast).c_str(), sceneToString(scene).c_str());
-				// if (scene == Scene::NormalScene)
-				// 	// uart->buzzerSound(uart->BUZZER_DING); // 祖传提示音效
-				// else
-				// 	// uart->buzzerSound(uart->BUZZER_OK); // 祖传提示音效
+				printf(">> Scene changed from [%s] to [%s]\n", sceneToString(sceneLast).c_str(), sceneToString(scene).c_str());
 			}
 			sceneLast = scene; // 记录当前状态
 			if (scene == Scene::ObstacleScene)
