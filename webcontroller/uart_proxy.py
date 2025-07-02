@@ -65,8 +65,10 @@ class UartProxy:
         启动代理服务。
         """
         # 注册信号处理器以实现优雅关闭
-        signal.signal(signal.SIGINT, self._cleanup)
-        signal.signal(signal.SIGTERM, self._cleanup)
+        if threading.current_thread() == threading.main_thread():
+            signal.signal(signal.SIGINT, self._cleanup)
+            signal.signal(signal.SIGTERM, self._cleanup)
+#
 
         # --- 1. 创建虚拟串口 ---
         logging.info(f"正在创建 {self.num_virtual_ports} 个虚拟串口...")
