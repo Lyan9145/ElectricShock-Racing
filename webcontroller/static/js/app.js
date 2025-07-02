@@ -4,10 +4,20 @@
 class CarControlSystem {
     constructor() {
         this.initializeElements();
-        this.initializeState();        this.bindEvents();
+        this.initializeState();
+        this.bindEvents();
         this.loadCameraSettings();
         // Simple MJPEG player
         this.mjpegStream = null;
+
+        // WASD control defaults
+        this.wasdSettings = {
+            W: { speed: 1.0, servo: null },
+            S: { speed: -1.0, servo: null },
+            A: { speed: null, servo: this.SERVO_MID_DEFAULT - 700 },
+            D: { speed: null, servo: this.SERVO_MID_DEFAULT + 700 }
+        };
+        this.loadWASDSettings();
     }
 
     initializeElements() {
@@ -48,6 +58,21 @@ class CarControlSystem {
         this.cameraHeightInput = document.getElementById('cameraHeightInput');
         this.cameraFpsInput = document.getElementById('cameraFpsInput');
         this.cameraQualityInput = document.getElementById('cameraQualityInput');
+        
+        // Virtual port controls
+        this.virtualPortIndexInput = document.getElementById('virtualPortIndexInput');
+        this.toggleForwardingButton = document.getElementById('toggleForwardingButton');
+        
+        // WASD settings
+        this.wasdWSpeedInput = document.getElementById('wasdWSpeedInput');
+        this.wasdWServoInput = document.getElementById('wasdWServoInput');
+        this.wasdSSpeedInput = document.getElementById('wasdSSpeedInput');
+        this.wasdSServoInput = document.getElementById('wasdSServoInput');
+        this.wasdASpeedInput = document.getElementById('wasdASpeedInput');
+        this.wasdAServoInput = document.getElementById('wasdAServoInput');
+        this.wasdDSpeedInput = document.getElementById('wasdDSpeedInput');
+        this.wasdDServoInput = document.getElementById('wasdDServoInput');
+        this.saveWASDButton = document.getElementById('saveWASDButton');
     }
 
     initializeState() {
@@ -98,6 +123,21 @@ class CarControlSystem {
         this.cameraStartButton.addEventListener('click', () => this.startCameraStream());
         this.cameraStopButton.addEventListener('click', () => this.stopCameraStream());
         this.cameraUpdateButton.addEventListener('click', () => this.updateCameraSettings());
+        
+        // Virtual port forwarding
+        this.toggleForwardingButton.addEventListener('click', () => this.toggleForwarding());
+        
+        // WASD settings save
+        if (this.saveWASDButton) {
+            this.saveWASDButton.addEventListener('click', () => this.saveWASDSettings());
+        }
+        // WASD input change
+        ['W', 'A', 'S', 'D'].forEach(key => {
+            const speedInput = this[`wasd${key}SpeedInput`];
+            const servoInput = this[`wasd${key}ServoInput`];
+            if (speedInput) speedInput.addEventListener('change', () => this.handleWASDInputChange(key));
+            if (servoInput) servoInput.addEventListener('change', () => this.handleWASDInputChange(key));
+        });
     }
 
     // Speed Control Methods
@@ -247,7 +287,6 @@ class CarControlSystem {
             this.handleEmergencyStop();
             return;
         }
-        
         // Space bar for quick stop (speed to 0, keep servo position)
         if (event.key === ' ' || event.code === 'Space') {
             event.preventDefault();
@@ -256,40 +295,76 @@ class CarControlSystem {
             this.showStatus('⚡ 快速停车: 速度设为0', 'warning');
             return;
         }
-    }
-
-    // Continuous Send Methods
-    handleIntervalChange() {
-        let newInterval = parseInt(this.continuousSendIntervalInput.value);
-        if (newInterval < 50) newInterval = 50;
-        if (newInterval > 5000) newInterval = 5000;
-        this.continuousSendIntervalInput.value = newInterval;
-        this.currentContinuousInterval = newInterval;
-        
-        if (this.continuousSendTimerId) {
-            this.toggleContinuousSend();
-            this.toggleContinuousSend();
+        // WASD control
+        const key = event.key.toUpperCase();
+        if (['W', 'A', 'S', 'D'].includes(key)) {
+            event.preventDefault();
+            const setting = this.wasdSettings[key];
+            let changed = false;
+            if (setting.speed !== null && setting.speed !== undefined) {
+                this.updateSpeedControls(setting.speed);
+                changed = true;
+            }
+            if (setting.servo !== null && setting.servo !== undefined) {
+                this.updateServoControls(setting.servo);
+                changed = true;
+            }
+            if (changed) {
+                this.sendControlCommand(true, false);
+                this.showStatus(`WASD 控制: ${key} 键`, 'info');
+            }
         }
     }
 
-    toggleContinuousSend() {
-        if (this.continuousSendTimerId) {
-            clearInterval(this.continuousSendTimerId);
-            this.continuousSendTimerId = null;
-            this.continuousSendToggle.textContent = 'Start Continuous';
-            this.continuousSendToggle.classList.remove('active', 'bg-red-600');
-            this.continuousSendToggle.classList.add('bg-purple-600');
-            this.showStatus('⏹️ Continuous send stopped.', 'warning');
-        } else {
-            this.continuousSendTimerId = setInterval(() => {
-                this.sendControlCommand(false, false);
-            }, this.currentContinuousInterval);
-            this.continuousSendToggle.textContent = 'Stop Continuous';
-            this.continuousSendToggle.classList.add('active', 'bg-red-600');
-            this.continuousSendToggle.classList.remove('bg-purple-600');
-            this.showStatus(`▶️ Continuous send started (${this.currentContinuousInterval}ms).`, 'success');
-        }
-    }    // Camera Methods
+    // WASD settings methods
+    loadWASDSettings() {
+        try {
+            const saved = localStorage.getItem('wasdSettings');
+            if (saved) {
+                this.wasdSettings = JSON.parse(saved);
+            }
+        } catch (e) {}
+        // Update UI
+        if (this.wasdWSpeedInput) this.wasdWSpeedInput.value = this.wasdSettings.W.speed ?? '';
+        if (this.wasdWServoInput) this.wasdWServoInput.value = this.wasdSettings.W.servo ?? '';
+        if (this.wasdSSpeedInput) this.wasdSSpeedInput.value = this.wasdSettings.S.speed ?? '';
+        if (this.wasdSServoInput) this.wasdSServoInput.value = this.wasdSettings.S.servo ?? '';
+        if (this.wasdASpeedInput) this.wasdASpeedInput.value = this.wasdSettings.A.speed ?? '';
+        if (this.wasdAServoInput) this.wasdAServoInput.value = this.wasdSettings.A.servo ?? '';
+        if (this.wasdDSpeedInput) this.wasdDSpeedInput.value = this.wasdSettings.D.speed ?? '';
+        if (this.wasdDServoInput) this.wasdDServoInput.value = this.wasdSettings.D.servo ?? '';
+    }
+
+    saveWASDSettings() {
+        this.wasdSettings.W.speed = this.parseNullableFloat(this.wasdWSpeedInput.value);
+        this.wasdSettings.W.servo = this.parseNullableInt(this.wasdWServoInput.value);
+        this.wasdSettings.S.speed = this.parseNullableFloat(this.wasdSSpeedInput.value);
+        this.wasdSettings.S.servo = this.parseNullableInt(this.wasdSServoInput.value);
+        this.wasdSettings.A.speed = this.parseNullableFloat(this.wasdASpeedInput.value);
+        this.wasdSettings.A.servo = this.parseNullableInt(this.wasdAServoInput.value);
+        this.wasdSettings.D.speed = this.parseNullableFloat(this.wasdDSpeedInput.value);
+        this.wasdSettings.D.servo = this.parseNullableInt(this.wasdDServoInput.value);
+        localStorage.setItem('wasdSettings', JSON.stringify(this.wasdSettings));
+        this.showStatus('✅ WASD 键设置已保存', 'success');
+    }
+
+    handleWASDInputChange(key) {
+        const speedInput = this[`wasd${key}SpeedInput`];
+        const servoInput = this[`wasd${key}ServoInput`];
+        this.wasdSettings[key].speed = this.parseNullableFloat(speedInput.value);
+        this.wasdSettings[key].servo = this.parseNullableInt(servoInput.value);
+    }
+
+    parseNullableFloat(val) {
+        const f = parseFloat(val);
+        return isNaN(f) ? null : f;
+    }
+    parseNullableInt(val) {
+        const i = parseInt(val);
+        return isNaN(i) ? null : i;
+    }
+
+    // Camera Methods
     async initCamera() {
         const cameraIndex = parseInt(this.cameraIndexInput.value);
         const width = parseInt(this.cameraWidthInput.value);
@@ -480,6 +555,33 @@ class CarControlSystem {
                     this.statusDiv.className = 'bg-gray-50 rounded-lg p-4 text-sm font-mono break-words min-h-16 flex items-center';
                 }
             }, 5000);
+        }
+    }
+
+    // Virtual Port Methods
+    async toggleForwarding() {
+        const virtualPortIndex = parseInt(this.virtualPortIndexInput.value);
+        const enable = this.toggleForwardingButton.textContent.includes('Enable');
+
+        this.showStatus(`🔄 Toggling forwarding for virtual port ${virtualPortIndex}...`, 'info');
+
+        try {
+            const response = await fetch('/proxy/toggle_forwarding', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ virtual_port_index: virtualPortIndex, enable: enable }),
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                this.showStatus(`✅ Forwarding ${enable ? 'enabled' : 'disabled'} for virtual port ${virtualPortIndex}`, 'success');
+                this.toggleForwardingButton.textContent = enable ? 'Disable Forwarding' : 'Enable Forwarding';
+            } else {
+                this.showStatus(`❌ Failed to toggle forwarding: ${result.message}`, 'error');
+            }
+        } catch (error) {
+            this.showStatus(`🔌 Error toggling forwarding: ${error}`, 'error');
+            console.error('Error toggling forwarding:', error);
         }
     }
 }

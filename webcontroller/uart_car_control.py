@@ -13,6 +13,7 @@ import platform
 import subprocess
 import shutil
 from pathlib import Path
+from serial_proxy.uart_proxy import UartProxy
 
 # USB通信帧
 USB_FRAME_HEAD = 0x42
@@ -66,6 +67,9 @@ current_camera_width = CAMERA_DEFAULT_WIDTH
 current_camera_height = CAMERA_DEFAULT_HEIGHT
 current_camera_fps = CAMERA_DEFAULT_FPS
 current_camera_quality = CAMERA_DEFAULT_QUALITY
+
+# Initialize UART proxy
+uart_proxy = None
 
 app = Flask(__name__)
 
@@ -577,7 +581,7 @@ def serial_disconnect_route():
 @app.route('/camera/status')
 def camera_status():
     """Get camera streaming status"""
-    global camera_running, camera
+    global camera_running, camera 
     
     status = {
         'running': camera_running,
@@ -594,6 +598,40 @@ def camera_status():
     }
     
     return jsonify(status)
+
+@app.route('/proxy/init', methods=['POST'])
+def init_uart_proxy():
+    """Initialize UART proxy."""
+    global uart_proxy
+    data = request.get_json()
+    physical_port = data.get('physical_port', SERIAL_PORT)
+    baud_rate = data.get('baud_rate', BAUD_RATE)
+    num_ports = data.get('num_ports', 2)
+    prefix = data.get('prefix', 'ttyPX')
+
+    if uart_proxy is None:
+        uart_proxy = UartProxy(physical_port, baud_rate, num_ports, prefix)
+        threading.Thread(target=uart_proxy.start, daemon=True).start()
+        return jsonify({'success': True, 'message': 'UART proxy initialized'})
+    else:
+        return jsonify({'success': False, 'message': 'UART proxy already running'})
+
+@app.route('/proxy/toggle_forwarding', methods=['POST'])
+def toggle_forwarding():
+    """Toggle forwarding for a virtual port."""
+    global uart_proxy
+    if uart_proxy is None:
+        return jsonify({'success': False, 'message': 'UART proxy not initialized'})
+
+    data = request.get_json()
+    virtual_port_index = data.get('virtual_port_index')
+    enable = data.get('enable', True)
+
+    if virtual_port_index is None:
+        return jsonify({'success': False, 'message': 'Missing virtual_port_index'})
+
+    uart_proxy.toggle_forwarding(virtual_port_index, enable)
+    return jsonify({'success': True, 'message': f'Forwarding {"enabled" if enable else "disabled"} for virtual port {virtual_port_index}'})
 
 if __name__ == '__main__':
     print(f"Starting application on {platform.system()}")

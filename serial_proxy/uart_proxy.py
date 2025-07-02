@@ -130,6 +130,16 @@ class UartProxy:
             # 确保即使物理端口线程异常退出，也能执行清理
             self._cleanup()
 
+    def toggle_forwarding(self, virtual_port_index, enable):
+        """
+        切换虚拟端口是否转发到物理端口。
+        """
+        if 0 <= virtual_port_index < len(self.virtual_clients):
+            self.virtual_clients[virtual_port_index].set_forwarding(enable)
+            logging.info(f"虚拟端口 {virtual_port_index} 转发 {'启用' if enable else '禁用'}")
+        else:
+            logging.warning(f"无效的虚拟端口索引: {virtual_port_index}")
+
 class PhysicalPortHandler:
     """
     处理物理串口的读写。
@@ -189,6 +199,11 @@ class VirtualPortHandler:
         self.slave_name = slave_name
         self.send_queue = send_queue
         self.shutdown_event = shutdown_event
+        self.forwarding_enabled = True
+
+    def set_forwarding(self, enable):
+        """设置是否启用转发到物理端口。"""
+        self.forwarding_enabled = enable
 
     def run(self):
         logging.info(f"虚拟端口线程启动: {self.slave_name}")
@@ -201,7 +216,8 @@ class VirtualPortHandler:
                     data_from_virtual = os.read(self.master_fd, 1024)
                     if data_from_virtual:
                         logging.debug(f"从 {self.slave_name} 收到: {data_from_virtual!r}")
-                        self.send_queue.put(data_from_virtual)
+                        if self.forwarding_enabled:
+                            self.send_queue.put(data_from_virtual)
             except OSError as e:
                 logging.error(f"虚拟端口 {self.slave_name} 发生错误: {e}")
                 break # 出现IO错误，退出线程

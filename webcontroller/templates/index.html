@@ -248,7 +248,7 @@
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                         <svg class="w-6 h-6 mr-2 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 5a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
                         </svg>
                         系统状态
                     </h2>
@@ -270,6 +270,29 @@
                         </div>
                     </div>
                 </div>
+                <!-- 虚拟端口转发控制卡片 -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h12v10H4V5zm2 2a1 1 0 100 2 1 1 0 000-2zm2 1a1 1 0 112 0 1 1 0 01-2 0zm4-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
+                        </svg>
+                        虚拟端口转发控制
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">虚拟端口索引</label>
+                            <input type="number" id="virtualPortIndexInput" value="0" min="0" max="10" step="1"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-600">
+                        </div>
+                        <button id="toggleForwardingButton"
+                                class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-colors mt-6">
+                            Enable Forwarding
+                        </button>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500">
+                        用于切换虚拟串口数据转发功能。选择端口索引后点击按钮启用/禁用转发。
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -281,6 +304,57 @@
         </div>
     </footer>
 
+    <!-- WASD Control Settings Card -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-9a7 7 0 110 14A7 7 0 019 4zm0 2a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
+                </svg>
+                WASD 键控制设置
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">W (前进)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="wasdWSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                        <input type="number" id="wasdWServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">S (后退)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="wasdSSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                        <input type="number" id="wasdSServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">A (左转)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="wasdASpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                        <input type="number" id="wasdAServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">D (右转)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="wasdDSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                        <input type="number" id="wasdDServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
+                </div>
+            </div>
+            <button id="saveWASDButton" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold transition-colors">
+                保存 WASD 设置
+            </button>
+            <div class="text-xs text-gray-400 mt-2">
+                按下 W/A/S/D 键将根据此处设置控制车辆。速度范围 -1~1，舵机为 PWM 值。
+            </div>
+        </div>
+    </div>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
