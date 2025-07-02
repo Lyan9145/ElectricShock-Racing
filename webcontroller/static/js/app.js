@@ -83,7 +83,7 @@ class CarControlSystem {
         // Constants from template
         this.UINT16_MIN = parseInt(document.querySelector('[data-uint16-min]')?.dataset.uint16Min) || 0;
         this.UINT16_MAX = parseInt(document.querySelector('[data-uint16-max]')?.dataset.uint16Max) || 65535;
-        this.SERVO_MID_DEFAULT = parseInt(document.querySelector('[data-servo-mid]')?.dataset.servoMid) || 4000;
+        this.SERVO_MID_DEFAULT = parseInt(document.querySelector('[data-servo-mid]')?.dataset.servoMid) || 5000;
         
         // Current state
         this.currentServoMinSlider = parseInt(this.servoMinPwmInput.value);
