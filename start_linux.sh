@@ -41,10 +41,13 @@ if [ ! -w /dev/ttyUSB0 ]; then
 fi
 
 echo ""
-echo "Starting car control system..."
+echo "Starting car control system in a detached screen session..."
 echo "Access the web interface at: http://localhost:5000"
 echo "Or from other devices at: http://$(hostname -I | awk '{print $1}'):5000"
 echo ""
+echo "To view the running session: screen -r car_control"
+echo "To detach: Ctrl+A then D"
+echo ""
 
-# cd webcontroller
-python3 webcontroller/uart_car_control.py
+# Start the server in a detached screen session named 'car_control'
+screen -dmS car_control python3 webcontroller/uart_car_control.py

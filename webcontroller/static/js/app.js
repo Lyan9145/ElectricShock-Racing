@@ -272,7 +272,12 @@ class CarControlSystem {
     handleEmergencyStop() {
         // Immediately stop any continuous sending
         if (this.continuousSendTimerId) this.toggleContinuousSend();
-        
+
+        // turn off uart proxy
+        if (this.toggleForwardingButton.textContent.includes('Enable')) {
+            this.toggleForwardingButton.click();
+        }
+
         // Set speed to 0 immediately
         this.updateSpeedControls(0.0);
         
