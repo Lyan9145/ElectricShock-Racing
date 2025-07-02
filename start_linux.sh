@@ -46,5 +46,5 @@ echo "Access the web interface at: http://localhost:5000"
 echo "Or from other devices at: http://$(hostname -I | awk '{print $1}'):5000"
 echo ""
 
-cd webcontroller
-python3 uart_car_control.py
+# cd webcontroller
+python3 webcontroller/uart_car_control.py
