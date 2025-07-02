@@ -62,6 +62,8 @@ class CarControlSystem {
         // Virtual port controls
         this.virtualPortIndexInput = document.getElementById('virtualPortIndexInput');
         this.toggleForwardingButton = document.getElementById('toggleForwardingButton');
+        // 新增：初始化UART Proxy按钮
+        this.initUartProxyButton = document.getElementById('initUartProxyButton');
         
         // WASD settings
         this.wasdWSpeedInput = document.getElementById('wasdWSpeedInput');
@@ -126,6 +128,10 @@ class CarControlSystem {
         
         // Virtual port forwarding
         this.toggleForwardingButton.addEventListener('click', () => this.toggleForwarding());
+        // 新增：初始化UART Proxy按钮事件
+        if (this.initUartProxyButton) {
+            this.initUartProxyButton.addEventListener('click', () => this.initUartProxy());
+        }
         
         // WASD settings save
         if (this.saveWASDButton) {
@@ -582,6 +588,25 @@ class CarControlSystem {
         } catch (error) {
             this.showStatus(`🔌 Error toggling forwarding: ${error}`, 'error');
             console.error('Error toggling forwarding:', error);
+        }
+    }    // 新增：初始化UART Proxy方法
+    async initUartProxy() {
+        this.showStatus('🔌 正在初始化 UART Proxy...', 'info');
+        try {
+            const response = await fetch('/proxy/init', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}) // 可根据需要添加参数
+            });
+            const result = await response.json();
+            if (result.success) {
+                this.showStatus('✅ UART Proxy 初始化成功', 'success');
+            } else {
+                this.showStatus(`❌ UART Proxy 初始化失败: ${result.message}`, 'error');
+            }
+        } catch (error) {
+            this.showStatus(`🔌 UART Proxy 初始化异常: ${error}`, 'error');
+            console.error('UART Proxy init error:', error);
         }
     }
 }
