@@ -274,8 +274,8 @@ class CarControlSystem {
         if (this.continuousSendTimerId) this.toggleContinuousSend();
 
         // turn off uart proxy
-        if (this.toggleForwardingButton.textContent.includes('Enable')) {
-            this.toggleForwardingButton.click();
+        if (this.toggleForwardingButton.textContent.includes('Disable')) {
+            this.toggleForwarding();
         }
 
         // Set speed to 0 immediately
