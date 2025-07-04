@@ -138,7 +138,7 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
       ipts0_num = y1 + (ROWSIMAGE - _config.track_row_begin);
       findline_lefthand_adaptive(imagePath, BLOCK_SIZE, CLIP_VALUE,
                                  x1, y1, ipts0, &ipts0_num);
-      begin_x_l = x1 + 50 > IMAGE_WIDTH - 1 ? IMAGE_WIDTH - 1 : x1 + 50;
+      begin_x_l = x1 + 50 > COLSIMAGE - 1 ? COLSIMAGE - 1 : x1 + 50;
     }
     else
     {
@@ -151,17 +151,17 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
     int x2 = begin_x_r, y2 = begin_y_t;
     // 向右寻找白点
     if (imagePath.at<uint8_t>(y2, x2) < _config.threshold)
-      for (x2++; x2 < IMAGE_WIDTH - 1; x2++)
+      for (x2++; x2 < COLSIMAGE - 1; x2++)
         if (imagePath.at<uint8_t>(y2, x2) >= _config.threshold)
           break;
     // 向右寻找黑点
-    for (; x2 < IMAGE_WIDTH - 1; x2++)
+    for (; x2 < COLSIMAGE - 1; x2++)
       if (imagePath.at<uint8_t>(y2, x2 + 1) < _config.threshold)
         break;
     // 向上寻找黑点
-    if (x2 > IMAGE_WIDTH - BLOCK_SIZE / 2 - 1)
+    if (x2 > COLSIMAGE - BLOCK_SIZE / 2 - 1)
     {
-      x2 = IMAGE_WIDTH - BLOCK_SIZE / 2 - 1;
+      x2 = COLSIMAGE - BLOCK_SIZE / 2 - 1;
       for (; y2 > ROWSIMAGE * 2 / 3; y2--)
         if (imagePath.at<uint8_t>(y2 - 1, x2) < _config.threshold)
           break;
@@ -176,7 +176,7 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
     else
     {
       ipts1_num = 0;
-      begin_x_r = IMAGE_WIDTH - _config.track_col_begin;
+      begin_x_r = COLSIMAGE - _config.track_col_begin;
     }
   }
 

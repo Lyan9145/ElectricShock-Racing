@@ -86,8 +86,8 @@ private:
 private:
     bool _is_result = false;  // 是否生成处理后的图像
 
-    float cx = IMAGE_WIDTH / 2.0f;  // 车轮对应点 (纯跟踪起始点)
-    float cy = IMAGE_HEIGHT * 0.99f;
+    float cx = COLSIMAGE / 2.0f;  // 车轮对应点 (纯跟踪起始点)
+    float cy = ROWSIMAGE * 0.99f;
 
     int aim_idx__far = 0;  // 远预锚点位置
     int aim_idx_near = 0;  // 近预锚点位置
@@ -155,28 +155,28 @@ public:
 
 public:
     // 原图左右中线数据定义
-    int ipts0[IMAGE_HEIGHT][2];  // 左: 0
-    int ipts1[IMAGE_HEIGHT][2];  // 右: 1
-    int iptsc[IMAGE_HEIGHT];     // 中: c
+    int ipts0[ROWSIMAGE][2];  // 左: 0
+    int ipts1[ROWSIMAGE][2];  // 右: 1
+    int iptsc[ROWSIMAGE];     // 中: c
     int ipts0_num, ipts1_num, rptsc_num;
     // 透视变换后左右中线  滤波: b
-    float rpts0b[IMAGE_HEIGHT][2];
-    float rpts1b[IMAGE_HEIGHT][2];
-    float rptscb[IMAGE_HEIGHT][2];
+    float rpts0b[ROWSIMAGE][2];
+    float rpts1b[ROWSIMAGE][2];
+    float rptscb[ROWSIMAGE][2];
     // 透视变换后左右中线  等距采样: s
-    float rpts0s[IMAGE_HEIGHT][2];
-    float rpts1s[IMAGE_HEIGHT][2];
-    float rptscs[IMAGE_HEIGHT][2];
+    float rpts0s[ROWSIMAGE][2];
+    float rpts1s[ROWSIMAGE][2];
+    float rptscs[ROWSIMAGE][2];
     int rpts0s_num, rpts1s_num, rptscs_num;
     // 左右边线局部角度变化率: a
-    float rpts0a[IMAGE_HEIGHT];
-    float rpts1a[IMAGE_HEIGHT];
+    float rpts0a[ROWSIMAGE];
+    float rpts1a[ROWSIMAGE];
     // 左右边线局部角度变化率非极大抑制: an
-    float rpts0an[IMAGE_HEIGHT];
-    float rpts1an[IMAGE_HEIGHT];
+    float rpts0an[ROWSIMAGE];
+    float rpts1an[ROWSIMAGE];
     // 左右边线偏移中线: c
-    float rptsc0[IMAGE_HEIGHT][2];
-    float rptsc1[IMAGE_HEIGHT][2];
+    float rptsc0[ROWSIMAGE][2];
+    float rptsc1[ROWSIMAGE][2];
     int rptsc0_num, rptsc1_num;
 
 private:
@@ -184,7 +184,7 @@ private:
     float (*rpts)[2];
     int rpts_num;
     // 归一化中线
-    float rptsn[IMAGE_HEIGHT][2];
+    float rptsn[ROWSIMAGE][2];
     int rptsn_num;
 
     // 透视变换临时变量
