@@ -107,6 +107,8 @@ private:
     const int dir_front[4][2] = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
     const int dir_frontleft[4][2] = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
     const int dir_frontright[4][2] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+    int track_row_begin = 190;  // 巡线纵坐标起点
+    int track_col_begin = 120;  // 巡线横坐标起点
 
 public:
     int begin_x_l;                // 巡线横坐标起始点 左

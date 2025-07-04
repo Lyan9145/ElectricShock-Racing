@@ -340,25 +340,25 @@ void Tracking::trackRecognition_new(Mat &imageBinary)
     {
         int x1 = begin_x_l, y1 = begin_y_t;
         // 向左寻找白点
-        if (imagePath.at<uint8_t>(y1, x1) < _threshold)
+        if (imagePath.at<uint8_t>(y1, x1) < threshold)
             for (x1--; x1 > 0; x1--)
-                if (imagePath.at<uint8_t>(y1, x1) >= _threshold)
+                if (imagePath.at<uint8_t>(y1, x1) >= threshold)
                     break;
         // 向左寻找黑点
         for (; x1 > 0; x1--)
-            if (imagePath.at<uint8_t>(y1, x1 - 1) < _threshold)
+            if (imagePath.at<uint8_t>(y1, x1 - 1) < threshold)
                 break;
         // 向上寻找黑点
         if (x1 < BLOCK_SIZE / 2)
         {
             x1 = BLOCK_SIZE / 2;
             for (; y1 > ROWSIMAGE * 2 / 3; y1--)
-                if (imagePath.at<uint8_t>(y1 - 1, x1) < _threshold)
+                if (imagePath.at<uint8_t>(y1 - 1, x1) < threshold)
                     break;
         }
-        if (imagePath.at<uint8_t>(y1, x1) >= _threshold)
+        if (imagePath.at<uint8_t>(y1, x1) >= threshold)
         {
-            ipts0_num = y1 + (ROWSIMAGE - _config.track_row_begin);
+            ipts0_num = y1 + (ROWSIMAGE - track_row_begin);
             findline_lefthand_adaptive(imagePath, BLOCK_SIZE, CLIP_VALUE,
                                        x1, y1, ipts0, &ipts0_num);
             begin_x_l = x1 + 50 > COLSIMAGE - 1 ? COLSIMAGE - 1 : x1 + 50;
@@ -366,32 +366,32 @@ void Tracking::trackRecognition_new(Mat &imageBinary)
         else
         {
             ipts0_num = 0;
-            begin_x_l = _threshold;
+            begin_x_l = threshold;
         }
     }
     // 原图找右边线 -------------------------------------------------------
     {
         int x2 = begin_x_r, y2 = begin_y_t;
         // 向右寻找白点
-        if (imagePath.at<uint8_t>(y2, x2) < _threshold)
+        if (imagePath.at<uint8_t>(y2, x2) < threshold)
             for (x2++; x2 < COLSIMAGE - 1; x2++)
-                if (imagePath.at<uint8_t>(y2, x2) >= _threshold)
+                if (imagePath.at<uint8_t>(y2, x2) >= threshold)
                     break;
         // 向右寻找黑点
         for (; x2 < COLSIMAGE - 1; x2++)
-            if (imagePath.at<uint8_t>(y2, x2 + 1) < _threshold)
+            if (imagePath.at<uint8_t>(y2, x2 + 1) < threshold)
                 break;
         // 向上寻找黑点
         if (x2 > COLSIMAGE - BLOCK_SIZE / 2 - 1)
         {
             x2 = COLSIMAGE - BLOCK_SIZE / 2 - 1;
             for (; y2 > ROWSIMAGE * 2 / 3; y2--)
-                if (imagePath.at<uint8_t>(y2 - 1, x2) < _threshold)
+                if (imagePath.at<uint8_t>(y2 - 1, x2) < threshold)
                     break;
         }
-        if (imagePath.at<uint8_t>(y2, x2) >= _threshold)
+        if (imagePath.at<uint8_t>(y2, x2) >= threshold)
         {
-            ipts1_num = y2 + (ROWSIMAGE - _config.track_row_begin);
+            ipts1_num = y2 + (ROWSIMAGE - track_row_begin);
             findline_righthand_adaptive(imagePath, BLOCK_SIZE, CLIP_VALUE,
                                         x2, y2, ipts1, &ipts1_num);
             begin_x_r = x2 - 50 < 0 ? 0 : x2 - 50;
@@ -399,16 +399,16 @@ void Tracking::trackRecognition_new(Mat &imageBinary)
         else
         {
             ipts1_num = 0;
-            begin_x_r = COLSIMAGE - _config.track_col_begin;
+            begin_x_r = COLSIMAGE - track_col_begin;
         }
     }
     // 变换后左右中线
-    float rpts0[IMAGE_HEIGHT][2] = {0};
-    float rpts1[IMAGE_HEIGHT][2] = {0};
-    float rptsc[IMAGE_HEIGHT][2] = {0};
+    float rpts0[ROWSIMAGE][2] = {0};
+    float rpts1[ROWSIMAGE][2] = {0};
+    float rptsc[ROWSIMAGE][2] = {0};
     // 原图边线转换数据定义
-    int iptsc0[IMAGE_HEIGHT] = {0};
-    int iptsc1[IMAGE_HEIGHT] = {0};
+    int iptsc0[ROWSIMAGE] = {0};
+    int iptsc1[ROWSIMAGE] = {0};
 
     // 原图边线 -> 透视边线 左
     rptsc_num = 0;
@@ -420,7 +420,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary)
             break;
 
         // _imgprocess.mapPerspective(ipts0[i][0], ipts0[i][1], rpts0[i], 0);
-        // iptsc0[ipts0[i][1]] = ipts0[i][0];
+        // iptsc0[ipts0[i][1]] = ipts0[i][0]; 
 
         // 注意: x 与 y 位置相反 !!!
         POINT pointTmp(ipts0[i][1], ipts0[i][0]);
@@ -445,22 +445,22 @@ void Tracking::trackRecognition_new(Mat &imageBinary)
     ipts1_num = rptsc_num;
 
     // 中线获取 图像顶部10个像素丢弃
-    rptsc_num = 0;
-    for (int ccy = ROWSIMAGE - 1; ccy >= 10; ccy--)
-    {
-        iptsc[ccy] = iptsc0[ccy] + iptsc1[ccy];
+    // rptsc_num = 0;
+    // for (int ccy = ROWSIMAGE - 1; ccy >= 10; ccy--)
+    // {
+    //     iptsc[ccy] = iptsc0[ccy] + iptsc1[ccy];
 
-        if (iptsc[ccy] != 0) // 中线存在
-        {
-            if (iptsc1[ccy] == 0) // 右边线不存在
-                iptsc[ccy] = (int)((COLSIMAGE - iptsc[ccy]) / 2 + iptsc[ccy]); // 右边线不存在，取左边线的中点
-            else
-                iptsc[ccy] = (int)(iptsc[ccy] / 2); // 中线为左右边线的中点
+    //     if (iptsc[ccy] != 0) // 中线存在
+    //     {
+    //         if (iptsc1[ccy] == 0) // 右边线不存在
+    //             iptsc[ccy] = (int)((COLSIMAGE - iptsc[ccy]) / 2 + iptsc[ccy]); // 右边线不存在，取左边线的中点
+    //         else
+    //             iptsc[ccy] = (int)(iptsc[ccy] / 2); // 中线为左右边线的中点
 
-            // 原图中线 -> 透视中线
-            // _imgprocess.mapPerspective(iptsc[ccy], ccy, rptsc[rptsc_num++], 0);
-        }
-    }
+    //         // 原图中线 -> 透视中线
+    //         // _imgprocess.mapPerspective(iptsc[ccy], ccy, rptsc[rptsc_num++], 0);
+    //     }
+    // }
 
 }
 
