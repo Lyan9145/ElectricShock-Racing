@@ -296,6 +296,8 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
 			tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 			tracking.trackRecognition(imgBinary);
+			tracking.trackRecognition_new(imgBinary);
+			tracking.drawImage(src.img); // 绘制赛道识别结果
 	
 			//[05] 停车区检测
 			if (motion.params.stop)

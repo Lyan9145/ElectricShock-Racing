@@ -63,6 +63,7 @@ public:
                                               int x, int y, int pts[][2], int *num);
     void findline_righthand_adaptive(cv::Mat img, int block_size, int clip_value,
                                                int x, int y, int pts[][2], int *num);
+    void trackRecognition_new(Mat &imageBinary);
 
 private:
     Mat imagePath; // 赛道搜索图像
@@ -123,6 +124,8 @@ public:
     int element_begin_id = 0;         // 特殊元素中线起始点
     int element_over_route = 0;  // 元素结束路程
     bool element_over = false;         // 元素结束标志
+
+    int threshold = 120;
 
 public:
     std::vector<POINT> edge_det;        // AI元素检测边缘点集
