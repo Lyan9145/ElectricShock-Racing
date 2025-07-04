@@ -59,9 +59,9 @@ public:
     void trackRecognition(Mat &imageBinary);
     void drawImage(Mat &trackImage);
     double stdevEdgeCal(vector<POINT> &v_edge, int img_height);
-    void Tracking::findline_lefthand_adaptive(cv::Mat img, int block_size, int clip_value,
+    void findline_lefthand_adaptive(cv::Mat img, int block_size, int clip_value,
                                               int x, int y, int pts[][2], int *num);
-    void Tracking::findline_righthand_adaptive(cv::Mat img, int block_size, int clip_value,
+    void findline_righthand_adaptive(cv::Mat img, int block_size, int clip_value,
                                                int x, int y, int pts[][2], int *num);
 
 private:

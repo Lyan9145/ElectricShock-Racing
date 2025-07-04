@@ -129,13 +129,13 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
     if (x1 < BLOCK_SIZE / 2)
     {
       x1 = BLOCK_SIZE / 2;
-      for (; y1 > IMAGE_HEIGHT * 2 / 3; y1--)
+      for (; y1 > ROWSIMAGE * 2 / 3; y1--)
         if (imagePath.at<uint8_t>(y1 - 1, x1) < _config.threshold)
           break;
     }
     if (imagePath.at<uint8_t>(y1, x1) >= _config.threshold)
     {
-      ipts0_num = y1 + (IMAGE_HEIGHT - _config.track_row_begin);
+      ipts0_num = y1 + (ROWSIMAGE - _config.track_row_begin);
       findline_lefthand_adaptive(imagePath, BLOCK_SIZE, CLIP_VALUE,
                                  x1, y1, ipts0, &ipts0_num);
       begin_x_l = x1 + 50 > IMAGE_WIDTH - 1 ? IMAGE_WIDTH - 1 : x1 + 50;
@@ -162,13 +162,13 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
     if (x2 > IMAGE_WIDTH - BLOCK_SIZE / 2 - 1)
     {
       x2 = IMAGE_WIDTH - BLOCK_SIZE / 2 - 1;
-      for (; y2 > IMAGE_HEIGHT * 2 / 3; y2--)
+      for (; y2 > ROWSIMAGE * 2 / 3; y2--)
         if (imagePath.at<uint8_t>(y2 - 1, x2) < _config.threshold)
           break;
     }
     if (imagePath.at<uint8_t>(y2, x2) >= _config.threshold)
     {
-      ipts1_num = y2 + (IMAGE_HEIGHT - _config.track_row_begin);
+      ipts1_num = y2 + (ROWSIMAGE - _config.track_row_begin);
       findline_righthand_adaptive(imagePath, BLOCK_SIZE, CLIP_VALUE,
                                   x2, y2, ipts1, &ipts1_num);
       begin_x_r = x2 - 50 < 0 ? 0 : x2 - 50;
