@@ -194,4 +194,35 @@ private:
 
     // 透视变换临时变量
     float trans[2];
+        enum TrackState {
+        TRACK_LEFT,
+        TRACK_MIDDLE,
+        TRACK_RIGHT
+    };
+
+std::vector<std::string> element_string = {
+    "STANDARD",
+    "GARAGE",
+    "RAMP",
+    "RESCUE",
+    "CIRCLE",
+    "CROSS",
+    "DANGER"
+};
+enum ElementState {
+    STANDARD,
+    GARAGE,
+    RAMP,
+    RESCUE,
+    CIRCLE,
+    CROSS,
+    DANGER
+};
+TrackState track_state = TrackState::TRACK_MIDDLE;
+ElementState elem_state = ElementState::GARAGE;
+
+cv::Mat bin_img;
+
+bool flag_elem_over = true;
+int elem_over_cnt = 0;
 };

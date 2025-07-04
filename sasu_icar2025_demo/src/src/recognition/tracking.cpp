@@ -336,6 +336,23 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
 void Tracking::trackRecognition_new(Mat &imageBinary)
 {
     imagePath = imageBinary;
+// start
+    begin_y_t = track_row_begin;
+    if (elem_state != ElementState::GARAGE && 
+    (!(is_curve0 && track_state == TrackState::TRACK_LEFT) && 
+    !(is_curve1 && track_state == TrackState::TRACK_RIGHT))) {
+        int black_sum = 0;
+        for (int i = 100; i < IMAGE_WIDTH - 100; i++) {
+            if ((bin_img.at<uint8_t>(begin_y_t, i)) < threshold)
+                black_sum++;
+        }
+        if (black_sum > 10) {
+            begin_y_t = track_col_begin - 50;
+            begin_x_l = begin_x_l + 50 > track_row_begin - 1 ? track_row_begin - 1 : begin_x_l + 50;
+            begin_x_r = begin_x_r - 50 < 0 ? 0 : begin_x_r - 50;
+        }
+    }
+
     // 原图找左边线 -------------------------------------------------------
     {
         int x1 = begin_x_l, y1 = begin_y_t;
