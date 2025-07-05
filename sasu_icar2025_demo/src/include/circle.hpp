@@ -30,4 +30,3 @@ public:
         bool &Lpt0_found, int &ipts0_num, int &rptsc0_num, int &Lpt0_rpts0s_id);
 };
 
-#endif //_CIRCLE_H_
