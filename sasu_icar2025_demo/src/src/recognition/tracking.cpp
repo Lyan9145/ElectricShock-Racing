@@ -801,7 +801,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     } else if (elem_state == Scene::CrossScene) {
         int ret_state = cross.run_cross(Lpt0_found, Lpt1_found, rpts1s_num,
             rpts0s_num, ipts0_num, rptsc0_num, Lpt0_rpts0s_id, 
-            ipts1_num, rptsc1_num, Lpt0_rpts0s_id, this->bin_img,
+            ipts1_num, rptsc1_num, Lpt0_rpts0s_id, imagePath,
             rpts0s, rpts1s);
         ++cross.cross_route;
         // std::cout << cross.flag_cross << std::endl;

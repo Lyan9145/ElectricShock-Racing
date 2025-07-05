@@ -95,7 +95,7 @@ string sceneToString(Scene scene)
     {
     case Scene::NormalScene:
         return "Normal";
-    case Scene::CrossSceneScene:
+    case Scene::CrossScene:
         return "Crossroad";
     case Scene::RingScene:
         return "Ring";
