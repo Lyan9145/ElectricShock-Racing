@@ -233,8 +233,6 @@ private:
     TrackState track_state = TrackState::TRACK_MIDDLE;
     Scene elem_state = Scene::NormalScene;
 
-    cv::Mat bin_img;
-
     bool flag_elem_over = true;
     int elem_over_cnt = 0;
 };
