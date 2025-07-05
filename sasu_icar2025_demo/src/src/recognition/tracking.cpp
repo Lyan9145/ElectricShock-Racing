@@ -352,6 +352,9 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             begin_x_r = begin_x_r - 50 < 0 ? 0 : begin_x_r - 50;
         }
     }
+    cout << "> begin_y_t: " << begin_y_t << endl;
+    cout << "> begin_x_l: " << begin_x_l << endl;
+    cout << "> begin_x_r: " << begin_x_r << endl;
 
     // 原图找左边线 -------------------------------------------------------
     {
