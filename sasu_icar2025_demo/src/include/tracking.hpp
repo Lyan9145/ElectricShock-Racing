@@ -29,6 +29,8 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include "imgprocess.hpp"
+#include "circle.hpp"
+#include "cross.hpp"
 
 using namespace cv;
 using namespace std;
@@ -36,6 +38,10 @@ using namespace std;
 class Tracking
 {
 public:
+    ImageProcess _imgprocess;
+    Circle circle;
+    Cross cross;
+
     vector<POINT> pointsEdgeLeft;     // 赛道左边缘点集
     vector<POINT> pointsEdgeRight;    // 赛道右边缘点集
     vector<POINT> widthBlock;         // 色块宽度=终-起（每行）
