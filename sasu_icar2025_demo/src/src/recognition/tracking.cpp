@@ -705,132 +705,125 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     /* ***************************************************************** */
     // TODO: 元素检测需要适配
 
-    // if (!flag_elem_over) {
-    //     ++elem_over_cnt;
-    // }
-    // if (elem_over_cnt >= 80) {
-    //     flag_elem_over = true;
-    //     elem_over_cnt = 0;
-    // }
+    if (!flag_elem_over) {
+        ++elem_over_cnt;
+    }
+    if (elem_over_cnt >= 80) {
+        flag_elem_over = true;
+        elem_over_cnt = 0;
+    }
 
-    // // 正常巡线下查找特殊元素
-    // if (elem_state == Scene::NormalScene && flag_elem_over) {
-    //     // auto signs = find_sign.findSigns(src_img, _config);
-    //     // find_sign.sign_classify(signs);
+    // 正常巡线下查找特殊元素
+    if (elem_state == Scene::NormalScene && flag_elem_over) {
+        // auto signs = find_sign.findSigns(src_img, _config);
+        // find_sign.sign_classify(signs);
 
 
 
-    //     // 十字
-    //     if (garage.flag_garage == Garage::GARAGE_NONE && 
-    //      danger.flag_danger == Danger::DANGER_NONE && 
-    //      ramp.flag_ramp == Ramp::RAMP_NONE && 
-    //      rescue.flag_rescue == Rescue::RESCUE_NONE) {
-    //         cross.check_cross(Lpt0_found, Lpt1_found, rpts1s_num, rpts0s_num, is_curve0, is_curve1);
-    //         if (cross.flag_cross != Cross::flag_cross_e::CROSS_NONE) {
-    //             elem_state = Scene::CROSS;
-    //         } else {
-    //             elem_state = Scene::STANDARD;
-    //         }
-    //     }
+        // 十字
+        if (elem_state == Scene::NormalScene && flag_elem_over) {
+            cross.check_cross(Lpt0_found, Lpt1_found, rpts1s_num, rpts0s_num, is_curve0, is_curve1);
+            if (cross.flag_cross != Cross::flag_cross_e::CROSS_NONE) {
+                elem_state = Scene::CrossScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
 
-    //     // 圆环
-    //     if (garage.flag_garage == Garage::GARAGE_NONE && 
-    //      cross.flag_cross == Cross::CROSS_NONE && 
-    //      danger.flag_danger == Danger::DANGER_NONE && 
-    //      ramp.flag_ramp == Ramp::RAMP_NONE && 
-    //      rescue.flag_rescue == Rescue::RESCUE_NONE) {
-    //         circle.check_circle(Lpt0_found, Lpt1_found, is_straight1, is_straight0);
-    //         if (circle.flag_circle != Circle::flag_circle_e::CIRCLE_NONE) {
-    //             elem_state = Scene::CIRCLE;
-    //         } else {
-    //             elem_state = Scene::STANDARD;
-    //         }
-    //     }
-    // }
+        // 圆环
+        if (elem_state == Scene::NormalScene && flag_elem_over) {
+            circle.check_circle(Lpt0_found, Lpt1_found, is_straight1, is_straight0);
+            if (circle.flag_circle != Circle::flag_circle_e::CIRCLE_NONE) {
+                elem_state = Scene::RingScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
+    }
 
     // 行车线处理 TODO：进行适配
     // if (elem_state == Scene::GARAGE) {
     //     garage.run_garage(predict_result);
     //     track_state = TrackState::TRACK_MIDDLE;
     //     if (garage.flag_garage == Garage::flag_garage_e::GARAGE_NONE) {
-    //         elem_state = Scene::STANDARD;
+    //         elem_state = Scene::NormalScene;
     //         flag_elem_over = false;
     //     }
-    // } else if (elem_state == Scene::RAMP) {
+    // } else if (elem_state == Scene::BridgeScene) {
     //     ramp.run_ramp();
     //     if (ramp.flag_ramp == Ramp::flag_ramp_e::RAMP_NONE) {
-    //         elem_state = Scene::STANDARD;
+    //         elem_state = Scene::NormalScene;
     //         flag_elem_over = false;
     //     } else {
     //         track_state = TrackState::TRACK_MIDDLE;
     //     }
 
-    // } else if (elem_state == Scene::CIRCLE) {
-    //     circle.run_circle(rpts0s_num, rpts1s_num, Lpt1_found, 
-    //         ipts1_num, rptsc1_num, Lpt1_rpts1s_id, Lpt0_found, 
-    //         ipts0_num, rptsc0_num, Lpt0_rpts0s_id);
-    //     ++circle.circle_route;
-    //     // std::cout << circle.flag_circle << std::endl;
-    //     switch (circle.flag_circle) {
-    //         case Circle::flag_circle_e::CIRCLE_LEFT_BEGIN:
-    //             track_state = TrackState::TRACK_RIGHT;
-    //             break;
-    //         case Circle::flag_circle_e::CIRCLE_LEFT_IN:
-    //             track_state = TrackState::TRACK_LEFT;
-    //             break;
-    //         case Circle::flag_circle_e::CIRCLE_LEFT_RUNNING:
-    //             track_state = TrackState::TRACK_RIGHT;
-	// 	break;
-    //         case Circle::flag_circle_e::CIRCLE_LEFT_OUT:
-    //             track_state = TrackState::TRACK_LEFT;
-    //             break;
-    //         case Circle::flag_circle_e::CIRCLE_RIGHT_BEGIN:
-    //             track_state = TrackState::TRACK_LEFT;
-    //             break;
-    //         case Circle::flag_circle_e::CIRCLE_RIGHT_IN:
-    //             track_state = TrackState::TRACK_RIGHT;
-    //             break;
-    //         case Circle::flag_circle_e::CIRCLE_RIGHT_RUNNING:
-    //             track_state = TrackState::TRACK_LEFT;
-    //             break;
-    //         case Circle::flag_circle_e::CIRCLE_RIGHT_OUT:
-    //             track_state = TrackState::TRACK_RIGHT;
-    //             break;
-    //         default:
-    //             track_state = TrackState::TRACK_MIDDLE;
-    //             break;
-    //     }
-    //     if (circle.flag_circle == Circle::flag_circle_e::CIRCLE_NONE) {
-    //         elem_state = Scene::STANDARD;
-    //         circle.circle_route = 0;
-    //         flag_elem_over = false;
-    //     }
-    // } else if (elem_state == Scene::CROSS) {
-    //     int ret_state = cross.run_cross(Lpt0_found, Lpt1_found, rpts1s_num,
-    //         rpts0s_num, ipts0_num, rptsc0_num, Lpt0_rpts0s_id, 
-    //         ipts1_num, rptsc1_num, Lpt0_rpts0s_id, this->bin_img,
-    //         rpts0s, rpts1s);
-    //     ++cross.cross_route;
-    //     // std::cout << cross.flag_cross << std::endl;
-    //     switch (ret_state) {
-    //         case 0:
-    //             track_state = TrackState::TRACK_LEFT;
-    //             break;
-    //         case 1:
-    //             track_state = TrackState::TRACK_RIGHT;
-    //             break;
-    //         default:
-    //             track_state = TrackState::TRACK_MIDDLE;
-    //             break;
-    //     }
-    //     if (cross.flag_cross == Cross::flag_cross_e::CROSS_NONE) {
-    //         elem_state = Scene::STANDARD;
-    //         cross.cross_route = 0;
-    //         flag_elem_over = false;
-    //     }
-    // } else {
-    //     elem_state = Scene::STANDARD;
-    // }
+    if (elem_state == Scene::RingScene) {
+        circle.run_circle(rpts0s_num, rpts1s_num, Lpt1_found, 
+            ipts1_num, rptsc1_num, Lpt1_rpts1s_id, Lpt0_found, 
+            ipts0_num, rptsc0_num, Lpt0_rpts0s_id);
+        ++circle.circle_route;
+        // std::cout << circle.flag_circle << std::endl;
+        switch (circle.flag_circle) {
+            case Circle::flag_circle_e::CIRCLE_LEFT_BEGIN:
+                track_state = TrackState::TRACK_RIGHT;
+                break;
+            case Circle::flag_circle_e::CIRCLE_LEFT_IN:
+                track_state = TrackState::TRACK_LEFT;
+                break;
+            case Circle::flag_circle_e::CIRCLE_LEFT_RUNNING:
+                track_state = TrackState::TRACK_RIGHT;
+		break;
+            case Circle::flag_circle_e::CIRCLE_LEFT_OUT:
+                track_state = TrackState::TRACK_LEFT;
+                break;
+            case Circle::flag_circle_e::CIRCLE_RIGHT_BEGIN:
+                track_state = TrackState::TRACK_LEFT;
+                break;
+            case Circle::flag_circle_e::CIRCLE_RIGHT_IN:
+                track_state = TrackState::TRACK_RIGHT;
+                break;
+            case Circle::flag_circle_e::CIRCLE_RIGHT_RUNNING:
+                track_state = TrackState::TRACK_LEFT;
+                break;
+            case Circle::flag_circle_e::CIRCLE_RIGHT_OUT:
+                track_state = TrackState::TRACK_RIGHT;
+                break;
+            default:
+                track_state = TrackState::TRACK_MIDDLE;
+                break;
+        }
+        if (circle.flag_circle == Circle::flag_circle_e::CIRCLE_NONE) {
+            elem_state = Scene::NormalScene;
+            circle.circle_route = 0;
+            flag_elem_over = false;
+        }
+    } else if (elem_state == Scene::CrossScene) {
+        int ret_state = cross.run_cross(Lpt0_found, Lpt1_found, rpts1s_num,
+            rpts0s_num, ipts0_num, rptsc0_num, Lpt0_rpts0s_id, 
+            ipts1_num, rptsc1_num, Lpt0_rpts0s_id, this->bin_img,
+            rpts0s, rpts1s);
+        ++cross.cross_route;
+        // std::cout << cross.flag_cross << std::endl;
+        switch (ret_state) {
+            case 0:
+                track_state = TrackState::TRACK_LEFT;
+                break;
+            case 1:
+                track_state = TrackState::TRACK_RIGHT;
+                break;
+            default:
+                track_state = TrackState::TRACK_MIDDLE;
+                break;
+        }
+        if (cross.flag_cross == Cross::flag_cross_e::CROSS_NONE) {
+            elem_state = Scene::NormalScene;
+            cross.cross_route = 0;
+            flag_elem_over = false;
+        }
+    } else {
+        elem_state = Scene::NormalScene;
+    }
 
     /* ***************************************************************** */
     /* **************************** 中线处理 **************************** */
