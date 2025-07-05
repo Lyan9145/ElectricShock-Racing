@@ -1,4 +1,4 @@
-#include "imgprocess.h"
+#include "../include/imgprocess.hpp"
 
 ImageProcess::ImageProcess() {}
 
