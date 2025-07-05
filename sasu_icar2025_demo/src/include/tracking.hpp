@@ -28,6 +28,7 @@
 #include <iostream>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include "motion.hpp"
 #include "imgprocess.hpp"
 #include "circle.hpp"
 #include "cross.hpp"
@@ -41,6 +42,7 @@ public:
     ImageProcess _imgprocess;
     Circle circle;
     Cross cross;
+    Motion motion; // 运动控制类
 
     vector<POINT> pointsEdgeLeft;     // 赛道左边缘点集
     vector<POINT> pointsEdgeRight;    // 赛道右边缘点集

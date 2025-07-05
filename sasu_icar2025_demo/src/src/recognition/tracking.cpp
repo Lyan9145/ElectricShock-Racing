@@ -835,11 +835,11 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
     /* **************************** 偏差计算 **************************** */
     /* ***************************************************************** */
 
-    aim_distance_f = _config.aim_distance_far;
-    aim_distance_n = _config.aim_distance_near;
-    aim_angle_p_k = _config.steering_p_k;
-    aim_angle_p = _config.steering_p;
-    aim_angle_d = _config.steering_d;
+    aim_distance_f = 0.7f;
+    aim_distance_n = 0.3f;
+    aim_angle_p_k = 0.01f;
+    aim_angle_p = motion.params.turnP;
+    aim_angle_d = motion.params.turnD;
 
     // 找最近点(起始点中线归一化)
     float min_dist = 1e10;
@@ -921,10 +921,10 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
             aim_angle = aim_angle_last;
 
         // 斑马线丢线
-        if (garage.flag_garage >= Garage::flag_garage_e::GARAGE_PASS)
-            aim_angle = aim_angle_last;
-        else if (garage.flag_garage >= Garage::flag_garage_e::GARAGE_IN)
-            aim_angle = aim_angle_last * 1.35f;
+        // if (garage.flag_garage >= Garage::flag_garage_e::GARAGE_PASS)
+        //     aim_angle = aim_angle_last;
+        // else if (garage.flag_garage >= Garage::flag_garage_e::GARAGE_IN)
+        //     aim_angle = aim_angle_last * 1.35f;
     }
 
 
@@ -932,71 +932,71 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
     /* **************************** 速度判定 **************************** */
     /* ***************************************************************** */
 
-    if (garage.flag_garage == Garage::flag_garage_e::GARAGE_OUT) {
-        aim_speed = _config.speed_garage_out;
-    }  // 出库
-    else if (garage.flag_garage == Garage::flag_garage_e::GARAGE_IN) {
-        aim_speed = _config.speed_garage_in;
-    }  // 入库
-    else if (ramp.flag_ramp == Ramp::flag_ramp_e::RAMP_UP) {
-        aim_speed = _config.speed_ramp_up;
-    }  // 坡道 上
-    else if (ramp.flag_ramp == Ramp::flag_ramp_e::RAMP_DOWN) {
-        aim_speed = _config.speed_ramp_down;
-    }  // 坡道 下
-    else if (rescue.flag_rescue != Rescue::RESCUE_NONE) {
-        if (rescue.flag_rescue == Rescue::RESCUE_DETECTION_LEFT ||
-        rescue.flag_rescue == Rescue::RESCUE_DETECTION_RIGHT) {
-            aim_speed = _config.speed_rescue_detection;
-        } else if (rescue.flag_rescue == Rescue::RESCUE_IN_LEFT ||
-        rescue.flag_rescue == Rescue::RESCUE_IN_RIGHT) {
-            aim_speed = _config.speed_rescue_in;
-        } else if (rescue.flag_rescue == Rescue::RESCUE_IN_LEFT ||
-        rescue.flag_rescue == Rescue::RESCUE_IN_RIGHT) {
-            aim_speed = _config.speed_rescue_in;
-        } else if (rescue.flag_rescue == Rescue::RESCUE_STOP_LEFT ||
-        rescue.flag_rescue == Rescue::RESCUE_STOP_RIGHT) {
-            aim_speed = _config.speed_rescue_stop;
-        } else if (rescue.flag_rescue == Rescue::RESCUE_OUT_LEFT ||
-        rescue.flag_rescue == Rescue::RESCUE_OUT_RIGHT) {
-            aim_speed = _config.speed_rescue_out;
-        } else if (rescue.flag_rescue == Rescue::RESCUE_ADJUST_LEFT ||
-        rescue.flag_rescue == Rescue::RESCUE_ADJUST_RIGHT) {
-            aim_speed = _config.speed_rescue_adjust;
-        } else {
-            aim_speed = _config.speed_base;
-        }
-    } // 救援区
-    else if ((circle.flag_circle > 4 && circle.flag_circle < 7) || 
-    (circle.flag_circle > 0 && circle.flag_circle < 3)) {
-        aim_speed = _config.speed_base;
-    }  // 出入环岛
-    else if (circle.flag_circle > 6 || circle.flag_circle == 3 || circle.flag_circle == 4) {
-        aim_speed = _config.speed_circle;
-    }  // 环岛内部加速
-    else if (cross.flag_cross != Cross::flag_cross_e::CROSS_NONE) {
-        aim_speed = _config.speed_cross;
-    }  // 十字速度
-    else if (danger.flag_danger != Danger::flag_danger_e::DANGER_NONE) {
-    	aim_speed = _config.speed_danger;
-    }
-    else {
-        // 根据偏差方差加减速
-        if (abs(aim_sigma) < 10.0) {
-            aim_speed_shift += 10.f;
-        } else {
-            aim_speed_shift -= speed_diff;
-        }
+    // if (garage.flag_garage == Garage::flag_garage_e::GARAGE_OUT) {
+    //     aim_speed = _config.speed_garage_out;
+    // }  // 出库
+    // else if (garage.flag_garage == Garage::flag_garage_e::GARAGE_IN) {
+    //     aim_speed = _config.speed_garage_in;
+    // }  // 入库
+    // else if (ramp.flag_ramp == Ramp::flag_ramp_e::RAMP_UP) {
+    //     aim_speed = _config.speed_ramp_up;
+    // }  // 坡道 上
+    // else if (ramp.flag_ramp == Ramp::flag_ramp_e::RAMP_DOWN) {
+    //     aim_speed = _config.speed_ramp_down;
+    // }  // 坡道 下
+    // else if (rescue.flag_rescue != Rescue::RESCUE_NONE) {
+    //     if (rescue.flag_rescue == Rescue::RESCUE_DETECTION_LEFT ||
+    //     rescue.flag_rescue == Rescue::RESCUE_DETECTION_RIGHT) {
+    //         aim_speed = _config.speed_rescue_detection;
+    //     } else if (rescue.flag_rescue == Rescue::RESCUE_IN_LEFT ||
+    //     rescue.flag_rescue == Rescue::RESCUE_IN_RIGHT) {
+    //         aim_speed = _config.speed_rescue_in;
+    //     } else if (rescue.flag_rescue == Rescue::RESCUE_IN_LEFT ||
+    //     rescue.flag_rescue == Rescue::RESCUE_IN_RIGHT) {
+    //         aim_speed = _config.speed_rescue_in;
+    //     } else if (rescue.flag_rescue == Rescue::RESCUE_STOP_LEFT ||
+    //     rescue.flag_rescue == Rescue::RESCUE_STOP_RIGHT) {
+    //         aim_speed = _config.speed_rescue_stop;
+    //     } else if (rescue.flag_rescue == Rescue::RESCUE_OUT_LEFT ||
+    //     rescue.flag_rescue == Rescue::RESCUE_OUT_RIGHT) {
+    //         aim_speed = _config.speed_rescue_out;
+    //     } else if (rescue.flag_rescue == Rescue::RESCUE_ADJUST_LEFT ||
+    //     rescue.flag_rescue == Rescue::RESCUE_ADJUST_RIGHT) {
+    //         aim_speed = _config.speed_rescue_adjust;
+    //     } else {
+    //         aim_speed = _config.speed_base;
+    //     }
+    // } // 救援区
+    // else if ((circle.flag_circle > 4 && circle.flag_circle < 7) || 
+    // (circle.flag_circle > 0 && circle.flag_circle < 3)) {
+    //     aim_speed = _config.speed_base;
+    // }  // 出入环岛
+    // else if (circle.flag_circle > 6 || circle.flag_circle == 3 || circle.flag_circle == 4) {
+    //     aim_speed = _config.speed_circle;
+    // }  // 环岛内部加速
+    // else if (cross.flag_cross != Cross::flag_cross_e::CROSS_NONE) {
+    //     aim_speed = _config.speed_cross;
+    // }  // 十字速度
+    // else if (danger.flag_danger != Danger::flag_danger_e::DANGER_NONE) {
+    // 	aim_speed = _config.speed_danger;
+    // }
+    // else {
+    //     // 根据偏差方差加减速
+    //     if (abs(aim_sigma) < 10.0) {
+    //         aim_speed_shift += 10.f;
+    //     } else {
+    //         aim_speed_shift -= speed_diff;
+    //     }
 
-        // 速度限幅
-        aim_speed_shift = aim_speed_shift > _config.speed_up ? _config.speed_up : aim_speed_shift < _config.speed_base ? _config.speed_base : aim_speed_shift;
-        aim_speed = aim_speed_shift;
-    }
+    //     // 速度限幅
+    //     aim_speed_shift = aim_speed_shift > _config.speed_up ? _config.speed_up : aim_speed_shift < _config.speed_base ? _config.speed_base : aim_speed_shift;
+    //     aim_speed = aim_speed_shift;
+    // }
 
-    // 停车
-    if (garage.flag_garage == Garage::flag_garage_e::GARAGE_STOP) {
-        aim_speed = -0.0;
-    }
+    // // 停车
+    // if (garage.flag_garage == Garage::flag_garage_e::GARAGE_STOP) {
+    //     aim_speed = -0.0;
+    // }
 
     /* ***************************************************************** */
     /* **************************** 运行控制 **************************** */
@@ -1010,18 +1010,18 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
     float aim_angle_filter = filter(aim_angle);
     aim_angle_last = aim_angle_filter;
 
-    // 动态 P 项, 出入库禁止
-    if ( elem_state != Scene::GARAGE &&
-        ((is_curve0 && track_state == TRACK_LEFT) || (is_curve1 && track_state == TRACK_RIGHT))) {
-        aim_angle_p += fabs(aim_angle_filter) * aim_angle_p_k;
-        aim_angle_p = aim_angle_p > _config.steering_p * 3.0f ? _config.steering_p * 3.0f
-                                                               : aim_angle_p;
-    }
+    // // 动态 P 项, 出入库禁止
+    // if ( elem_state != Scene::GARAGE &&
+    //     ((is_curve0 && track_state == TRACK_LEFT) || (is_curve1 && track_state == TRACK_RIGHT))) {
+    //     aim_angle_p += fabs(aim_angle_filter) * aim_angle_p_k;
+    //     aim_angle_p = aim_angle_p > _config.steering_p * 3.0f ? _config.steering_p * 3.0f
+    //                                                            : aim_angle_p;
+    // }
 
-    // 计算舵机 PID
-    int aim_angle_pwm = 0;
-    aim_angle_pwm = (int)(pid_realize_a(aim_angle_filter, 0.0f, aim_angle_p, aim_angle_d) + 0.5f);
-    aim_angle_pwm = 730 - clip(aim_angle_pwm, -250, 250);
+    // // 计算舵机 PID
+    // int aim_angle_pwm = 0;
+    // aim_angle_pwm = (int)(pid_realize_a(aim_angle_filter, 0.0f, aim_angle_p, aim_angle_d) + 0.5f);
+    // aim_angle_pwm = 730 - clip(aim_angle_pwm, -250, 250);
 
 
     // 绘图
