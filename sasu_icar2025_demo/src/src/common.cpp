@@ -18,6 +18,16 @@ void MAT_INFO(cv::Mat & mat, std::string string_buf, cv::Point point, double siz
                 size, cv::Scalar(0, 0, 255));
 }
 
+float filter(float value) {
+    static float filter_buf[3] = {0};
+
+    filter_buf[2] = filter_buf[1];
+    filter_buf[1] = filter_buf[0];
+    filter_buf[0] = value;
+
+    return (filter_buf[2] + filter_buf[1] + filter_buf[0]) / 3.0f;
+}
+
 /**
  * @brief Get the Scene object
  *

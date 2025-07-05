@@ -885,7 +885,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
         v_center[3] = {(int)rptsn[aim_idx__far][0], (int)(ROWSIMAGE * (1 - aim_distance_f))};
         
         
-        bezier_line = bezier(0.03, v_center);
+        bezier_line = Bezier(0.03, v_center);
 
         // 计算远锚点偏差值
         float dx = bezier_line[bezier_line.size() - 1].x - cx;  // rptsn[aim_idx__far][0] - cx;
@@ -1165,19 +1165,19 @@ void Tracking::drawImage(Mat &trackImage)
 {
     for (size_t i = 0; i < edge_left.size(); i++)
     {
-        circle(trackImage, Point(edge_left[i].y, edge_left[i].x), 1,
-               Scalar(0, 255, 0), -1); // 绿色点
+        cv::circle(trackImage, cv::Point(edge_left[i].y, edge_left[i].x), 1,
+               cv::Scalar(0, 255, 0), -1); // 绿色点
     }
     for (size_t i = 0; i < edge_right.size(); i++)
     {
-        circle(trackImage, Point(edge_right[i].y, edge_right[i].x), 1,
-               Scalar(0, 255, 255), -1); // 黄色点
+        cv::circle(trackImage, cv::Point(edge_right[i].y, edge_right[i].x), 1,
+               cv::Scalar(0, 255, 255), -1); // 黄色点
     }
 
     for (size_t i = 0; i < spurroad.size(); i++)
     {
-        circle(trackImage, Point(spurroad[i].y, spurroad[i].x), 3,
-               Scalar(0, 0, 255), -1); // 红色点
+        cv::circle(trackImage, cv::Point(spurroad[i].y, spurroad[i].x), 3,
+               cv::Scalar(0, 0, 255), -1); // 红色点
     }
 
     putText(trackImage, to_string(validRowsRight) + " " + to_string(stdevRight),

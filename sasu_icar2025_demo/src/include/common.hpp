@@ -96,9 +96,9 @@ struct POINT
     POINT() {};
     POINT(int x, int y) : x(x), y(y) {};
 };
-
 int clip(int x, int low, int up);
 void MAT_INFO(cv::Mat & mat, std::string string_buf, cv::Point point, double size);
+float filter(float value);
 void savePicture(Mat &image);
 double average(vector<int> vec);
 double sigma(vector<int> vec);
