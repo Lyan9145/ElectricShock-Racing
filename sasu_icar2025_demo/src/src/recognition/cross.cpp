@@ -86,7 +86,7 @@ void Cross::cross_farline(cv::Mat & mat_bin,
     bool Lpt0_found, bool Lpt1_found, float rpts0s[ROWSIMAGE][2], int Lpt0_rpts0s_id,
     float rpts1s[ROWSIMAGE][2], int Lpt1_rpts1s_id){
     if (Lpt0_found && cross_route < 150) {
-        float trans[2];
+        float trans[2]; // 透视变换后的坐标
         _imgprocess.mapPerspective(rpts0s[Lpt0_rpts0s_id][0],
                         rpts0s[Lpt0_rpts0s_id][1], trans, 1);
         yy1 = trans[1] - 5;

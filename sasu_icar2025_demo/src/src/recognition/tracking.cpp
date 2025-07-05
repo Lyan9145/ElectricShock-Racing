@@ -512,7 +512,41 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                     (int)round(ANGLE_DIST / SAMPLE_DIST),
                     PIXEL_PER_METER * ROAD_WIDTH / 2);
     rptsc1_num = rpts1s_num;
+    
+    // 可视化：将透视左右边线和中线画在单独一张图上
+    if (_is_result) {
+        cv::Mat perspective_lines = cv::Mat::zeros(result_img.size(), CV_8UC3);
 
+        // 左边线（青色）
+        for (int a = 0; a < rpts0s_num; a++) {
+            int x = static_cast<int>(rpts0s[a][0]);
+            int y = static_cast<int>(rpts0s[a][1]);
+            if (y >= 0 && y < perspective_lines.rows && x >= 0 && x < perspective_lines.cols) {
+                perspective_lines.at<cv::Vec3b>(y, x) = cv::Vec3b(238, 238, 0);
+            }
+        }
+        // 右边线（黄色）
+        for (int a = 0; a < rpts1s_num; a++) {
+            int x = static_cast<int>(rpts1s[a][0]);
+            int y = static_cast<int>(rpts1s[a][1]);
+            if (y >= 0 && y < perspective_lines.rows && x >= 0 && x < perspective_lines.cols) {
+                perspective_lines.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 238, 238);
+            }
+        }
+        // 中线（黑色）
+        for (int a = 0; a < rptscs_num; a++) {
+            int x = static_cast<int>(rptscs[a][0]);
+            int y = static_cast<int>(rptscs[a][1]);
+            if (y >= 0 && y < perspective_lines.rows && x >= 0 && x < perspective_lines.cols) {
+                perspective_lines.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 0);
+            }
+        }
+
+        // 可选：显示或保存
+        cv::imshow("Perspective Lines", perspective_lines);
+
+        // cv::imwrite("perspective_lines.png", perspective_lines);
+    }
     // 透视中线 -> 原图中线
     for (int i = 0; i < rptsc0_num; i++)
         _imgprocess.mapPerspective(rptsc0[i][0], rptsc0[i][1], rptsc0[i], 1);
