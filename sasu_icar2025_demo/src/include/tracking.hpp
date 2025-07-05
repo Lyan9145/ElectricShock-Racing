@@ -120,7 +120,7 @@ private:
     const int dir_front[4][2] = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
     const int dir_frontleft[4][2] = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
     const int dir_frontright[4][2] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
-    int track_row_begin = 30; // 巡线纵坐标起点
+    int track_row_begin = 100; // 巡线纵坐标起点
     int track_col_begin = 120; // 巡线横坐标起点
 
 public:
