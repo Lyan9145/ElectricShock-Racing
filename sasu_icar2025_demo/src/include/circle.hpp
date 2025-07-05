@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <opencv2/opencv.hpp>
 #include "common.hpp"
 
@@ -28,5 +29,19 @@ public:
     void run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
         int &ipts1_num, int &rptsc1_num, int &Lpt1_rpts1s_id, 
         bool &Lpt0_found, int &ipts0_num, int &rptsc0_num, int &Lpt0_rpts0s_id);
+    string getCircleState() {
+        switch (flag_circle) {
+            case CIRCLE_NONE: return "CIRCLE_NONE";
+            case CIRCLE_LEFT_BEGIN: return "CIRCLE_LEFT_BEGIN";
+            case CIRCLE_RIGHT_BEGIN: return "CIRCLE_RIGHT_BEGIN";
+            case CIRCLE_LEFT_IN: return "CIRCLE_LEFT_IN";
+            case CIRCLE_RIGHT_IN: return "CIRCLE_RIGHT_IN";
+            case CIRCLE_LEFT_OUT: return "CIRCLE_LEFT_OUT";
+            case CIRCLE_RIGHT_OUT: return "CIRCLE_RIGHT_OUT";
+            case CIRCLE_LEFT_RUNNING: return "CIRCLE_LEFT_RUNNING";
+            case CIRCLE_RIGHT_RUNNING: return "CIRCLE_RIGHT_RUNNING";
+        }
+        return "UNKNOWN_CIRCLE_STATE";
+    }
 };
 
