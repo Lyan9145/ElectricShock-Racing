@@ -17,29 +17,29 @@ public:
     int far_Lpt0_rpts0s_id, far_Lpt1_rpts1s_id;
 
     // 十字远线
-    int far_ipts0[IMAGE_HEIGHT][2];
-    int far_ipts1[IMAGE_HEIGHT][2];
+    int far_ipts0[ROWSIMAGE][2];
+    int far_ipts1[ROWSIMAGE][2];
     int far_ipts0_num, far_ipts1_num;
 
-    float far_rpts0[IMAGE_HEIGHT][2];
-    float far_rpts1[IMAGE_HEIGHT][2];
+    float far_rpts0[ROWSIMAGE][2];
+    float far_rpts1[ROWSIMAGE][2];
 
-    float far_rpts0b[IMAGE_HEIGHT][2];
-    float far_rpts1b[IMAGE_HEIGHT][2];
+    float far_rpts0b[ROWSIMAGE][2];
+    float far_rpts1b[ROWSIMAGE][2];
 
-    float far_rpts0s[IMAGE_HEIGHT][2];
-    float far_rpts1s[IMAGE_HEIGHT][2];
+    float far_rpts0s[ROWSIMAGE][2];
+    float far_rpts1s[ROWSIMAGE][2];
     int far_rpts0s_num, far_rpts1s_num;
 
-    float far_rpts0a[IMAGE_HEIGHT];
-    float far_rpts1a[IMAGE_HEIGHT];
+    float far_rpts0a[ROWSIMAGE];
+    float far_rpts1a[ROWSIMAGE];
 
-    float far_rpts0an[IMAGE_HEIGHT];
-    float far_rpts1an[IMAGE_HEIGHT];
+    float far_rpts0an[ROWSIMAGE];
+    float far_rpts1an[ROWSIMAGE];
 
     //cross_farline
     int far_x1 = 50;
-    int far_x2 = IMAGE_WIDTH - 50;
+    int far_x2 = COLSIMAGE - 50;
 
     int far_y1 = 0;
     int far_y2 = 0;
@@ -61,10 +61,10 @@ public:
     int run_cross(bool &Lpt0_found, bool &Lpt1_found,
         int &rpts1s_num, int &rpts0s_num, int &ipts0_num, int &rptsc0_num,
         int &Lpt0_rpts0s_id, int &ipts1_num, int &rptsc1_num, int &Lpt1_rpts1s_id,
-        cv::Mat & mat_bin, float rpts0s[IMAGE_HEIGHT][2], float rpts1s[IMAGE_HEIGHT][2]);
+        cv::Mat & mat_bin, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2]);
     void cross_farline(cv::Mat & mat_bin,
-        bool Lpt0_found, bool Lpt1_found, float rpts0s[IMAGE_HEIGHT][2], int Lpt0_rpts0s_id,
-        float rpts1s[IMAGE_HEIGHT][2], int Lpt1_rpts1s_id);
+        bool Lpt0_found, bool Lpt1_found, float rpts0s[ROWSIMAGE][2], int Lpt0_rpts0s_id,
+        float rpts1s[ROWSIMAGE][2], int Lpt1_rpts1s_id);
 
 
     // 点集三角滤波

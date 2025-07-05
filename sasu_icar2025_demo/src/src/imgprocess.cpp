@@ -2,9 +2,7 @@
 
 ImageProcess::ImageProcess() {}
 
-ImageProcess::ImageProcess(Config config) {
-    this->_config = config; 
-}
+
 
 //去除高光
 cv::Mat ImageProcess::matilluminationChange(cv::Mat src) {

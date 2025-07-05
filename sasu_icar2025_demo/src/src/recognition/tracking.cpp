@@ -642,9 +642,9 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
     //     track_state = TrackState::TRACK_LEFT;
     // else if (is_straight1)
     //     track_state = TrackState::TRACK_RIGHT;
-    // else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] > IMAGE_WIDTH / 2)
+    // else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] > COLSIMAGE / 2)
     //     track_state = TrackState::TRACK_LEFT;
-    // else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] < IMAGE_WIDTH / 2)
+    // else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] < COLSIMAGE / 2)
     //     track_state = TrackState::TRACK_RIGHT;
     // else if (rpts0s_num == 0 && rpts1s_num != 0)
     //     track_state = TrackState::TRACK_RIGHT;
@@ -879,10 +879,10 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
 
         std::vector<POINT> v_center(4);  // 三阶贝塞尔曲线
         v_center[0] = {(int)cx, (int)cy};
-        v_center[1] = {(int)rptsn[aim_idx_near][0], (int)(IMAGE_HEIGHT * (1 - aim_distance_n))};
+        v_center[1] = {(int)rptsn[aim_idx_near][0], (int)(ROWSIMAGE * (1 - aim_distance_n))};
         v_center[2] = {(int)rptsn[(int)((aim_idx__far + aim_idx_near) / 2)][0],
-                       (int)(IMAGE_HEIGHT * (1 - (aim_distance_f + aim_distance_n) / 2))};
-        v_center[3] = {(int)rptsn[aim_idx__far][0], (int)(IMAGE_HEIGHT * (1 - aim_distance_f))};
+                       (int)(ROWSIMAGE * (1 - (aim_distance_f + aim_distance_n) / 2))};
+        v_center[3] = {(int)rptsn[aim_idx__far][0], (int)(ROWSIMAGE * (1 - aim_distance_f))};
         
         
         bezier_line = bezier(0.03, v_center);

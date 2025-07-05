@@ -22,7 +22,7 @@ void Cross::check_cross(bool Lpt0_found, bool Lpt1_found,
 int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
     int &rpts1s_num, int &rpts0s_num, int &ipts0_num, int &rptsc0_num,
     int &Lpt0_rpts0s_id, int &ipts1_num, int &rptsc1_num, int &Lpt1_rpts1s_id, 
-    cv::Mat & mat_bin, float rpts0s[IMAGE_HEIGHT][2], float rpts1s[IMAGE_HEIGHT][2]){
+    cv::Mat & mat_bin, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2]){
     // 检测到十字, 先按照近线走
     if (flag_cross == CROSS_BEGIN) {
         if (Lpt0_found) {
@@ -51,9 +51,9 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
         // 寻远线, 算法与近线相同
         cross_farline(mat_bin, Lpt0_found, Lpt1_found, rpts0s, Lpt0_rpts0s_id, rpts1s, Lpt1_rpts1s_id);
 
-        if (far_Lpt0_found && far_Lpt1_found && far_rpts0s[far_rpts0s_num - 1][0] > IMAGE_WIDTH / 2)
+        if (far_Lpt0_found && far_Lpt1_found && far_rpts0s[far_rpts0s_num - 1][0] > COLSIMAGE / 2)
             ret_track_state = 0;
-        else if (far_Lpt0_found && far_Lpt1_found && far_rpts1s[far_rpts1s_num - 1][0] < IMAGE_WIDTH / 2)
+        else if (far_Lpt0_found && far_Lpt1_found && far_rpts1s[far_rpts1s_num - 1][0] < COLSIMAGE / 2)
             ret_track_state = 1;
         else if (far_rpts0s_num > far_rpts1s_num)
             ret_track_state = 0;
@@ -83,8 +83,8 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
 /* ********************************************************************* */
 
 void Cross::cross_farline(cv::Mat & mat_bin,
-    bool Lpt0_found, bool Lpt1_found, float rpts0s[IMAGE_HEIGHT][2], int Lpt0_rpts0s_id,
-    float rpts1s[IMAGE_HEIGHT][2], int Lpt1_rpts1s_id){
+    bool Lpt0_found, bool Lpt1_found, float rpts0s[ROWSIMAGE][2], int Lpt0_rpts0s_id,
+    float rpts1s[ROWSIMAGE][2], int Lpt1_rpts1s_id){
     if (Lpt0_found && cross_route < 150) {
         float trans[2];
         _imgprocess.mapPerspective(rpts0s[Lpt0_rpts0s_id][0],
