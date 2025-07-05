@@ -103,6 +103,7 @@ void savePicture(Mat &image);
 double average(vector<int> vec);
 double sigma(vector<int> vec);
 double sigma(vector<POINT> vec);
+double sigma(float pts[][2], int num);
 int factorial(int x);
 vector<POINT> Bezier(double dt, vector<POINT> input);
 

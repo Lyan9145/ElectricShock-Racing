@@ -120,6 +120,22 @@ double sigma(vector<int> vec)
     sigma /= (double)vec.size();
     return sigma;
 }
+double sigma(float pts[][2], int num) {
+    if (num < 1)
+        return 0;
+
+    double sum = 0;
+    for (int i = 0; i < num; i++) sum += pts[i][0];
+
+    double aver = (double)sum / num;
+    double sigma = 0;
+
+    for (int i = 0; i < num; i++)
+        sigma += (pts[i][0] - aver) * (pts[i][0] - aver);
+    sigma /= (double)num;
+
+    return sigma;
+}
 
 /**
  * @brief 赛道点集的方差计算

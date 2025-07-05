@@ -900,9 +900,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
         assert(!isnan(error_near));
 
         aim_angle = error_far * 0.9 + error_near * 0.1;
-        if (elem_state == Scene::DANGER) {
-            aim_angle = error_far * 0.1 + error_near * 0.9;
-        }
+
         aim_sigma = sigma(rptsn + aim_idx_near, aim_idx__far - aim_idx_near);
         // aim_sigma = sigma(v_center);
 
