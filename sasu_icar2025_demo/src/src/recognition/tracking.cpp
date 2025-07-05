@@ -344,7 +344,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
         int black_sum = 0;
         for (int i = 100; i < COLSIMAGE - 100; i++) {
             printf("i = %d, begin_y_t = %d\n", i, begin_y_t);
-            if ((bin_img.at<uint8_t>(begin_y_t, i)) < threshold)
+            if ((imagePath.at<uint8_t>(begin_y_t, i)) < threshold)
                 black_sum++;
         }
         if (black_sum > 10) {
