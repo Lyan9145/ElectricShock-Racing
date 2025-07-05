@@ -54,7 +54,7 @@ using namespace cv;
 #define LABEL_SCHOOL 9     // AI标签：学校
 
 #define PI 3.14159265358979323846 // 圆周率
-#define ROAD_WIDTH (0.45)     // 赛道宽度 (0.4)
+#define ROAD_WIDTH (0.40)     // 赛道宽度 (0.4)
 #define BLOCK_SIZE (7)        // 自适应阈值的block大小 (7)
 #define CLIP_VALUE (2)        // 自适应阈值的阈值裁减量 (2)
 #define LINE_BLUR_KERNEL (7)  // 边线三角滤波核的大小 (7)

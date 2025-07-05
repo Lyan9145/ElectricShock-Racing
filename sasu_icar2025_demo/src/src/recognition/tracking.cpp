@@ -675,30 +675,30 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     /* *********************** 单侧线少, 切换巡线方向 ********************** */
     // TODO: 适配
     track_state = TrackState::TRACK_MIDDLE; // 默认中线巡线
-    // if (is_straight0 && is_straight1)
-    //     track_state = TrackState::TRACK_MIDDLE;
-    // else if (is_straight0)
-    //     track_state = TrackState::TRACK_LEFT;
-    // else if (is_straight1)
-    //     track_state = TrackState::TRACK_RIGHT;
-    // else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] > COLSIMAGE / 2)
-    //     track_state = TrackState::TRACK_LEFT;
-    // else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] < COLSIMAGE / 2)
-    //     track_state = TrackState::TRACK_RIGHT;
-    // else if (rpts0s_num == 0 && rpts1s_num != 0)
-    //     track_state = TrackState::TRACK_RIGHT;
-    // else if (rpts0s_num != 0 && rpts1s_num == 0)
-    //     track_state = TrackState::TRACK_LEFT;
-    // else if (rpts0s_num < rpts1s_num / 2)
-    //     track_state = TrackState::TRACK_RIGHT;
-    // else if (rpts0s_num / 2 > rpts1s_num)
-    //     track_state = TrackState::TRACK_LEFT;
-    // else if (rpts0s_num < 10 && rpts0s_num < rpts1s_num)
-    //     track_state = TrackState::TRACK_RIGHT;
-    // else if (rpts1s_num < 10 && rpts0s_num > rpts1s_num)
-    //     track_state = TrackState::TRACK_LEFT;
-    // else
-    //     track_state = TrackState::TRACK_MIDDLE;
+    if (is_straight0 && is_straight1)
+        track_state = TrackState::TRACK_MIDDLE;
+    else if (is_straight0)
+        track_state = TrackState::TRACK_LEFT;
+    else if (is_straight1)
+        track_state = TrackState::TRACK_RIGHT;
+    else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] > COLSIMAGE / 2)
+        track_state = TrackState::TRACK_LEFT;
+    else if (is_curve0 && is_curve1 && rptscs[rptscs_num - 1][0] < COLSIMAGE / 2)
+        track_state = TrackState::TRACK_RIGHT;
+    else if (rpts0s_num == 0 && rpts1s_num != 0)
+        track_state = TrackState::TRACK_RIGHT;
+    else if (rpts0s_num != 0 && rpts1s_num == 0)
+        track_state = TrackState::TRACK_LEFT;
+    else if (rpts0s_num < rpts1s_num / 2)
+        track_state = TrackState::TRACK_RIGHT;
+    else if (rpts0s_num / 2 > rpts1s_num)
+        track_state = TrackState::TRACK_LEFT;
+    else if (rpts0s_num < 10 && rpts0s_num < rpts1s_num)
+        track_state = TrackState::TRACK_RIGHT;
+    else if (rpts1s_num < 10 && rpts0s_num > rpts1s_num)
+        track_state = TrackState::TRACK_LEFT;
+    else
+        track_state = TrackState::TRACK_MIDDLE;
 
     /* ***************************************************************** */
     /* **************************** 元素检测 **************************** */
@@ -804,7 +804,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             ipts1_num, rptsc1_num, Lpt0_rpts0s_id, imagePath,
             rpts0s, rpts1s);
         ++cross.cross_route;
-        // std::cout << cross.flag_cross << std::endl;
+        std::cout << "Cross State: " << cross.flag_cross << std::endl;
         switch (ret_state) {
             case 0:
                 track_state = TrackState::TRACK_LEFT;
