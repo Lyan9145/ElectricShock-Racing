@@ -100,8 +100,8 @@ private:
 private:
     bool _is_result = true; // 是否生成处理后的图像
 
-    float cx = COLSIMAGE / 2.0f; // 车轮对应点 (纯跟踪起始点)
-    float cy = ROWSIMAGE * 0.99f;
+    float cx = COLSIMAGE / 1.9f; // 车轮对应点 (纯跟踪起始点)
+    float cy = ROWSIMAGE * 0.85f;
 
     int aim_idx__far = 0; // 远预锚点位置
     int aim_idx_near = 0; // 近预锚点位置
@@ -124,9 +124,9 @@ private:
     int track_col_begin = 120; // 巡线横坐标起点
 
 public:
-    int begin_x_l = COLSIMAGE * 0.419; // 巡线横坐标起始点 左
-    int begin_x_r = COLSIMAGE * 0.647; // 巡线横坐标起始点 右
-    int begin_y_t = ROWSIMAGE * 0.725; // 巡线纵坐标起始点
+    int begin_x_l = COLSIMAGE * 0.419f; // 巡线横坐标起始点 左
+    int begin_x_r = COLSIMAGE * 0.647f; // 巡线横坐标起始点 右
+    int begin_y_t = ROWSIMAGE * 0.725f; // 巡线纵坐标起始点
 
     float aim_speed = 0.f;       // 速度量
     float aim_speed_shift = 0.f; // 变速计数器
