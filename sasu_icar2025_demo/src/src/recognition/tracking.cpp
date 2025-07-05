@@ -342,7 +342,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
     (!(is_curve0 && track_state == TrackState::TRACK_LEFT) && 
     !(is_curve1 && track_state == TrackState::TRACK_RIGHT))) {
         int black_sum = 0;
-        for (int i = 100; i < ROWSIMAGE - 100; i++) {
+        for (int i = 100; i < COLSIMAGE - 100; i++) {
             if ((bin_img.at<uint8_t>(begin_y_t, i)) < threshold)
                 black_sum++;
         }
