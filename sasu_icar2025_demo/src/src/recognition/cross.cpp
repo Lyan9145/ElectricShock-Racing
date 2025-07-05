@@ -202,9 +202,9 @@ void Cross::cross_farline(cv::Mat & mat_bin,
         if (far_rpts0an[i] == 0)
             continue;
         int im1 =
-            general.clip(i - (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts0s_num - 1);
+            clip(i - (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts0s_num - 1);
         int ip1 =
-            general.clip(i + (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts0s_num - 1);
+            clip(i + (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts0s_num - 1);
         float conf = fabs(far_rpts0a[i]) -
                      (fabs(far_rpts0a[im1]) + fabs(far_rpts0a[ip1])) / 2;
 
@@ -218,9 +218,9 @@ void Cross::cross_farline(cv::Mat & mat_bin,
         if (far_rpts1an[i] == 0)
             continue;
         int im1 =
-            general.clip(i - (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts1s_num - 1);
+            clip(i - (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts1s_num - 1);
         int ip1 =
-            general.clip(i + (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts1s_num - 1);
+            clip(i + (int)round(ANGLE_DIST / SAMPLE_DIST), 0, far_rpts1s_num - 1);
         float conf = fabs(far_rpts1a[i]) -
                      (fabs(far_rpts1a[im1]) + fabs(far_rpts1a[ip1])) / 2;
 
@@ -243,8 +243,8 @@ void Cross::blur_points(float pts_in[][2], int num, float pts_out[][2], int kern
     for (int i = 0; i < num; i++) {
         pts_out[i][0] = pts_out[i][1] = 0;
         for (int j = -half; j <= half; j++) {
-            pts_out[i][0] += pts_in[general.clip(i + j, 0, num - 1)][0] * (half + 1 - abs(j));
-            pts_out[i][1] += pts_in[general.clip(i + j, 0, num - 1)][1] * (half + 1 - abs(j));
+            pts_out[i][0] += pts_in[clip(i + j, 0, num - 1)][0] * (half + 1 - abs(j));
+            pts_out[i][1] += pts_in[clip(i + j, 0, num - 1)][1] * (half + 1 - abs(j));
         }
         pts_out[i][0] /= (2 * half + 2) * (half + 1) / 2;
         pts_out[i][1] /= (2 * half + 2) * (half + 1) / 2;
@@ -288,11 +288,11 @@ void Cross::local_angle_points(float pts_in[][2], int num, float angle_out[],
             angle_out[i] = 0;
             continue;
         }
-        float dx1 = pts_in[i][0] - pts_in[general.clip(i - dist, 0, num - 1)][0];
-        float dy1 = pts_in[i][1] - pts_in[general.clip(i - dist, 0, num - 1)][1];
+        float dx1 = pts_in[i][0] - pts_in[clip(i - dist, 0, num - 1)][0];
+        float dy1 = pts_in[i][1] - pts_in[clip(i - dist, 0, num - 1)][1];
         float dn1 = sqrtf(dx1 * dx1 + dy1 * dy1);
-        float dx2 = pts_in[general.clip(i + dist, 0, num - 1)][0] - pts_in[i][0];
-        float dy2 = pts_in[general.clip(i + dist, 0, num - 1)][1] - pts_in[i][1];
+        float dx2 = pts_in[clip(i + dist, 0, num - 1)][0] - pts_in[i][0];
+        float dy2 = pts_in[clip(i + dist, 0, num - 1)][1] - pts_in[i][1];
         float dn2 = sqrtf(dx2 * dx2 + dy2 * dy2);
         float c1 = dx1 / dn1;
         float s1 = dy1 / dn1;
@@ -310,7 +310,7 @@ void Cross::nms_angle(float angle_in[], int num, float angle_out[], int kernel) 
     for (int i = 0; i < num; i++) {
         angle_out[i] = angle_in[i];
         for (int j = -half; j <= half; j++) {
-            if (fabs(angle_in[general.clip(i + j, 0, num - 1)]) > fabs(angle_out[i])) {
+            if (fabs(angle_in[clip(i + j, 0, num - 1)]) > fabs(angle_out[i])) {
                 angle_out[i] = 0;
                 break;
             }
