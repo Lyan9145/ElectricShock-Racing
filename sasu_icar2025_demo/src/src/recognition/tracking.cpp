@@ -333,7 +333,7 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
     }
 }
 
-void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
+void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData &src)
 {
     imagePath = imageBinary;
     // start
@@ -1008,7 +1008,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
     float aim_angle_filter = filter(aim_angle);
     aim_angle_last = aim_angle_filter;
 
-    // // 动态 P 项, 出入库禁止
+    // 动态 P 项, 出入库禁止
     // if ( elem_state != Scene::GARAGE &&
     //     ((is_curve0 && track_state == TRACK_LEFT) || (is_curve1 && track_state == TRACK_RIGHT))) {
     //     aim_angle_p += fabs(aim_angle_filter) * aim_angle_p_k;
@@ -1016,10 +1016,12 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img)
     //                                                            : aim_angle_p;
     // }
 
-    // // 计算舵机 PID
-    // int aim_angle_pwm = 0;
-    // aim_angle_pwm = (int)(pid_realize_a(aim_angle_filter, 0.0f, aim_angle_p, aim_angle_d) + 0.5f);
-    // aim_angle_pwm = 730 - clip(aim_angle_pwm, -250, 250);
+    // 计算舵机 PID
+    int aim_angle_pwm = 0;
+    aim_angle_pwm = (int)(pid_realize_a(aim_angle_filter, 0.0f, aim_angle_p, aim_angle_d) + 0.5f);
+    cout << "> aim_angle: " << aim_angle_pwm << endl;
+    aim_angle_pwm = 5000 - clip(aim_angle_pwm, -1000, 1000);
+    src.steering_pwm = aim_angle_pwm;
 
 
     // 绘图

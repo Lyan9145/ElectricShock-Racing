@@ -36,7 +36,7 @@ struct DebugData{
 struct TaskData{
 	cv::Mat img;
 	std::chrono::high_resolution_clock::time_point timestamp;
-	int steering_pwm = 0; // 4000-5000-6000, 0 means off
+	int steering_pwm = 4000; // 4000-5000-6000, 0 means off
 	double speed = 0; // m/s
 };
 

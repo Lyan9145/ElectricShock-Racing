@@ -7,18 +7,73 @@
 #include <opencv2/highgui.hpp> //OpenCV终端部署
 #include <opencv2/opencv.hpp>  //OpenCV终端部署
 
-int clip(int x, int low, int up) {
+// 位置式 PID 角度外环
+float pid_realize_a(float actual, float set, float _p, float _d)
+{
+    static float last_error = 0.0f;
+    static float last_out_d = 0.0f;
+    // static float last_actual = 0.0f;
+    // static float derivative = 0.0f;
+
+    /* 当前误差 */
+    float error = set - actual;
+
+    /* 微分先行 */
+    /*
+    float temp = 0.618f * _d + _p;
+    float c3 = _d / temp;
+    float c2 = (_d + _p) / temp;
+    float c1 = 0.618f * c3;
+    derivative = c1 * derivative + c2 * actual - c3 * last_actual;
+    */
+
+    /* 不完全微分 */
+    float out_d = _d * 0.8f * (error - last_error) + 0.2f * last_out_d;
+    // float out_d = 0.8f * derivative + 0.2f * last_out_d;
+
+    /* 实际输出 */
+    float output = _p * error + out_d;
+
+    /* 更新参数 */
+    last_error = error;
+    last_out_d = out_d;
+    // last_actual = actual;
+
+    return output;
+}
+
+// 位置式 PID 角速度内环
+int pid_realize_o(int actual, int set, float _p, float _d)
+{
+    static int last_error = 0;
+
+    /* 当前误差 */
+    int error = set - actual;
+
+    /* 实际输出 */
+    int output = (int)(_p * error + _d * (error - last_error) + 0.5f);
+
+    /* 更新参数 */
+    last_error = error;
+
+    return output;
+}
+
+int clip(int x, int low, int up)
+{
     return x > up ? up : x < low ? low
-                                : x;
+                                 : x;
 }
 
 /* 窗口绘制信息 */
-void MAT_INFO(cv::Mat & mat, std::string string_buf, cv::Point point, double size) {
+void MAT_INFO(cv::Mat &mat, std::string string_buf, cv::Point point, double size)
+{
     cv::putText(mat, (std::string)string_buf, point, cv::FONT_HERSHEY_SIMPLEX,
                 size, cv::Scalar(0, 0, 255));
 }
 
-float filter(float value) {
+float filter(float value)
+{
     static float filter_buf[3] = {0};
 
     filter_buf[2] = filter_buf[1];
@@ -60,8 +115,6 @@ string sceneToString(Scene scene)
         return "Unknown";
     }
 }
-
-
 
 /**
  * @brief 存储图像至本地
@@ -120,12 +173,14 @@ double sigma(vector<int> vec)
     sigma /= (double)vec.size();
     return sigma;
 }
-double sigma(float pts[][2], int num) {
+double sigma(float pts[][2], int num)
+{
     if (num < 1)
         return 0;
 
     double sum = 0;
-    for (int i = 0; i < num; i++) sum += pts[i][0];
+    for (int i = 0; i < num; i++)
+        sum += pts[i][0];
 
     double aver = (double)sum / num;
     double sigma = 0;

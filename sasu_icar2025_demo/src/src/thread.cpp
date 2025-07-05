@@ -437,7 +437,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 					motion.speedCtrl(true, false, ctrlCenter); // 车速控制
 	
 				motion.poseCtrl(ctrlCenter.controlCenter);		 // 姿态控制（舵机）
-				uart.carControl(motion.speed, motion.servoPwm); // 串口通信控制车辆
+				uart.carControl(motion.speed, src.steering_pwm); // 串口通信控制车辆
 																 // TODO:串口现在为阻塞发送，改为异步
 			}
 			else
