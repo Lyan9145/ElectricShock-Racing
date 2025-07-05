@@ -512,6 +512,9 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                     (int)round(ANGLE_DIST / SAMPLE_DIST),
                     PIXEL_PER_METER * ROAD_WIDTH / 2);
     rptsc1_num = rpts1s_num;
+    cout << "> rptsc0_num: " << rptsc0_num << endl;
+    cout << "> rptsc1_num: " << rptsc1_num << endl;
+    cout << "> rptscs_num: " << rptscs_num << endl;
     
     // 可视化：将透视左右边线和中线画在单独一张图上
     if (_is_result) {
