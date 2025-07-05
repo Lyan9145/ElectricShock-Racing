@@ -32,11 +32,23 @@ int main(int argc, char const *argv[])
   Motion motion;
 
   // USB转串口初始化： /dev/ttyUSB0
-  shared_ptr<Uart> uart = make_shared<Uart>("/dev/ttyUSB0"); // 初始化串口驱动
   // 检测/dev/ttyPX0是否存在
-  if (access("/dev/ttyPX0", F_OK) == 0)
+  const char *ttyPX0 = "/dev/ttyPX0";
+  const char *ttyUSB0 = "/dev/ttyUSB0";
+  if (access(ttyPX0, F_OK) == 0)
   {
-    uart = make_shared<Uart>("/dev/ttyPX0"); // 切换到/dev/ttyPX0
+    shared_ptr<Uart> uart = make_shared<Uart>(ttyPX0); // 切换到/dev/ttyPX0
+    std::cout << "[INFO] Using " << ttyPX0 << " for UART communication." << std::endl;
+  }
+  else if (access(ttyUSB0, F_OK) == 0)
+  {
+    shared_ptr<Uart> uart = make_shared<Uart>(ttyUSB0); // 切换到/dev/ttyUSB0
+    std::cout << "[INFO] Using " << ttyUSB0 << " for UART communication." << std::endl;
+  }
+  else
+  {
+    std::cerr << "[Error] Neither " << ttyPX0 << " nor " << ttyUSB0 << " exists." << std::endl;
+    return -1;
   }
 
   // 设置全局uart指针用于信号处理
