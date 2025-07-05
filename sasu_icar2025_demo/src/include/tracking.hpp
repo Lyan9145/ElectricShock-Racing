@@ -28,6 +28,7 @@
 #include <iostream>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include "imgprocess.hpp"
 
 #define ROAD_WIDTH (0.40)     // 赛道宽度 (0.4)
 #define BLOCK_SIZE (7)        // 自适应阈值的block大小 (7)
@@ -60,10 +61,21 @@ public:
     void drawImage(Mat &trackImage);
     double stdevEdgeCal(vector<POINT> &v_edge, int img_height);
     void findline_lefthand_adaptive(cv::Mat img, int block_size, int clip_value,
-                                              int x, int y, int pts[][2], int *num);
+                                    int x, int y, int pts[][2], int *num);
     void findline_righthand_adaptive(cv::Mat img, int block_size, int clip_value,
-                                               int x, int y, int pts[][2], int *num);
-    void trackRecognition_new(Mat &imageBinary);
+                                     int x, int y, int pts[][2], int *num);
+    void trackRecognition_new(Mat &imageBinary, Mat &result_img);
+    void blur_points(float pts_in[][2], int num, float pts_out[][2], int kernel);
+    void resample_points(float pts_in[][2], int num1, float pts_out[][2], int *num2,
+                                   float dist);
+    void local_angle_points(float pts_in[][2], int num, float angle_out[],
+                                      int dist);
+    void nms_angle(float angle_in[], int num, float angle_out[], int kernel);
+    void track_leftline(float pts_in[][2], int num, float pts_out[][2],
+                                  int approx_num, float dist);
+    void track_rightline(float pts_in[][2], int num, float pts_out[][2],
+                                   int approx_num, float dist);
+    float fit_line(float pts[][2], int num, int cut_h);
 
 private:
     Mat imagePath; // 赛道搜索图像
@@ -83,57 +95,56 @@ private:
     void validRowsCal(void);
     int getMiddleValue(vector<int> vec);
 
-
 private:
-    bool _is_result = false;  // 是否生成处理后的图像
+    bool _is_result = true; // 是否生成处理后的图像
 
-    float cx = COLSIMAGE / 2.0f;  // 车轮对应点 (纯跟踪起始点)
+    float cx = COLSIMAGE / 2.0f; // 车轮对应点 (纯跟踪起始点)
     float cy = ROWSIMAGE * 0.99f;
 
-    int aim_idx__far = 0;  // 远预锚点位置
-    int aim_idx_near = 0;  // 近预锚点位置
+    int aim_idx__far = 0; // 远预锚点位置
+    int aim_idx_near = 0; // 近预锚点位置
 
-    float mea_0 = 0.0f;  // 左直线拟合平均绝对误差
-    float mea_1 = 0.0f;  // 右直线拟合平均绝对误差
+    float mea_0 = 0.0f; // 左直线拟合平均绝对误差
+    float mea_1 = 0.0f; // 右直线拟合平均绝对误差
 
-    std::vector<POINT> bezier_line;  // 中线贝塞尔曲线拟合
+    std::vector<POINT> bezier_line; // 中线贝塞尔曲线拟合
 
     float aim_angle_p_k;
     float aim_angle_p;
     float aim_angle_d;
 
-    float speed_diff = 0.f;  // 减速率
+    float speed_diff = 0.f; // 减速率
 
     const int dir_front[4][2] = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
     const int dir_frontleft[4][2] = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
     const int dir_frontright[4][2] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
-    int track_row_begin = 190;  // 巡线纵坐标起点
-    int track_col_begin = 120;  // 巡线横坐标起点
+    int track_row_begin = 190; // 巡线纵坐标起点
+    int track_col_begin = 120; // 巡线横坐标起点
 
 public:
-    int begin_x_l;                // 巡线横坐标起始点 左
-    int begin_x_r;                // 巡线横坐标起始点 右
-    int begin_y_t;                // 巡线纵坐标起始点
+    int begin_x_l; // 巡线横坐标起始点 左
+    int begin_x_r; // 巡线横坐标起始点 右
+    int begin_y_t; // 巡线纵坐标起始点
 
-    float aim_speed = 0.f;        // 速度量
-    float aim_speed_shift = 0.f;  // 变速计数器
-    float aim_angle = 0.0f;       // 偏差量
-    float aim_angle_last = 0.0f;  // 偏差量 上一帧
-    float aim_sigma = 0.0f;       // 偏差方差
-    float aim_distance_f = 0.0f;  // 远锚点
-    float aim_distance_n = 0.0f;  // 近锚点
+    float aim_speed = 0.f;       // 速度量
+    float aim_speed_shift = 0.f; // 变速计数器
+    float aim_angle = 0.0f;      // 偏差量
+    float aim_angle_last = 0.0f; // 偏差量 上一帧
+    float aim_sigma = 0.0f;      // 偏差方差
+    float aim_distance_f = 0.0f; // 远锚点
+    float aim_distance_n = 0.0f; // 近锚点
 
-    int element_begin_id = 0;         // 特殊元素中线起始点
-    int element_over_route = 0;  // 元素结束路程
-    bool element_over = false;         // 元素结束标志
+    int element_begin_id = 0;   // 特殊元素中线起始点
+    int element_over_route = 0; // 元素结束路程
+    bool element_over = false;  // 元素结束标志
 
     int threshold = 120;
 
 public:
-    std::vector<POINT> edge_det;        // AI元素检测边缘点集
-    std::vector<POINT> edge_left;       // 赛道左边缘点集   注意: 此点集 x 与 y 位置相反 !!!
-    std::vector<POINT> edge_right;      // 赛道右边缘点集
-    std::vector<POINT> last_edge_left;  // 记录上一场边缘点集 (丢失边)
+    std::vector<POINT> edge_det;       // AI元素检测边缘点集
+    std::vector<POINT> edge_left;      // 赛道左边缘点集   注意: 此点集 x 与 y 位置相反 !!!
+    std::vector<POINT> edge_right;     // 赛道右边缘点集
+    std::vector<POINT> last_edge_left; // 记录上一场边缘点集 (丢失边)
     std::vector<POINT> last_edge_right;
 
     /* *********************************************************************** */
@@ -160,9 +171,9 @@ public:
 
 public:
     // 原图左右中线数据定义
-    int ipts0[ROWSIMAGE][2];  // 左: 0
-    int ipts1[ROWSIMAGE][2];  // 右: 1
-    int iptsc[ROWSIMAGE];     // 中: c
+    int ipts0[ROWSIMAGE][2]; // 左: 0
+    int ipts1[ROWSIMAGE][2]; // 右: 1
+    int iptsc[ROWSIMAGE];    // 中: c
     int ipts0_num, ipts1_num, rptsc_num;
     // 透视变换后左右中线  滤波: b
     float rpts0b[ROWSIMAGE][2];
@@ -194,35 +205,36 @@ private:
 
     // 透视变换临时变量
     float trans[2];
-        enum TrackState {
+    enum TrackState
+    {
         TRACK_LEFT,
         TRACK_MIDDLE,
         TRACK_RIGHT
     };
 
-std::vector<std::string> element_string = {
-    "STANDARD",
-    "GARAGE",
-    "RAMP",
-    "RESCUE",
-    "CIRCLE",
-    "CROSS",
-    "DANGER"
-};
-enum ElementState {
-    STANDARD,
-    GARAGE,
-    RAMP,
-    RESCUE,
-    CIRCLE,
-    CROSS,
-    DANGER
-};
-TrackState track_state = TrackState::TRACK_MIDDLE;
-ElementState elem_state = ElementState::GARAGE;
+    std::vector<std::string> element_string = {
+        "STANDARD",
+        "GARAGE",
+        "RAMP",
+        "RESCUE",
+        "CIRCLE",
+        "CROSS",
+        "DANGER"};
+    enum ElementState
+    {
+        STANDARD,
+        GARAGE,
+        RAMP,
+        RESCUE,
+        CIRCLE,
+        CROSS,
+        DANGER
+    };
+    TrackState track_state = TrackState::TRACK_MIDDLE;
+    ElementState elem_state = ElementState::GARAGE;
 
-cv::Mat bin_img;
+    cv::Mat bin_img;
 
-bool flag_elem_over = true;
-int elem_over_cnt = 0;
+    bool flag_elem_over = true;
+    int elem_over_cnt = 0;
 };

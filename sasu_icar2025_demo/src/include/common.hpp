@@ -86,80 +86,19 @@ struct POINT
     POINT(int x, int y) : x(x), y(y) {};
 };
 
-/**
- * @brief 存储图像至本地
- *
- * @param image 需要存储的图像
- */
+int clip(int x, int low, int up);
+void MAT_INFO(cv::Mat & mat, std::string string_buf, cv::Point point, double size);
 void savePicture(Mat &image);
-
-//--------------------------------------------------[公共方法]----------------------------------------------------
-/**
- * @brief int集合平均值计算
- *
- * @param arr 输入数据集合
- * @return double
- */
 double average(vector<int> vec);
-
-/**
- * @brief int集合数据方差计算
- *
- * @param vec Int集合
- * @return double
- */
 double sigma(vector<int> vec);
-
-/**
- * @brief 赛道点集的方差计算
- *
- * @param vec
- * @return double
- */
 double sigma(vector<POINT> vec);
-
-/**
- * @brief 阶乘计算
- *
- * @param x
- * @return int
- */
 int factorial(int x);
-
-/**
- * @brief 贝塞尔曲线
- *
- * @param dt
- * @param input
- * @return vector<POINT>
- */
 vector<POINT> Bezier(double dt, vector<POINT> input);
 
 std::string formatDoble2String(double val, int fixed);
 
-/**
- * @brief 点到直线的距离计算
- *
- * @param a 直线的起点
- * @param b 直线的终点
- * @param p 目标点
- * @return double
- */
 double distanceForPoint2Line(POINT a, POINT b, POINT p);
-
-/**
- * @brief 两点之间的距离
- *
- * @param a
- * @param b
- * @return double
- */
 double distanceForPoints(POINT a, POINT b);
-
-/**
- * @brief UI综合图像绘制
- *
- */
 class Display
 {
 private:

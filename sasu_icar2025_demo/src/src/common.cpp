@@ -7,6 +7,17 @@
 #include <opencv2/highgui.hpp> //OpenCV终端部署
 #include <opencv2/opencv.hpp>  //OpenCV终端部署
 
+int clip(int x, int low, int up) {
+    return x > up ? up : x < low ? low
+                                : x;
+}
+
+/* 窗口绘制信息 */
+void MAT_INFO(cv::Mat & mat, std::string string_buf, cv::Point point, double size) {
+    cv::putText(mat, (std::string)string_buf, point, cv::FONT_HERSHEY_SIMPLEX,
+                size, cv::Scalar(0, 0, 255));
+}
+
 /**
  * @brief Get the Scene object
  *

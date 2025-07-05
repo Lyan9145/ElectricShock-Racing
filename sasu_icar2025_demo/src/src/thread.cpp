@@ -262,6 +262,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		long preTime2;
 		long preTime3;
 		Mat img;
+		Mat result_img;
 		std::vector<PredictResult> predict_result_buffer;
 	
 		while (true)
@@ -296,10 +297,10 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
 			tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 			tracking.trackRecognition(imgBinary);
-			tracking.trackRecognition_new(imgBinary);
-			Mat tracking_img = src.img.clone(); // 克隆图像数据
-			tracking.drawImage(tracking_img); // 绘制赛道识别结果
-			imshow("Tracking", tracking_img);
+
+			result_img = src.img.clone(); // 克隆原图像用于绘制结果
+			tracking.trackRecognition_new(imgBinary, result_img);
+			imshow("Tracking", result_img);
 			waitKey(1);
 	
 			//[05] 停车区检测
