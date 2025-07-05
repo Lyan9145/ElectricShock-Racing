@@ -337,24 +337,24 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
 {
     imagePath = imageBinary;
     // start
-    begin_y_t = track_row_begin;
-    if (elem_state != Scene::ParkingScene && 
-    (!(is_curve0 && track_state == TrackState::TRACK_LEFT) && 
-    !(is_curve1 && track_state == TrackState::TRACK_RIGHT))) {
-        int black_sum = 0; // 黑色像素点计数
-        for (int i = 100; i < COLSIMAGE - 100; i++) { // 遍历行
-            if ((imagePath.at<uint8_t>(begin_y_t, i)) < threshold) // 黑色像素点
-                black_sum++;
-        }
-        if (black_sum > 10) { // 如果黑色像素点大于10个，说明是直道
-            begin_y_t = track_col_begin - 50; //
-            begin_x_l = begin_x_l + 50 > track_row_begin - 1 ? track_row_begin - 1 : begin_x_l + 50;
-            begin_x_r = begin_x_r - 50 < 0 ? 0 : begin_x_r - 50;
-        }
-    }
-    cout << "> begin_y_t: " << begin_y_t << endl;
-    cout << "> begin_x_l: " << begin_x_l << endl;
-    cout << "> begin_x_r: " << begin_x_r << endl;
+    // begin_y_t = track_row_begin;
+    // if (elem_state != Scene::ParkingScene && 
+    // (!(is_curve0 && track_state == TrackState::TRACK_LEFT) && 
+    // !(is_curve1 && track_state == TrackState::TRACK_RIGHT))) {
+    //     int black_sum = 0; // 黑色像素点计数
+    //     for (int i = 100; i < COLSIMAGE - 100; i++) { // 遍历行
+    //         if ((imagePath.at<uint8_t>(begin_y_t, i)) < threshold) // 黑色像素点
+    //             black_sum++;
+    //     }
+    //     if (black_sum > 10) { // 如果黑色像素点大于10个，说明是直道
+    //         begin_y_t = track_col_begin - 50; //
+    //         begin_x_l = begin_x_l + 50 > track_row_begin - 1 ? track_row_begin - 1 : begin_x_l + 50;
+    //         begin_x_r = begin_x_r - 50 < 0 ? 0 : begin_x_r - 50;
+    //     }
+    // }
+    // cout << "> begin_y_t: " << begin_y_t << endl;
+    // cout << "> begin_x_l: " << begin_x_l << endl;
+    // cout << "> begin_x_r: " << begin_x_r << endl;
 
     // 原图找左边线 -------------------------------------------------------
     {
