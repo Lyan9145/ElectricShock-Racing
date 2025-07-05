@@ -33,7 +33,7 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
         }
 
         // 近角点过少, 进入远线控制
-        if ((!Lpt0_found && !Lpt0_found) ||
+        if ((!Lpt0_found && !Lpt1_found) ||
             (Lpt0_found && Lpt0_rpts0s_id < 0.20 / SAMPLE_DIST) ||
             (Lpt1_found && Lpt1_rpts1s_id < 0.20 / SAMPLE_DIST) ||
             (rpts0s_num < 0.20 / SAMPLE_DIST && rpts1s_num < 0.20 / SAMPLE_DIST)) {
