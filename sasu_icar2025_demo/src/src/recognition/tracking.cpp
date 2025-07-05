@@ -824,6 +824,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     } else {
         elem_state = Scene::NormalScene;
     }
+    cout << "Scene: " << sceneToString(elem_state) << endl;
 
     /* ***************************************************************** */
     /* **************************** 中线处理 **************************** */
