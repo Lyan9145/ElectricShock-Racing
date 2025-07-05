@@ -374,11 +374,11 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			}
 	
 			//[11] 十字道路识别与路径规划
-			if ((scene == Scene::NormalScene || scene == Scene::CrossSceneScene) &&
+			if ((scene == Scene::NormalScene || scene == Scene::CrossScene) &&
 				motion.params.cross)
 			{
 				if (crossroad.crossRecognition(tracking))
-					scene = Scene::CrossSceneScene;
+					scene = Scene::CrossScene;
 				else
 					scene = Scene::NormalScene;
 			}
@@ -459,7 +459,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				{
 				case Scene::NormalScene:
 					break;
-				case Scene::CrossSceneScene:					   // [ 十字区 ]
+				case Scene::CrossScene:					   // [ 十字区 ]
 					crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
 					break;
 				case Scene::RingScene:				  // [ 环岛 ]
@@ -490,12 +490,12 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			//[16] 状态复位
 			if (sceneLast != scene)
 			{
-				printf(">> Scene changed from [%s] to [%s]\n", sceneToString(sceneLast).c_str(), sceneToString(scene).c_str());
+				// printf(">> Scene changed from [%s] to [%s]\n", sceneToString(sceneLast).c_str(), sceneToString(scene).c_str());
 			}
 			sceneLast = scene; // 记录当前状态
 			if (scene == Scene::ObstacleScene)
 				scene = Scene::NormalScene;
-			else if (scene == Scene::CrossSceneScene)
+			else if (scene == Scene::CrossScene)
 				scene = Scene::NormalScene;
 			else if (scene == Scene::RingScene)
 				scene = Scene::NormalScene;
