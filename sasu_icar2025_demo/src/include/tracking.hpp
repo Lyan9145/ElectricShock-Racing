@@ -231,7 +231,7 @@ private:
         DANGER
     };
     TrackState track_state = TrackState::TRACK_MIDDLE;
-    ElementState elem_state = ElementState::GARAGE;
+    Scene elem_state = Scene::NormalScene;
 
     cv::Mat bin_img;
 

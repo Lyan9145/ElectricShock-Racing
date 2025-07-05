@@ -299,7 +299,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			tracking.trackRecognition(imgBinary);
 
 			result_img = src.img.clone(); // 克隆原图像用于绘制结果
-			tracking.trackRecognition_new(imgBinary, &result_img);
+			tracking.trackRecognition_new(imgBinary, result_img);
 			imshow("Tracking", result_img);
 			waitKey(1);
 	
