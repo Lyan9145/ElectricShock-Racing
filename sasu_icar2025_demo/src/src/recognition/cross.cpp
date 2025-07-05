@@ -104,18 +104,19 @@ void Cross::cross_farline(cv::Mat & mat_bin,
 
     bool white_found = false;
     bool black_found = false;
-    far_ipts0_num = sizeof(far_ipts0) / sizeof(far_ipts0[0]);
-    for (; yy1 >= 60; yy1--) {
-        if (AT_IMAGE(mat_bin, far_x1, yy1) >= 127)
+    far_ipts0_num = sizeof(far_ipts0) / sizeof(far_ipts0[0]); // 远线点集
+    for (; yy1 >= 60; yy1--) { // 从下往上找
+        if (AT_IMAGE(mat_bin, far_x1, yy1) >= 127) // 找到白色点
             white_found = true;
 
-        if (AT_IMAGE(mat_bin, far_x1, yy1) < 127 &&
-            white_found) {
+        if (AT_IMAGE(mat_bin, far_x1, yy1) < 127 && 
+            white_found) { // 找到黑色点
+            // 找到黑色点后, 检查上方是否有足够的黑色点
             int black = 0;
-            for (int i = 1; i <= 30; i++)
-                if (yy1 - i >= 0)
+            for (int i = 1; i <= 15; i++) // 检查上方30个像素点
+                if (yy1 - i >= 0) //
                     black += AT_IMAGE(mat_bin, far_x1, yy1 - i);
-            if (black > 200) {
+            if (black > 200) { // 如果上方黑色点太多, 认为是噪声
                 white_found = false;
                 continue;
             }
@@ -125,7 +126,7 @@ void Cross::cross_farline(cv::Mat & mat_bin,
         }
     }
     if (AT_IMAGE(mat_bin, far_x1, far_y1 + 1) >= 127 &&
-        black_found)
+        black_found) // 如果下方是白色点, 认为是远线
         findline_lefthand_adaptive(mat_bin, BLOCK_SIZE, CLIP_VALUE, far_x1,
                                    far_y1 + 1, far_ipts0, &far_ipts0_num);
     else
