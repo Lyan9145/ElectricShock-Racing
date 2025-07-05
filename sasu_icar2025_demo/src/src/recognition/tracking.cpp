@@ -514,60 +514,40 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     rptsc1_num = rpts1s_num;
 
     
-    // 可视化：将透视左右边线和中线画在单独一张图上，并根据点的分布自动缩放
+    // 可视化：将透视左右边线和中线画在单独一张图上
     if (_is_result) {
-        // 计算所有点的边界框
-        int min_x = INT_MAX, min_y = INT_MAX, max_x = INT_MIN, max_y = INT_MIN;
-        auto update_bbox = [&](float arr[][2], int num) {
-            for (int i = 0; i < num; i++) {
-                int x = static_cast<int>(arr[i][0]);
-                int y = static_cast<int>(arr[i][1]);
-                min_x = std::min(min_x, x);
-                max_x = std::max(max_x, x);
-                min_y = std::min(min_y, y);
-                max_y = std::max(max_y, y);
-            }
-        };
-        update_bbox(rpts0s, rpts0s_num);
-        update_bbox(rpts1s, rpts1s_num);
-        update_bbox(rptscs, rptscs_num);
-
-        // 边界安全处理
-        min_x = std::max(min_x, 0);
-        min_y = std::max(min_y, 0);
-        max_x = std::min(max_x, result_img.cols - 1);
-        max_y = std::min(max_y, result_img.rows - 1);
-
-        // 目标可视化区域大小
-        int vis_width = 400, vis_height = 400;
-        int bbox_w = std::max(1, max_x - min_x + 1);
-        int bbox_h = std::max(1, max_y - min_y + 1);
-        float scale_x = vis_width * 1.0f / bbox_w;
-        float scale_y = vis_height * 1.0f / bbox_h;
-        float scale = std::min(scale_x, scale_y);
-
-        cv::Mat perspective_lines = cv::Mat::zeros(vis_height, vis_width, CV_8UC3);
-
-        auto draw_scaled = [&](float arr[][2], int num, cv::Vec3b color) {
-            for (int i = 0; i < num; i++) {
-                int x = static_cast<int>((arr[i][0] - min_x) * scale);
-                int y = static_cast<int>((arr[i][1] - min_y) * scale);
-                if (y >= 0 && y < perspective_lines.rows && x >= 0 && x < perspective_lines.cols) {
-                    perspective_lines.at<cv::Vec3b>(y, x) = color;
-                }
-            }
-        };
+        cv::Mat perspective_lines = cv::Mat::zeros(result_img.size(), CV_8UC3);
 
         // 左边线（青色）
-        draw_scaled(rpts0s, rpts0s_num, cv::Vec3b(238, 238, 0));
+        for (int a = 0; a < rpts0s_num; a++) {
+            int x = static_cast<int>(rpts0s[a][0]);
+            int y = static_cast<int>(rpts0s[a][1]);
+            if (y >= 0 && y < perspective_lines.rows && x >= 0 && x < perspective_lines.cols) {
+                perspective_lines.at<cv::Vec3b>(y, x) = cv::Vec3b(238, 238, 0);
+            }
+        }
         // 右边线（黄色）
-        draw_scaled(rpts1s, rpts1s_num, cv::Vec3b(0, 238, 238));
+        for (int a = 0; a < rpts1s_num; a++) {
+            int x = static_cast<int>(rpts1s[a][0]);
+            int y = static_cast<int>(rpts1s[a][1]);
+            if (y >= 0 && y < perspective_lines.rows && x >= 0 && x < perspective_lines.cols) {
+                perspective_lines.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 238, 238);
+            }
+        }
         // 中线（黑色）
-        draw_scaled(rptscs, rptscs_num, cv::Vec3b(0, 0, 0));
+        for (int a = 0; a < rptscs_num; a++) {
+            int x = static_cast<int>(rptscs[a][0]);
+            int y = static_cast<int>(rptscs[a][1]);
+            if (y >= 0 && y < perspective_lines.rows && x >= 0 && x < perspective_lines.cols) {
+                perspective_lines.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 0);
+            }
+        }
 
-        cv::imshow("Perspective Lines (Auto Zoom)", perspective_lines);
-        cv::waitKey(1);
-        // cv::imwrite("perspective_lines_zoom.png", perspective_lines);
+        // 可选：显示或保存
+        cv::imshow("Perspective Lines", perspective_lines);
+        cv::waitKey(1); // 等待按键
+
+        // cv::imwrite("perspective_lines.png", perspective_lines);
     }
     // 透视中线 -> 原图中线
     for (int i = 0; i < rptsc0_num; i++)
