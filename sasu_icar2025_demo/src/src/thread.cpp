@@ -413,31 +413,31 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			if (countInit > 30)
 			{
 				// 触发停车
-				if ((catering.stopEnable && scene == Scene::CateringScene) || (layby.stopEnable && scene == Scene::LaybyScene) || (parking.step == parking.ParkStep::stop))
-				{
-					motion.speed = 0;
-				}
-				else if (scene == Scene::CateringScene)
-					motion.speed = motion.params.speedCatering;
-				else if (scene == Scene::LaybyScene)
-					motion.speed = motion.params.speedLayby;
-				else if (scene == Scene::ParkingScene && parking.step == parking.ParkStep::trackout) // 倒车出库
-					motion.speed = -motion.params.speedDown;
-				else if (scene == Scene::ParkingScene) // 减速
-					motion.speed = motion.params.speedParking;
-				else if (scene == Scene::BridgeScene) // 坡道速度
-					motion.speed = motion.params.speedBridge;
-				else if (scene == Scene::ObstacleScene) // 危险区速度
-					motion.speed = motion.params.speedObstacle;
-				else if (scene == Scene::RingScene) // 环岛速度
-					motion.speed = motion.params.speedRing;
-				else if (scene == Scene::StopScene)
-					motion.speed = motion.params.speedDown;
-				else
-					motion.speedCtrl(true, false, ctrlCenter); // 车速控制
+				// if ((catering.stopEnable && scene == Scene::CateringScene) || (layby.stopEnable && scene == Scene::LaybyScene) || (parking.step == parking.ParkStep::stop))
+				// {
+				// 	motion.speed = 0;
+				// }
+				// else if (scene == Scene::CateringScene)
+				// 	motion.speed = motion.params.speedCatering;
+				// else if (scene == Scene::LaybyScene)
+				// 	motion.speed = motion.params.speedLayby;
+				// else if (scene == Scene::ParkingScene && parking.step == parking.ParkStep::trackout) // 倒车出库
+				// 	motion.speed = -motion.params.speedDown;
+				// else if (scene == Scene::ParkingScene) // 减速
+				// 	motion.speed = motion.params.speedParking;
+				// else if (scene == Scene::BridgeScene) // 坡道速度
+				// 	motion.speed = motion.params.speedBridge;
+				// else if (scene == Scene::ObstacleScene) // 危险区速度
+				// 	motion.speed = motion.params.speedObstacle;
+				// else if (scene == Scene::RingScene) // 环岛速度
+				// 	motion.speed = motion.params.speedRing;
+				// else if (scene == Scene::StopScene)
+				// 	motion.speed = motion.params.speedDown;
+				// else
+				// 	motion.speedCtrl(true, false, ctrlCenter); // 车速控制
 	
-				motion.poseCtrl(ctrlCenter.controlCenter);		 // 姿态控制（舵机）
-				uart.carControl(motion.speed, src.steering_pwm); // 串口通信控制车辆
+				// motion.poseCtrl(ctrlCenter.controlCenter);		 // 姿态控制（舵机）
+				uart.carControl(motion.params.speedHigh, src.steering_pwm); // 串口通信控制车辆
 																 // TODO:串口现在为阻塞发送，改为异步
 			}
 			else
