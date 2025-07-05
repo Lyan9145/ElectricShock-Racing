@@ -35,14 +35,15 @@ int main(int argc, char const *argv[])
   // 检测/dev/ttyPX0是否存在
   const char *ttyPX0 = "/dev/ttyPX0";
   const char *ttyUSB0 = "/dev/ttyUSB0";
+  shared_ptr<Uart> uart;
   if (access(ttyPX0, F_OK) == 0)
   {
-    shared_ptr<Uart> uart = make_shared<Uart>(ttyPX0); // 切换到/dev/ttyPX0
+    uart = make_shared<Uart>(ttyPX0); // 切换到/dev/ttyPX0
     std::cout << "[INFO] Using " << ttyPX0 << " for UART communication." << std::endl;
   }
   else if (access(ttyUSB0, F_OK) == 0)
   {
-    shared_ptr<Uart> uart = make_shared<Uart>(ttyUSB0); // 切换到/dev/ttyUSB0
+    uart = make_shared<Uart>(ttyUSB0); // 切换到/dev/ttyUSB0
     std::cout << "[INFO] Using " << ttyUSB0 << " for UART communication." << std::endl;
   }
   else
