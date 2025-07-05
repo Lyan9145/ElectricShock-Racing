@@ -58,7 +58,7 @@ using namespace cv;
 #define BLOCK_SIZE (7)        // 自适应阈值的block大小 (7)
 #define CLIP_VALUE (2)        // 自适应阈值的阈值裁减量 (2)
 #define LINE_BLUR_KERNEL (7)  // 边线三角滤波核的大小 (7)
-#define PIXEL_PER_METER (100) // 俯视图中, 每个像素对应的长度 (102)
+#define PIXEL_PER_METER (240) // 俯视图中, 每个像素对应的长度 (102)
 #define SAMPLE_DIST (0.02)    // 边线等距采样的间距 (0.02)
 #define ANGLE_DIST (0.2)      // 计算边线转角时, 三个计算点的距离 (0.2)
 #define BEGIN_X (120)  // 巡线横坐标起始点
