@@ -449,7 +449,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// 	   sceneToString(scene).c_str());
 	
 			//[15] 综合显示调试UI窗口
-			if (motion.params.debug)
+			if (0)
 			{
 				Mat imgWithDetection = src.img.clone();
 				drawUI(imgWithDetection, predict_result_buffer); // 绘制检测结果
