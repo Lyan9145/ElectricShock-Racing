@@ -544,6 +544,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
 
         // 可选：显示或保存
         cv::imshow("Perspective Lines", perspective_lines);
+        cv::waitKey(1); // 等待按键
 
         // cv::imwrite("perspective_lines.png", perspective_lines);
     }
