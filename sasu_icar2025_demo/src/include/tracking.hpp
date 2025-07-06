@@ -81,7 +81,7 @@ public:
     void track_rightline(float pts_in[][2], int num, float pts_out[][2],
                                    int approx_num, float dist);
     float fit_line(float pts[][2], int num, int cut_h);
-    string trackstateToString(TrackState state);
+
 
 
 private:
@@ -244,4 +244,5 @@ private:
 
     bool flag_elem_over = true;
     int elem_over_cnt = 0;
+    string trackstateToString(TrackState state);
 };
