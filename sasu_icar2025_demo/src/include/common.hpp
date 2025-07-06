@@ -54,13 +54,13 @@ using namespace cv;
 #define LABEL_SCHOOL 9     // AI标签：学校
 
 #define PI 3.14159265358979323846 // 圆周率
-#define ROAD_WIDTH (0.40)     // 赛道宽度 (0.4)
-#define BLOCK_SIZE (7)        // 自适应阈值的block大小 (7)
-#define CLIP_VALUE (2)        // 自适应阈值的阈值裁减量 (2)
-#define LINE_BLUR_KERNEL (7)  // 边线三角滤波核的大小 (7)
-#define PIXEL_PER_METER (240) // 俯视图中, 每个像素对应的长度 (102)
-#define SAMPLE_DIST (0.02)    // 边线等距采样的间距 (0.02)
-#define ANGLE_DIST (0.2)      // 计算边线转角时, 三个计算点的距离 (0.2)
+#define ROAD_WIDTH (0.40)     // 赛道宽度
+#define BLOCK_SIZE (7)        // 自适应阈值的block大小
+#define CLIP_VALUE (2)        // 自适应阈值的阈值裁减量
+#define LINE_BLUR_KERNEL (7)  // 边线三角滤波核的大小
+#define PIXEL_PER_METER (240) // 俯视图中, 每个像素对应的长度
+#define SAMPLE_DIST (0.02)    // 边线等距采样的间距
+#define ANGLE_DIST (0.2)      // 计算边线转角时, 三个计算点的距离
 #define BEGIN_X (120)  // 巡线横坐标起始点
 #define BEGIN_Y (190)  // 巡线纵坐标起始点
 
@@ -82,6 +82,7 @@ enum Scene
 };
 
 string sceneToString(Scene scene);
+string labelToString(int label);
 
 /**
  * @brief 构建二维坐标

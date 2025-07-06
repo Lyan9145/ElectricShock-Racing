@@ -26,6 +26,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <vector>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include "motion.hpp"
@@ -33,6 +34,7 @@
 #include "circle.hpp"
 #include "cross.hpp"
 #include "thread.hpp"
+#include "obstacle.hpp"
 
 using namespace cv;
 using namespace std;
@@ -44,6 +46,7 @@ public:
     Circle circle;
     Cross cross;
     Motion motion; // 运动控制类
+    Obstacle obstacle; // 障碍物处理类
 
     vector<POINT> pointsEdgeLeft;     // 赛道左边缘点集
     vector<POINT> pointsEdgeRight;    // 赛道右边缘点集
@@ -65,8 +68,8 @@ public:
                                     int x, int y, int pts[][2], int *num);
     void findline_righthand_adaptive(cv::Mat img, int block_size, int clip_value,
                                      int x, int y, int pts[][2], int *num);
-    void trackRecognition_new(Mat &imageBinary, Mat &result_img, 
-                              TaskData &src);
+    void trackRecognition_new(Mat &imageBinary, Mat &result_img,
+                              TaskData &src, std::vector<PredictResult> &predict_result);
     void blur_points(float pts_in[][2], int num, float pts_out[][2], int kernel);
     void resample_points(float pts_in[][2], int num1, float pts_out[][2], int *num2,
                                    float dist);
@@ -78,6 +81,8 @@ public:
     void track_rightline(float pts_in[][2], int num, float pts_out[][2],
                                    int approx_num, float dist);
     float fit_line(float pts[][2], int num, int cut_h);
+    string trackstateToString(TrackState state);
+
 
 private:
     Mat imagePath; // 赛道搜索图像
@@ -141,6 +146,8 @@ public:
     bool element_over = false;  // 元素结束标志
 
     int threshold = 120;
+
+    float track_offset = ROAD_WIDTH / 2; // 巡线偏移量
 
 public:
     std::vector<POINT> edge_det;       // AI元素检测边缘点集

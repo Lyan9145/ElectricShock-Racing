@@ -116,6 +116,37 @@ string sceneToString(Scene scene)
     }
 }
 
+
+
+string labelToString(int label)
+{
+    switch (label)
+    {
+    case LABEL_BATTERY:
+        return "Battery";
+    case LABEL_BLOCK:
+        return "Block";
+    case LABEL_BRIDGE:
+        return "Bridge";
+    case LABEL_BURGER:
+        return "Burger";
+    case LABEL_CAR:
+        return "Car";
+    case LABEL_COMPANY:
+        return "Company";
+    case LABEL_CONE:
+        return "Cone";
+    case LABEL_CROSSWALK:
+        return "Crosswalk";
+    case LABEL_PEDESTRIAN:
+        return "Pedestrian";
+    case LABEL_SCHOOL:
+        return "School";
+    default:
+        return "Unknown";
+    }
+}
+
 /**
  * @brief 存储图像至本地
  *

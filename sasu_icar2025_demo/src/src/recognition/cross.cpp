@@ -40,9 +40,9 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
             cross_route = 0;
             flag_cross = CROSS_IN;
         }
-        printf("> Cross Begin: Lpt0_found=%d, Lpt1_found=%d, rpts0s_num=%d, rpts1s_num=%d, lpt0_rpts0s_id=%d, Lpt1_rpts1s_id=%d\n",
-               Lpt0_found, Lpt1_found, rpts0s_num, rpts1s_num,
-               Lpt0_rpts0s_id, Lpt1_rpts1s_id);
+        // printf("> Cross Begin: Lpt0_found=%d, Lpt1_found=%d, rpts0s_num=%d, rpts1s_num=%d, lpt0_rpts0s_id=%d, Lpt1_rpts1s_id=%d\n",
+        //        Lpt0_found, Lpt1_found, rpts0s_num, rpts1s_num,
+        //        Lpt0_rpts0s_id, Lpt1_rpts1s_id);
     }
 
     /* ***************************************************************** */

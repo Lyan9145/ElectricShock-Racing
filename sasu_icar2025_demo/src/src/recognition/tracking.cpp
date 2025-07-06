@@ -333,7 +333,7 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
     }
 }
 
-void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData &src)
+void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData &src, std::vector<PredictResult> &predict_result)
 {
     imagePath = imageBinary;
     
@@ -506,11 +506,11 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     // 左右中线跟踪
     track_leftline(rpts0s, rpts0s_num, rptsc0,
                    (int)round(ANGLE_DIST / SAMPLE_DIST),
-                   PIXEL_PER_METER * ROAD_WIDTH / 2);
+                   PIXEL_PER_METER * track_offset);
     rptsc0_num = rpts0s_num;
     track_rightline(rpts1s, rpts1s_num, rptsc1,
                     (int)round(ANGLE_DIST / SAMPLE_DIST),
-                    PIXEL_PER_METER * ROAD_WIDTH / 2);
+                    PIXEL_PER_METER * track_offset);
     rptsc1_num = rpts1s_num;
 
     
@@ -718,8 +718,6 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         // auto signs = find_sign.findSigns(src_img, _config);
         // find_sign.sign_classify(signs);
 
-
-
         // 十字
         if (elem_state == Scene::NormalScene && flag_elem_over) {
             cross.check_cross(Lpt0_found, Lpt1_found, rpts1s_num, rpts0s_num, is_curve0, is_curve1);
@@ -735,6 +733,15 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             circle.check_circle(Lpt0_found, Lpt1_found, is_straight1, is_straight0);
             if (circle.flag_circle != Circle::flag_circle_e::CIRCLE_NONE) {
                 elem_state = Scene::RingScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
+
+        // 障碍
+        if (elem_state == Scene::NormalScene && flag_elem_over) {
+            if (obstacle.process(predict_result, is_straight0, is_straight1)) {
+                elem_state = Scene::ObstacleScene;
             } else {
                 elem_state = Scene::NormalScene;
             }
@@ -821,10 +828,29 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             cross.cross_route = 0;
             flag_elem_over = false;
         }
+    } else if (elem_state == Scene::ObstacleScene) {
+        obstacle.run(predict, is_straight0, is_straight1);
+        track_offset = obstacle.getTrackOffset();
+        switch (obstacle.flag_obstacle_pos)  // 根据障碍物位置调整巡线状态
+        {
+        case Obstacle::ObstaclePos::Left:
+            track_state = TrackState::TRACK_LEFT;
+            break;
+        case Obstacle::ObstaclePos::Right:
+            track_state = TrackState::TRACK_RIGHT;
+            break;
+        default:
+            break;
+        }
+        if (obstacle.flag_obstacle == Obstacle::flag_obstacle_e::OBSTACLE_NONE) {
+            elem_state = Scene::NormalScene;
+            flag_elem_over = false;
+            track_offset = ROAD_WIDTH / 2.0f;
+        }
     } else {
+        track_offset = ROAD_WIDTH / 2.0f;
         elem_state = Scene::NormalScene;
     }
-    cout << "Scene: " << sceneToString(elem_state) << endl;
 
     /* ***************************************************************** */
     /* **************************** 中线处理 **************************** */
@@ -836,13 +862,13 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             track_leftline(cross.far_rpts0s + cross.far_Lpt0_rpts0s_id,
                            cross.far_rpts0s_num - cross.far_Lpt0_rpts0s_id, rpts,
                            (int)round(ANGLE_DIST / SAMPLE_DIST),
-                           PIXEL_PER_METER * ROAD_WIDTH / 2);
+                           PIXEL_PER_METER * track_offset);
             rpts_num = cross.far_rpts0s_num - cross.far_Lpt0_rpts0s_id;
         } else {
             track_rightline(cross.far_rpts1s + cross.far_Lpt1_rpts1s_id,
                             cross.far_rpts1s_num - cross.far_Lpt1_rpts1s_id, rpts,
                             (int)round(ANGLE_DIST / SAMPLE_DIST),
-                            PIXEL_PER_METER * ROAD_WIDTH / 2);
+                            PIXEL_PER_METER * track_offset);
             rpts_num = cross.far_rpts1s_num - cross.far_Lpt1_rpts1s_id;
         }
         // 透视 -> 原图
@@ -1060,6 +1086,12 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
 
     // 绘图
     if (_is_result) {
+        // 模式
+        cv::putText(result_img, sceneToString(elem_state), cv::Point(10, 30),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+        // 巡线状态
+        cv::putText(result_img, trackStateToString(track_state), cv::Point(10, 60),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
 
         // 十字 ----------------------------------------------------
         if (cross.flag_cross == Cross::flag_cross_e::CROSS_IN) {
@@ -1665,4 +1697,18 @@ float Tracking::fit_line(float pts[][2], int num, int cut_h) {
     }
 
     return 100.0f;
+}
+
+string trackstateToString(TrackState state)
+{
+    switch (state)
+    {
+    case TRACK_LEFT:
+        return "LEFT";
+    case TRACK_RIGHT:
+        return "RIGHT";
+    case TRACK_MIDDLE:
+        return "MIDDLE";
+
+    }
 }

@@ -29,6 +29,7 @@
 #include "common.hpp"
 #include "detection.hpp"
 #include "tracking.hpp"
+#include "imgprocess.hpp"
 
 using namespace std;
 using namespace cv;
@@ -41,12 +42,50 @@ class Obstacle
 {
 
 public:
-    bool process(Tracking &track, vector<PredictResult> predict);
+    enum state
+    {
+        None = 0, // 无障碍
+        EnterObstacle, // 进入障碍区
+        InObstacle, // 在障碍区
+        ExitObstacle, // 离开障碍区
+    };
+    state current_state = state::None; // 当前状态
+
+    enum ObstaclePos
+    {
+        None = 0, // 无障碍
+        Left,     // 左侧障碍
+        Right,    // 右侧障碍
+    };
+    ObstaclePos flag_obstacle_pos = ObstaclePos::None;
+
+    enum ObstacleType
+    {
+        None = 0, // 无障碍
+        Cone,     // 锥桶
+        Block,    // 大黑块
+        Pedestrian,// 行人
+    };
+    ObstacleType flag_obstacle_type = ObstacleType::None;
+
+    int obstacle_counter = 0; // 障碍计数器(里程计)
+
+    bool process(vector<PredictResult> predict, bool is_straight0, bool is_straight1);
+    int run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2]);
+    float getTrackOffset();
     void drawImage(Mat &img);
 
 private:
+    imageProcess _imgprocess; // 图像处理类
     bool enable = false;     // 场景检测使能标志
     PredictResult resultObs; // 避障目标锥桶
+
+    POINT pointLeft, pointRight; // 避障目标锥桶透视变换后点
+    POINT pointLeftTrans, pointRightTrans; // 避障目标锥桶透视变换后点
+
+    float track_offset = 0.0f; // 赛道偏移量
+    
+
 
     /**
      * @brief 缩减优化车道线（双车道→单车道）

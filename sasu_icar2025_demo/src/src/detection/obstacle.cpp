@@ -3,11 +3,12 @@
 using namespace std;
 using namespace cv;
 
-bool Obstacle::process(Tracking &track, vector<PredictResult> predict)
+bool Obstacle::process(vector<PredictResult> predict, bool is_straight0, bool is_straight1)
 {
-    enable = false; // 场景检测使能标志
-    if (track.pointsEdgeLeft.size() < ROWSIMAGE / 2 || track.pointsEdgeRight.size() < ROWSIMAGE / 2)
-        return enable;
+    if (!is_straight0 && !is_straight1) // 非直道
+    {
+        return enable; // 无障碍
+    }
 
     vector<PredictResult> resultsObs; // 锥桶AI检测数据
     for (size_t i = 0; i < predict.size(); i++)
@@ -16,8 +17,30 @@ bool Obstacle::process(Tracking &track, vector<PredictResult> predict)
             resultsObs.push_back(predict[i]);
     }
 
-    if (resultsObs.size() <= 0)
+    if (resultsObs.size() <= 0) // 无障碍物检测结果
         return enable;
+
+    enable = true; // 有障碍物
+    return enable;
+}
+
+int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2])
+{
+    if (!enable) // 场景检测使能标志
+        return 0;
+
+    vector<PredictResult> resultsObs; // 锥桶AI检测数据
+    for (size_t i = 0; i < predict.size(); i++)
+    {
+        if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.4) // AI标志距离计算
+            resultsObs.push_back(predict[i]);
+    }
+
+    // if (resultsObs.size() <= 0) // 无障碍物检测结果
+    // {
+    //     enable = false;
+    //     return 0;
+    // }
 
     // 选取距离最近的锥桶
     int areaMax = 0; // 框面积
@@ -32,101 +55,144 @@ bool Obstacle::process(Tracking &track, vector<PredictResult> predict)
         }
     }
     resultObs = resultsObs[index];
-    enable = true; // 场景检测使能标志
 
-    // 障碍物方向判定（左/右）
-    int row = track.pointsEdgeLeft.size() - (resultsObs[index].y + resultsObs[index].height - track.rowCutUp);
-    if (row < 0) // 无需规划路径
-        return enable;
-
-    int disLeft = resultsObs[index].x + resultsObs[index].width - track.pointsEdgeLeft[row].y;
-    int disRight = track.pointsEdgeRight[row].y - resultsObs[index].x;
-    if (resultsObs[index].x + resultsObs[index].width > track.pointsEdgeLeft[row].y &&
-        track.pointsEdgeRight[row].y > resultsObs[index].x &&
-        disLeft <= disRight) //[1] 障碍物靠左
+    if (current_state == state::None && resultsObs.size() > 0) // 无障碍，遭遇障碍
     {
+        current_state = state::EnterObstacle;      // 进入障碍区
         if (resultsObs[index].type == LABEL_BLOCK) // 黑色路障特殊处理
         {
-            curtailTracking(track, false); // 缩减优化车道线（双车道→单车道）
+            flag_obstacle_type = Obstacle::ObstacleType::Block;
         }
         else if (resultsObs[index].type == LABEL_PEDESTRIAN) // 行人特殊处理
         {
-            vector<POINT> points(4); // 三阶贝塞尔曲线
-            points[0] = track.pointsEdgeLeft[row / 2];
-            points[1] = {resultsObs[index].y + resultsObs[index].height, resultsObs[index].x + resultsObs[index].width * 2};
-            points[2] = {(resultsObs[index].y + resultsObs[index].height + resultsObs[index].y) / 2, resultsObs[index].x + resultsObs[index].width * 2};
-            if (resultsObs[index].y > track.pointsEdgeLeft[track.pointsEdgeLeft.size() - 1].x)
-                points[3] = track.pointsEdgeLeft[track.pointsEdgeLeft.size() - 1];
-            else
-                points[3] = {resultsObs[index].y, resultsObs[index].x + resultsObs[index].width};
-
-            track.pointsEdgeLeft.resize((size_t)row / 2); // 删除错误路线
-            vector<POINT> repair = Bezier(0.01, points);  // 重新规划车道线
-            for (size_t i = 0; i < repair.size(); i++)
-                track.pointsEdgeLeft.push_back(repair[i]);
-            curtailTracking(track, false); // 缩减优化车道线（双车道→单车道）
+            flag_obstacle_type = Obstacle::ObstacleType::Pedestrian;
+        }
+        else if (resultsObs[index].type == LABEL_CONE) // 锥桶特殊处理
+        {
+            flag_obstacle_type = Obstacle::ObstacleType::Cone;
         }
         else
         {
-            vector<POINT> points(4); // 三阶贝塞尔曲线
-            points[0] = track.pointsEdgeLeft[row / 2];
-            points[1] = {resultsObs[index].y + resultsObs[index].height, resultsObs[index].x + resultsObs[index].width * 2};
-            points[2] = {(resultsObs[index].y + resultsObs[index].height + resultsObs[index].y) / 2, resultsObs[index].x + resultsObs[index].width * 2};
-            if (resultsObs[index].y > track.pointsEdgeLeft[track.pointsEdgeLeft.size() - 1].x)
-                points[3] = track.pointsEdgeLeft[track.pointsEdgeLeft.size() - 1];
-            else
-                points[3] = {resultsObs[index].y, resultsObs[index].x + resultsObs[index].width};
-
-            track.pointsEdgeLeft.resize((size_t)row / 2); // 删除错误路线
-            vector<POINT> repair = Bezier(0.01, points);  // 重新规划车道线
-            for (size_t i = 0; i < repair.size(); i++)
-                track.pointsEdgeLeft.push_back(repair[i]);
+            flag_obstacle_type = Obstacle::ObstacleType::None; 
         }
     }
-    else if (resultsObs[index].x + resultsObs[index].width > track.pointsEdgeLeft[row].y &&
-             track.pointsEdgeRight[row].y > resultsObs[index].x &&
-             disLeft > disRight) //[2] 障碍物靠右
+    if (current_state == state::EnterObstacle) // 进入障碍区前
     {
-        if (resultsObs[index].type == LABEL_BLOCK) // 黑色路障特殊处理
-        {
-            curtailTracking(track, true); // 缩减优化车道线（双车道→单车道）
-        }
-        else if (resultsObs[index].type == LABEL_PEDESTRIAN) // 行人特殊处理
-        {
-            vector<POINT> points(4); // 三阶贝塞尔曲线
-            points[0] = track.pointsEdgeRight[row / 2];
-            points[1] = {resultsObs[index].y + resultsObs[index].height, resultsObs[index].x - resultsObs[index].width};
-            points[2] = {(resultsObs[index].y + resultsObs[index].height + resultsObs[index].y) / 2, resultsObs[index].x - resultsObs[index].width};
-            if (resultsObs[index].y > track.pointsEdgeRight[track.pointsEdgeRight.size() - 1].x)
-                points[3] = track.pointsEdgeRight[track.pointsEdgeRight.size() - 1];
-            else
-                points[3] = {resultsObs[index].y, resultsObs[index].x};
 
-            track.pointsEdgeRight.resize((size_t)row / 2); // 删除错误路线
-            vector<POINT> repair = Bezier(0.01, points);   // 重新规划车道线
-            for (size_t i = 0; i < repair.size(); i++)
-                track.pointsEdgeRight.push_back(repair[i]);
-            curtailTracking(track, true); // 缩减优化车道线（双车道→单车道）
+        if (resultsObs.size() <= 0) // 丢失检测
+        {
+            obstacle_counter++; // 增加障碍计数器
+            if (obstacle_counter > 20) // 滤波器，连续丢失进入下一阶段
+            {
+                current_state = state::InObstacle; // 进入障碍区中
+                obstacle_counter = 0;              // 重置障碍计数器
+            }
         }
         else
         {
-            vector<POINT> points(4); // 三阶贝塞尔曲线
-            points[0] = track.pointsEdgeRight[row / 2];
-            points[1] = {resultsObs[index].y + resultsObs[index].height, resultsObs[index].x - resultsObs[index].width};
-            points[2] = {(resultsObs[index].y + resultsObs[index].height + resultsObs[index].y) / 2, resultsObs[index].x - resultsObs[index].width};
-            if (resultsObs[index].y > track.pointsEdgeRight[track.pointsEdgeRight.size() - 1].x)
-                points[3] = track.pointsEdgeRight[track.pointsEdgeRight.size() - 1];
-            else
-                points[3] = {resultsObs[index].y, resultsObs[index].x};
+            counter_obstacle = 0; // 重置障碍计数器
+            // 障碍框底部两点进行透视变换
+            pointLeft(resultObs.x, resultObs.y + resultObs.height);
+            pointRight(resultObs.x + resultObs.width, resultObs.y + resultObs.height);
+            _imgprocess.mapPerspective(pointLeft.x, pointLeft.y, pointLeftTrans, 0);    // 左侧点透视变换
+            _imgprocess.mapPerspective(pointRight.x, pointRight.y, pointRightTrans, 0); // 右侧点透视变换
+    
+            // rpts0s为左边线点集，找y最接近的x距离
+            float minDistLeft = 1000.0f; // 左侧点距离左边线最近距离
+            int leftIndex = 0;           // 左侧点索引
+            float minYleft = 1000f;
+            for (int i = 0; i < ROWSIMAGE; i++)
+            {
+                float minY = abs(pointLeftTrans.y - rpts0s[i][1]); // 计算y轴距离
+                if (minY < minYleft)
+                {
+                    minDistLeft = pointLeftTrans.x - rpts0s[i][0];
+                    leftIndex = i;
+                    minYleft = minY; // 记录y最接近的点
+                }
+            }
+    
+            // 计算右侧点距离右边线最近距离 rpts1s为右边线点集
+            float minDistRight = 1000.0f; // 右侧点距离右边线最近距离
+            int rightIndex = 0;           // 右侧点索引
+            float minYright = 1000f;
+            for (int i = 0; i < ROWSIMAGE; i++)
+            {
+                float minY = abs(pointRightTrans.y - rpts1s[i][1]); // 计算y轴距离
+                if (minY < minYright)
+                {
+                    minDistRight = pointRightTrans.x - rpts1s[i][0];
+                    rightIndex = i;
+                    minYright = minY; // 记录y最接近的点
+                }
+            }
+    
+            // 赛道外检测
+            if (pointLeftTrans.x > rpts1s[rightIndex][0] || pointRightTrans.x < rpts0s[leftIndex][0])
+            {
+                flag_obstacle_pos = Obstacle::ObstaclePos::None; // 无障碍
+                current_state = state::None;                     // 无障碍
+                obstacle_counter = 0;                            // 重置障碍计数器
+                return 0;
+            }
+    
+            // 确定避障方向：左侧或右侧
+            // 规则：看那一侧的minDist较大
+            if (minDistLeft >= minDistRight) // 左侧障碍
+            {
+                flag_obstacle_pos = Obstacle::ObstaclePos::Left;
+                // 计算偏移量，使用滑动平均增加准确性
+                if (track_offset == 0.0f)
+                    track_offset = minDistLeft / PIXEL_PER_METER; // 左侧点偏移量
+                else
+                    track_offset = (track_offset + minDistLeft / PIXEL_PER_METER) / 2.0f; // 左侧点偏移量
+            }
+            else // 右侧障碍
+            {
+                flag_obstacle_pos = Obstacle::ObstaclePos::Right;
+                // 计算偏移量
+                if (track_offset == 0.0f)
+                    track_offset = minDistRight / PIXEL_PER_METER; // 右侧点偏移量
+                else
+                    track_offset = (track_offset + minDistRight / PIXEL_PER_METER) / 2.0f; // 右侧点偏移量
+            }
+            printf("Obstacle: EnterObstacle, pos=%d, type=%d, track_offset=%.2f\n", flag_obstacle_pos, flag_obstacle_type, track_offset);
+        }
 
-            track.pointsEdgeRight.resize((size_t)row / 2); // 删除错误路线
-            vector<POINT> repair = Bezier(0.01, points);   // 重新规划车道线
-            for (size_t i = 0; i < repair.size(); i++)
-                track.pointsEdgeRight.push_back(repair[i]);
+    }
+    if (current_state == state::InObstacle) // 在障碍区
+    {
+        if (resultsObs.size() <= 0) // 丢失检测
+            obstacle_counter++;     // 增加障碍计数器
+        else                        // 仍然有障碍物
+            obstacle_counter = 0;   // 重置障碍计数器
+
+        if (obstacle_counter > 100) // 离开障碍区
+        {
+            current_state = state::ExitObstacle;
         }
     }
+    if (current_state == state::ExitObstacle) // 离开障碍区
+    {
+        // 重置变量
+        current_state = state::None; // 无障碍
+        flag_obstacle_pos = Obstacle::ObstaclePos::None;
+        flag_obstacle_type = Obstacle::ObstacleType::None;
+        track_offset = ROAD_WIDTH / 2.0f;
+        enable = false;       // 禁用障碍检测
+        obstacle_counter = 0; // 重置障碍计数器
+    }
 
-    return enable;
+    return obstacle_counter;
+}
+
+float Obstacle::getTrackOffset()
+{
+    if (enable) // 场景检测使能标志
+    {
+        return track_offset; // 返回赛道偏移量
+    }
+    return ROAD_WIDTH / 2.0f; // 无障碍物，返回0
 }
 
 /**
