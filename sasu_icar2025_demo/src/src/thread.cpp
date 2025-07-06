@@ -201,14 +201,13 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 	
 }
 
-bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Motion &motion)
+bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion)
 {
 	try
 	{
 		// 目标检测类(AI模型文件)
 		shared_ptr<Detection> detection = make_shared<Detection>(motion.params.model);
 		detection->score = motion.params.score; // AI检测置信度
-		std::mutex lock;
 		long preTime1;
 		while (true)
 		{
@@ -221,9 +220,9 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 			task_data.consume(dst);
 			detection->inference(dst.img);
 			displayImageInfo(dst.img, preTime1, "AI inference");
-			lock.lock();
+			predict_result_lock.lock();
 			predict_result = detection->results;
-			lock.unlock();
+			predict_result_lock.unlock();
 		}
 		return true;
 	}
@@ -235,7 +234,7 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 	return false;
 }
 
-bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Motion &motion, Uart &uart)
+bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion, Uart &uart)
 {
 	try
 	{
@@ -286,7 +285,13 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// 读取模型结果
 			try
 			{
+				predict_result_lock.lock();
 				predict_result_buffer = predict_result;
+				predict_result_lock.unlock();
+				if (predict_result_buffer.empty())
+				{
+					printf("[Warning] No prediction results available.\n");
+				}
 			}
 			catch (const std::exception &e)
 			{

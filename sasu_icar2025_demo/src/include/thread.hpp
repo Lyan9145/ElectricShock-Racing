@@ -94,8 +94,8 @@ bool Factory<T>::consume(T &product) {
 void signalHandler(int signal);
 
 bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv::VideoCapture &capture);
-bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, Motion &motion);
-bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, Motion &motion, Uart &uart);
+bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion);
+bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion, Uart &uart);
 void drawUI(Mat &img, std::vector<PredictResult> results);
 cv::Scalar getCvcolor(int index);
 bool debugDataConsumer(Factory<DebugData> & debug_data);

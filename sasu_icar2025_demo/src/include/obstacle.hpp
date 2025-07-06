@@ -23,6 +23,8 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <cassert>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
