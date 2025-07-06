@@ -72,14 +72,13 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
         }
         if ((rpts0s_num > 1.0 / SAMPLE_DIST &&
              rpts1s_num > 1.0 / SAMPLE_DIST &&
-             !Lpt0_found && !Lpt1_found &&
-             not_have_line > 0) ||
-            (cross_route >= 120)) {
+             !Lpt0_found && !Lpt1_found) || // 去掉了丢线条件
+            (cross_route >= 120)) { // 超过120帧未找到线
             cross_route = 0;
             not_have_line = 0;
-            flag_cross = CROSS_NONE;
             last_Corner1_found = false;
             last_Corner2_found = false;
+            flag_cross = CROSS_NONE;
         }
     }
     return ret_track_state;
