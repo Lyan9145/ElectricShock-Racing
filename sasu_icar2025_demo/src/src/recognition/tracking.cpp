@@ -842,7 +842,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         default:
             break;
         }
-        if (obstacle.flag_obstacle == Obstacle::flag_obstacle_e::OBSTACLE_NONE) {
+        if (obstacle.current_state == Obstacle::state::StateNone) {
             elem_state = Scene::NormalScene;
             flag_elem_over = false;
             track_offset = ROAD_WIDTH / 2.0f;
@@ -1699,7 +1699,7 @@ float Tracking::fit_line(float pts[][2], int num, int cut_h) {
     return 100.0f;
 }
 
-string trackstateToString(TrackState state)
+string Tracking::trackstateToString(TrackState state)
 {
     switch (state)
     {

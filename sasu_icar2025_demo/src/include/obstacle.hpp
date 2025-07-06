@@ -44,29 +44,29 @@ class Obstacle
 public:
     enum state
     {
-        None = 0, // 无障碍
+        StateNone = 0, // 无障碍
         EnterObstacle, // 进入障碍区
         InObstacle, // 在障碍区
         ExitObstacle, // 离开障碍区
     };
-    state current_state = state::None; // 当前状态
+    state current_state = state::StateNone; // 当前状态
 
     enum ObstaclePos
     {
-        None = 0, // 无障碍
+        ObstaclePosNone = 0, // 无障碍
         Left,     // 左侧障碍
         Right,    // 右侧障碍
     };
-    ObstaclePos flag_obstacle_pos = ObstaclePos::None;
+    ObstaclePos flag_obstacle_pos = ObstaclePos::ObstaclePosNone;
 
     enum ObstacleType
     {
-        None = 0, // 无障碍
+        ObstacleTypeNone = 0, // 无障碍
         Cone,     // 锥桶
         Block,    // 大黑块
         Pedestrian,// 行人
     };
-    ObstacleType flag_obstacle_type = ObstacleType::None;
+    ObstacleType flag_obstacle_type = ObstacleType::ObstacleTypeNone;
 
     int obstacle_counter = 0; // 障碍计数器(里程计)
 
@@ -76,7 +76,7 @@ public:
     void drawImage(Mat &img);
 
 private:
-    imageProcess _imgprocess; // 图像处理类
+    ImageProcess _imgprocess; // 图像处理类
     bool enable = false;     // 场景检测使能标志
     PredictResult resultObs; // 避障目标锥桶
 
@@ -93,5 +93,5 @@ private:
      * @param track
      * @param left
      */
-    void curtailTracking(Tracking &track, bool left);
+    // void curtailTracking(Tracking &track, bool left);
 };

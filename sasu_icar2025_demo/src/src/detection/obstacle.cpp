@@ -56,7 +56,7 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
     }
     resultObs = resultsObs[index];
 
-    if (current_state == state::None && resultsObs.size() > 0) // 无障碍，遭遇障碍
+    if (current_state == state::StateNone && resultsObs.size() > 0) // 无障碍，遭遇障碍
     {
         current_state = state::EnterObstacle;      // 进入障碍区
         if (resultsObs[index].type == LABEL_BLOCK) // 黑色路障特殊处理
@@ -73,7 +73,7 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
         }
         else
         {
-            flag_obstacle_type = Obstacle::ObstacleType::None; 
+            flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone;
         }
     }
     if (current_state == state::EnterObstacle) // 进入障碍区前
@@ -130,8 +130,8 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
             // 赛道外检测
             if (pointLeftTrans.x > rpts1s[rightIndex][0] || pointRightTrans.x < rpts0s[leftIndex][0])
             {
-                flag_obstacle_pos = Obstacle::ObstaclePos::None; // 无障碍
-                current_state = state::None;                     // 无障碍
+                flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone; // 无障碍
+                current_state = state::StateNone;                     // 无障碍
                 obstacle_counter = 0;                            // 重置障碍计数器
                 return 0;
             }
@@ -175,9 +175,9 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
     if (current_state == state::ExitObstacle) // 离开障碍区
     {
         // 重置变量
-        current_state = state::None; // 无障碍
-        flag_obstacle_pos = Obstacle::ObstaclePos::None;
-        flag_obstacle_type = Obstacle::ObstacleType::None;
+        current_state = state::StateNone; // 无障碍
+        flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone;
+        flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone;
         track_offset = ROAD_WIDTH / 2.0f;
         enable = false;       // 禁用障碍检测
         obstacle_counter = 0; // 重置障碍计数器
@@ -210,26 +210,26 @@ void Obstacle::drawImage(Mat &img)
     }
 }
 
-void Obstacle::curtailTracking(Tracking &track, bool left)
-{
-    if (left) // 向左侧缩进
-    {
-        if (track.pointsEdgeRight.size() > track.pointsEdgeLeft.size())
-            track.pointsEdgeRight.resize(track.pointsEdgeLeft.size());
+// void Obstacle::curtailTracking(Tracking &track, bool left)
+// {
+//     if (left) // 向左侧缩进
+//     {
+//         if (track.pointsEdgeRight.size() > track.pointsEdgeLeft.size())
+//             track.pointsEdgeRight.resize(track.pointsEdgeLeft.size());
 
-        for (size_t i = 0; i < track.pointsEdgeRight.size(); i++)
-        {
-            track.pointsEdgeRight[i].y = (track.pointsEdgeRight[i].y + track.pointsEdgeLeft[i].y) / 2;
-        }
-    }
-    else // 向右侧缩进
-    {
-        if (track.pointsEdgeRight.size() < track.pointsEdgeLeft.size())
-            track.pointsEdgeLeft.resize(track.pointsEdgeRight.size());
+//         for (size_t i = 0; i < track.pointsEdgeRight.size(); i++)
+//         {
+//             track.pointsEdgeRight[i].y = (track.pointsEdgeRight[i].y + track.pointsEdgeLeft[i].y) / 2;
+//         }
+//     }
+//     else // 向右侧缩进
+//     {
+//         if (track.pointsEdgeRight.size() < track.pointsEdgeLeft.size())
+//             track.pointsEdgeLeft.resize(track.pointsEdgeRight.size());
 
-        for (size_t i = 0; i < track.pointsEdgeLeft.size(); i++)
-        {
-            track.pointsEdgeLeft[i].y = (track.pointsEdgeRight[i].y + track.pointsEdgeLeft[i].y) / 2;
-        }
-    }
-}
+//         for (size_t i = 0; i < track.pointsEdgeLeft.size(); i++)
+//         {
+//             track.pointsEdgeLeft[i].y = (track.pointsEdgeRight[i].y + track.pointsEdgeLeft[i].y) / 2;
+//         }
+//     }
+// }
