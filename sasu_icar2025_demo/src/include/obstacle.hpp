@@ -46,25 +46,25 @@ public:
     {
         StateNone = 0, // 无障碍
         EnterObstacle, // 进入障碍区
-        InObstacle, // 在障碍区
-        ExitObstacle, // 离开障碍区
+        InObstacle,    // 在障碍区
+        ExitObstacle,  // 离开障碍区
     };
     state current_state = state::StateNone; // 当前状态
 
     enum ObstaclePos
     {
         ObstaclePosNone = 0, // 无障碍
-        Left,     // 左侧障碍
-        Right,    // 右侧障碍
+        Left,                // 左侧障碍
+        Right,               // 右侧障碍
     };
     ObstaclePos flag_obstacle_pos = ObstaclePos::ObstaclePosNone;
 
     enum ObstacleType
     {
         ObstacleTypeNone = 0, // 无障碍
-        Cone,     // 锥桶
-        Block,    // 大黑块
-        Pedestrian,// 行人
+        Cone,                 // 锥桶
+        Block,                // 大黑块
+        Pedestrian,           // 行人
     };
     ObstacleType flag_obstacle_type = ObstacleType::ObstacleTypeNone;
 
@@ -77,21 +77,14 @@ public:
 
 private:
     ImageProcess _imgprocess; // 图像处理类
-    bool enable = false;     // 场景检测使能标志
-    PredictResult resultObs; // 避障目标锥桶
+    bool enable = false;      // 场景检测使能标志
+    PredictResult resultObs;  // 避障目标锥桶
 
-    POINT pointLeft, pointRight; // 避障目标锥桶透视变换后点
+    POINT pointLeft, pointRight;           // 避障目标锥桶透视变换后点
     POINT pointLeftTrans, pointRightTrans; // 避障目标锥桶透视变换后点
 
     float track_offset = 0.0f; // 赛道偏移量
-    
 
 
-    /**
-     * @brief 缩减优化车道线（双车道→单车道）
-     *
-     * @param track
-     * @param left
-     */
     // void curtailTracking(Tracking &track, bool left);
 };

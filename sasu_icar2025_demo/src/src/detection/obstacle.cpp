@@ -100,7 +100,7 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
             // rpts0s为左边线点集，找y最接近的x距离
             float minDistLeft = 1000.0f; // 左侧点距离左边线最近距离
             int leftIndex = 0;           // 左侧点索引
-            float minYleft = 1000f;
+            float minYleft = 1000.0f;
             for (int i = 0; i < ROWSIMAGE; i++)
             {
                 float minY = abs(pointLeftTrans.y - rpts0s[i][1]); // 计算y轴距离
@@ -115,7 +115,7 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
             // 计算右侧点距离右边线最近距离 rpts1s为右边线点集
             float minDistRight = 1000.0f; // 右侧点距离右边线最近距离
             int rightIndex = 0;           // 右侧点索引
-            float minYright = 1000f;
+            float minYright = 1000.0f;
             for (int i = 0; i < ROWSIMAGE; i++)
             {
                 float minY = abs(pointRightTrans.y - rpts1s[i][1]); // 计算y轴距离
