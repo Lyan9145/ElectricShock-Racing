@@ -34,9 +34,9 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
 
         // 近角点过少, 进入远线控制
         if ((!Lpt0_found && !Lpt1_found) ||
-            (Lpt0_found && Lpt0_rpts0s_id < 0.30 / SAMPLE_DIST) ||
-            (Lpt1_found && Lpt1_rpts1s_id < 0.30 / SAMPLE_DIST) ||
-            (rpts0s_num < 0.30 / SAMPLE_DIST && rpts1s_num < 0.30 / SAMPLE_DIST)) {
+            (Lpt0_found && Lpt0_rpts0s_id < 0.40 / SAMPLE_DIST) ||
+            (Lpt1_found && Lpt1_rpts1s_id < 0.40 / SAMPLE_DIST) ||
+            (rpts0s_num < 0.40 / SAMPLE_DIST && rpts1s_num < 0.40 / SAMPLE_DIST)) {
             cross_route = 0;
             flag_cross = CROSS_IN;
         }
@@ -78,6 +78,8 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
             cross_route = 0;
             not_have_line = 0;
             flag_cross = CROSS_NONE;
+            last_Corner1_found = false;
+            last_Corner2_found = false;
         }
     }
     return ret_track_state;
@@ -88,12 +90,15 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
 void Cross::cross_farline(cv::Mat & mat_bin,
     bool Lpt0_found, bool Lpt1_found, float rpts0s[ROWSIMAGE][2], int Lpt0_rpts0s_id,
     float rpts1s[ROWSIMAGE][2], int Lpt1_rpts1s_id){
-    if (Lpt0_found && cross_route < 150) {
+    if (Lpt0_found && cross_route < 100) {
         float trans[2]; // 透视变换后的坐标
         _imgprocess.mapPerspective(rpts0s[Lpt0_rpts0s_id][0],
                         rpts0s[Lpt0_rpts0s_id][1], trans, 1);
         yy1 = trans[1] - 5;
         far_x1 = trans[0];
+        last_Corner1_x = far_x1;
+        last_Corner1_y = yy1;
+        last_Corner1_found = true;
     }
     if (Lpt1_found && cross_route < 100) {
         float trans[2];
@@ -101,6 +106,17 @@ void Cross::cross_farline(cv::Mat & mat_bin,
                         rpts1s[Lpt1_rpts1s_id][1], trans, 1);
         yy2 = trans[1] - 5;
         far_x2 = trans[0];
+        last_Corner2_x = far_x2;
+        last_Corner2_y = yy2;
+        last_Corner2_found = true;
+    }
+    if (last_Corner1_found && !Lpt0_found && !far_Lpt0_found) { // 上次有角点, 但这次没有
+        yy1 = last_Corner1_y;
+        far_x1 = last_Corner1_x;
+    }
+    if (last_Corner2_found && !Lpt1_found && !far_Lpt1_found) { // 上次有角点, 但这次没有
+        yy2 = last_Corner2_y;
+        far_x2 = last_Corner2_x;
     }
 
     /* ***************************************************************** */

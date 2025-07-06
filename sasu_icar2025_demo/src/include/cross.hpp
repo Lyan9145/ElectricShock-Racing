@@ -46,6 +46,13 @@ public:
 
     int yy1 = BEGIN_Y;
     int yy2 = BEGIN_Y;
+
+    int last_Corner1_x;
+    int last_Corner2_x;
+    int last_Corner1_y;
+    int last_Corner2_y;
+    bool last_Corner1_found = false;
+    bool last_Corner2_found = false;
     
     
     enum flag_cross_e {

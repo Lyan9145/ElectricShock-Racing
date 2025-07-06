@@ -337,24 +337,24 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
 {
     imagePath = imageBinary;
     
-    begin_y_t = track_row_begin;
-    if (elem_state != Scene::ParkingScene && 
-    (!(is_curve0 && track_state == TrackState::TRACK_LEFT) && 
-    !(is_curve1 && track_state == TrackState::TRACK_RIGHT))) {
-        int black_sum = 0; // 黑色像素点计数
-        for (int i = 100; i < COLSIMAGE - 100; i++) { // 遍历行
-            if ((imagePath.at<uint8_t>(begin_y_t, i)) < threshold) // 黑色像素点
-                black_sum++;
-        }
-        if (black_sum > 10) { // 如果黑色像素点大于10个，说明是直道
-            begin_y_t = track_col_begin - 50; // 将起始行上移50行
-            begin_x_l = begin_x_l + 50 > track_row_begin - 1 ? track_row_begin - 1 : begin_x_l + 50; // 左边线起始点, 上移50行
-            begin_x_r = begin_x_r - 50 < 0 ? 0 : begin_x_r - 50; // 右边线起始点, 上移50行
-        }
-    }
-    cout << "> begin_y_t: " << begin_y_t << endl;
-    cout << "> begin_x_l: " << begin_x_l << endl;
-    cout << "> begin_x_r: " << begin_x_r << endl;
+    // begin_y_t = track_row_begin;
+    // if (elem_state != Scene::ParkingScene && 
+    // (!(is_curve0 && track_state == TrackState::TRACK_LEFT) && 
+    // !(is_curve1 && track_state == TrackState::TRACK_RIGHT))) {
+    //     int black_sum = 0; // 黑色像素点计数
+    //     for (int i = 100; i < COLSIMAGE - 100; i++) { // 遍历行
+    //         if ((imagePath.at<uint8_t>(begin_y_t, i)) < threshold) // 黑色像素点
+    //             black_sum++;
+    //     }
+    //     if (black_sum > 10) { // 如果黑色像素点大于10个，说明是直道
+    //         begin_y_t = track_col_begin - 50; // 将起始行上移50行
+    //         begin_x_l = begin_x_l + 50 > track_row_begin - 1 ? track_row_begin - 1 : begin_x_l + 50; // 左边线起始点, 上移50行
+    //         begin_x_r = begin_x_r - 50 < 0 ? 0 : begin_x_r - 50; // 右边线起始点, 上移50行
+    //     }
+    // }
+    // cout << "> begin_y_t: " << begin_y_t << endl;
+    // cout << "> begin_x_l: " << begin_x_l << endl;
+    // cout << "> begin_x_r: " << begin_x_r << endl;
 
     // 原图找左边线 -------------------------------------------------------
     {
@@ -861,6 +861,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             rpts_num = rptscs_num;
         }
     }
+
 
 
 
@@ -1620,17 +1621,17 @@ void Tracking::track_leftline(float pts_in[][2], int num, float pts_out[][2],
 // 右边线跟踪中线
 void Tracking::track_rightline(float pts_in[][2], int num, float pts_out[][2],
                      int approx_num, float dist) {
-    for (int i = 0; i < num; i++) {
+    for (int i = 0; i < num; i++) { // 遍历每个点
         float dx = pts_in[clip(i + approx_num, 0, num - 1)][0] -
                    pts_in[clip(i - approx_num, 0, num - 1)][0];
         float dy = pts_in[clip(i + approx_num, 0, num - 1)][1] -
                    pts_in[clip(i - approx_num, 0, num - 1)][1];
-        float dn = sqrt(dx * dx + dy * dy);
+        float dn = sqrt(dx * dx + dy * dy); // 计算距离
 
-        dx /= dn;
+        dx /= dn; // 归一化
         dy /= dn;
 
-        pts_out[i][0] = pts_in[i][0] + dy * dist;
+        pts_out[i][0] = pts_in[i][0] + dy * dist; // 右边线点向中线偏移
         pts_out[i][1] = pts_in[i][1] - dx * dist;
     }
 }
