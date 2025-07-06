@@ -88,6 +88,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
 
         if (resultsObs.size() <= 0) // 丢失检测
         {
+            printf("Obstacle: EnterObstacle, no obstacle detected counter=%d\n", obstacle_counter);
             obstacle_counter++; // 增加障碍计数器
             if (obstacle_counter > 20) // 滤波器，连续丢失进入下一阶段
             {
@@ -167,6 +168,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     }
     if (current_state == state::InObstacle) // 在障碍区
     {
+        printf("in obstacle, counter=%d\n", obstacle_counter);
         if (resultsObs.size() <= 0) // 丢失检测
             obstacle_counter++;     // 增加障碍计数器
         else                        // 仍然有障碍物
@@ -179,6 +181,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     }
     if (current_state == state::ExitObstacle) // 离开障碍区
     {
+        printf("exit obstacle\n");
         // 重置变量
         current_state = state::StateNone; // 无障碍
         flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone;

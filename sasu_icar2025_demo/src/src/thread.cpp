@@ -288,10 +288,10 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				predict_result_lock.lock();
 				predict_result_buffer = predict_result;
 				predict_result_lock.unlock();
-				if (predict_result_buffer.empty())
-				{
-					printf("[Warning] No prediction results available.\n");
-				}
+				// if (predict_result_buffer.empty())
+				// {
+				// 	printf("[Warning] No prediction results available.\n");
+				// }
 			}
 			catch (const std::exception &e)
 			{
