@@ -158,7 +158,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                 else
                     track_offset = (track_offset + minDistRight / PIXEL_PER_METER) / 2.0f; // 右侧点偏移量
             }
-            printf("Obstacle: EnterObstacle, pos=%d, type=%d, track_offset=%.2f\n", flag_obstacle_pos, flag_obstacle_type, track_offset);
+            printf("Obstacle: state=%d, pos=%d, type=%d, track_offset=%.2f\n",current_state, flag_obstacle_pos, flag_obstacle_type, track_offset);
         }
 
     }
