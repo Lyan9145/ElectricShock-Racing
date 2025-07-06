@@ -53,6 +53,7 @@ public:
     int last_Corner2_y;
     bool last_Corner1_found = false;
     bool last_Corner2_found = false;
+    int last_CornerUse_counter = 0; // 上次角点使用计数
     
     
     enum flag_cross_e {

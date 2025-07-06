@@ -76,6 +76,7 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
             (cross_route >= 120)) { // 超过120帧未找到线
             cross_route = 0;
             not_have_line = 0;
+            last_CornerUse_counter = 0; // 重置上次角点使用计数
             last_Corner1_found = false;
             last_Corner2_found = false;
             flag_cross = CROSS_NONE;
@@ -109,13 +110,17 @@ void Cross::cross_farline(cv::Mat & mat_bin,
         last_Corner2_y = yy2;
         last_Corner2_found = true;
     }
-    if (last_Corner1_found && !Lpt0_found && !far_Lpt0_found) { // 上次有角点, 但这次没有
+    if (last_Corner1_found && !Lpt0_found && last_CornerUse_counter < 40) { // 上次有角点, 但这次没有
         yy1 = last_Corner1_y;
         far_x1 = last_Corner1_x;
     }
-    if (last_Corner2_found && !Lpt1_found && !far_Lpt1_found) { // 上次有角点, 但这次没有
+    if (last_Corner2_found && !Lpt1_found && last_CornerUse_counter < 40) { // 上次有角点, 但这次没有
         yy2 = last_Corner2_y;
         far_x2 = last_Corner2_x;
+    }
+    if ((last_Corner1_found && !Lpt0_found) ||
+        (last_Corner2_found && !Lpt1_found)) { // 防止过多使用记忆
+        last_CornerUse_counter++;
     }
 
     /* ***************************************************************** */
