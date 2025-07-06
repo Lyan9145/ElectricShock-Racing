@@ -515,7 +515,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
 
     
     // 可视化：将透视左右边线和中线画在单独一张图上
-    if (0) {
+    if (1) {
         cv::Mat perspective_lines = cv::Mat::zeros(result_img.size(), CV_8UC3);
 
         // 左边线（青色）
