@@ -70,8 +70,8 @@ public:
 
     int obstacle_counter = 0; // 障碍计数器(里程计)
 
-    bool process(vector<PredictResult> predict, bool is_straight0, bool is_straight1);
-    int run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2]);
+    bool process(vector<PredictResult> &predict, bool is_straight0, bool is_straight1);
+    int run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2]);
     float getTrackOffset();
     void drawImage(Mat &img);
 
