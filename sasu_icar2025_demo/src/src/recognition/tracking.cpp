@@ -829,7 +829,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             flag_elem_over = false;
         }
     } else if (elem_state == Scene::ObstacleScene) {
-        obstacle.run(predict, is_straight0, is_straight1);
+        obstacle.run(predict_result, is_straight0, is_straight1);
         track_offset = obstacle.getTrackOffset();
         switch (obstacle.flag_obstacle_pos)  // 根据障碍物位置调整巡线状态
         {
@@ -1090,7 +1090,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         cv::putText(result_img, sceneToString(elem_state), cv::Point(10, 30),
                     cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
         // 巡线状态
-        cv::putText(result_img, trackStateToString(track_state), cv::Point(10, 60),
+        cv::putText(result_img, trackstateToString(track_state), cv::Point(10, 60),
                     cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
 
         // 十字 ----------------------------------------------------
