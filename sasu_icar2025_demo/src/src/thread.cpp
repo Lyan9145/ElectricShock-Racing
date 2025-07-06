@@ -300,6 +300,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 			result_img = src.img.clone(); // 克隆原图像用于绘制结果
 			tracking.trackRecognition_new(imgBinary, result_img, src);
+			drawUI(result_img, predict_result_buffer); // 绘制检测结果
 			imshow("Tracking", result_img);
 			waitKey(1);
 	
