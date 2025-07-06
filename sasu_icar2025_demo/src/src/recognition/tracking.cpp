@@ -833,11 +833,11 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         track_offset = obstacle.getTrackOffset();
         switch (obstacle.flag_obstacle_pos)  // 根据障碍物位置调整巡线状态
         {
-        case Obstacle::ObstaclePos::Left:
-            track_state = TrackState::TRACK_LEFT;
+        case Obstacle::ObstaclePos::Left: // 左侧障碍物靠右
+            track_state = TrackState::TRACK_RIGHT;
             break;
         case Obstacle::ObstaclePos::Right:
-            track_state = TrackState::TRACK_RIGHT;
+            track_state = TrackState::TRACK_LEFT;
             break;
         default:
             break;
