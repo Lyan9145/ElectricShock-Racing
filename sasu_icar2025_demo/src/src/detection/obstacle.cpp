@@ -3,28 +3,32 @@
 using namespace std;
 using namespace cv;
 
-bool Obstacle::process(vector<PredictResult> predict, bool is_straight0, bool is_straight1)
+bool Obstacle::process(vector<PredictResult> &predict, bool is_straight0, bool is_straight1)
 {
     if (!is_straight0 && !is_straight1) // 非直道
     {
         return enable; // 无障碍
     }
-
-    vector<PredictResult> resultsObs; // 锥桶AI检测数据
-    for (size_t i = 0; i < predict.size(); i++)
+    if (current_state == state::StateNone)
     {
-        if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.4) // AI标志距离计算
-            resultsObs.push_back(predict[i]);
+        vector<PredictResult> resultsObs; // 锥桶AI检测数据
+        for (size_t i = 0; i < predict.size(); i++)
+        {
+            if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.4) // AI标志距离计算
+                resultsObs.push_back(predict[i]);
+        }
+    
+        if (resultsObs.size() <= 0) // 无障碍物检测结果
+            enable = false; // 场景检测使能标志
+        else
+        {
+            enable = true; // 有障碍物
+        }
     }
-
-    if (resultsObs.size() <= 0) // 无障碍物检测结果
-        return enable;
-
-    enable = true; // 有障碍物
     return enable;
 }
 
-int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2])
+int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2])
 {
     if (!enable) // 场景检测使能标志
         return 0;

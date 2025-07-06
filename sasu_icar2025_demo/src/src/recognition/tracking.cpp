@@ -717,6 +717,14 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     if (elem_state == Scene::NormalScene && flag_elem_over) {
         // auto signs = find_sign.findSigns(src_img, _config);
         // find_sign.sign_classify(signs);
+        // 障碍
+        if (elem_state == Scene::NormalScene && flag_elem_over) {
+            if (obstacle.process(predict_result, is_straight0, is_straight1)) {
+                elem_state = Scene::ObstacleScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
 
         // 十字
         if (elem_state == Scene::NormalScene && flag_elem_over) {
@@ -738,14 +746,6 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
-        // 障碍
-        if (elem_state == Scene::NormalScene && flag_elem_over) {
-            if (obstacle.process(predict_result, is_straight0, is_straight1)) {
-                elem_state = Scene::ObstacleScene;
-            } else {
-                elem_state = Scene::NormalScene;
-            }
-        }
     }
 
     // 行车线处理 TODO：进行适配
