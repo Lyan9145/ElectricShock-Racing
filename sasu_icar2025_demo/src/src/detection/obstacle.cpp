@@ -90,23 +90,21 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
         }
         else
         {
-            counter_obstacle = 0; // 重置障碍计数器
+            obstacle_counter = 0; // 重置障碍计数器
             // 障碍框底部两点进行透视变换
-            pointLeft(resultObs.x, resultObs.y + resultObs.height);
-            pointRight(resultObs.x + resultObs.width, resultObs.y + resultObs.height);
-            _imgprocess.mapPerspective(pointLeft.x, pointLeft.y, pointLeftTrans, 0);    // 左侧点透视变换
-            _imgprocess.mapPerspective(pointRight.x, pointRight.y, pointRightTrans, 0); // 右侧点透视变换
-    
+            _imgprocess.mapPerspective(resultObs.x, resultObs.y + resultObs.height, pointLeftTrans, 0);    // 左侧点透视变换
+            _imgprocess.mapPerspective(resultObs.x + resultObs.width, resultObs.y + resultObs.height, pointRightTrans, 0); // 右侧点透视变换
+
             // rpts0s为左边线点集，找y最接近的x距离
             float minDistLeft = 1000.0f; // 左侧点距离左边线最近距离
             int leftIndex = 0;           // 左侧点索引
             float minYleft = 1000.0f;
             for (int i = 0; i < ROWSIMAGE; i++)
             {
-                float minY = abs(pointLeftTrans.y - rpts0s[i][1]); // 计算y轴距离
+                float minY = abs(pointLeftTrans[1] - rpts0s[i][1]); // 计算y轴距离
                 if (minY < minYleft)
                 {
-                    minDistLeft = pointLeftTrans.x - rpts0s[i][0];
+                    minDistLeft = pointLeftTrans[0] - rpts0s[i][0];
                     leftIndex = i;
                     minYleft = minY; // 记录y最接近的点
                 }
@@ -118,17 +116,17 @@ int Obstacle::run(vector<PredictResult> predict, float rpts0s[ROWSIMAGE][2], flo
             float minYright = 1000.0f;
             for (int i = 0; i < ROWSIMAGE; i++)
             {
-                float minY = abs(pointRightTrans.y - rpts1s[i][1]); // 计算y轴距离
+                float minY = abs(pointRightTrans[1] - rpts1s[i][1]); // 计算y轴距离
                 if (minY < minYright)
                 {
-                    minDistRight = pointRightTrans.x - rpts1s[i][0];
+                    minDistRight = pointRightTrans[0] - rpts1s[i][0];
                     rightIndex = i;
                     minYright = minY; // 记录y最接近的点
                 }
             }
     
             // 赛道外检测
-            if (pointLeftTrans.x > rpts1s[rightIndex][0] || pointRightTrans.x < rpts0s[leftIndex][0])
+            if (pointLeftTrans[0] > rpts1s[rightIndex][0] || pointRightTrans[0] < rpts0s[leftIndex][0])
             {
                 flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone; // 无障碍
                 current_state = state::StateNone;                     // 无障碍

@@ -80,8 +80,8 @@ private:
     bool enable = false;      // 场景检测使能标志
     PredictResult resultObs;  // 避障目标锥桶
 
-    POINT pointLeft, pointRight;           // 避障目标锥桶透视变换后点
-    POINT pointLeftTrans, pointRightTrans; // 避障目标锥桶透视变换后点
+    float pointLeft[2], pointRight[2];           // 避障目标锥桶透视变换后点
+    float pointLeftTrans[2], pointRightTrans[2]; // 避障目标锥桶透视变换后点
 
     float track_offset = 0.0f; // 赛道偏移量
 
