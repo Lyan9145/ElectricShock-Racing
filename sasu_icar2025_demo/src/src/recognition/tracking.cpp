@@ -829,7 +829,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             flag_elem_over = false;
         }
     } else if (elem_state == Scene::ObstacleScene) {
-        obstacle.run(predict_result, rpsts0s, rpts1s);
+        obstacle.run(predict_result, rpts0s, rpts1s);
         track_offset = obstacle.getTrackOffset();
         switch (obstacle.flag_obstacle_pos)  // 根据障碍物位置调整巡线状态
         {
