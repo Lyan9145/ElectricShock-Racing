@@ -5,6 +5,7 @@ using namespace cv;
 
 bool Obstacle::process(vector<PredictResult> &predict, bool is_straight0, bool is_straight1)
 {
+    assert(predict != nullptr); // 确保预测结果不为空
     if (!is_straight0 && !is_straight1) // 非直道
     {
         return enable; // 无障碍
@@ -30,6 +31,8 @@ bool Obstacle::process(vector<PredictResult> &predict, bool is_straight0, bool i
 
 int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2])
 {
+    assert(predict != nullptr); // 确保预测结果不为空
+    assert(rpts0s != nullptr && rpts1s != nullptr); // 确保赛道点集不为空
     if (!enable) // 场景检测使能标志
         return 0;
 
