@@ -20,6 +20,8 @@
             }
         }
     </script>
+    <!-- 引入 ECharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 </head>
 <body class="bg-gray-600 min-h-screen">
     <!-- Header -->
@@ -326,7 +328,8 @@
                         </div>
                     </div>
                     <div>
-                        <canvas id="vtChart" height="120" class="w-full border rounded bg-gray-50"></canvas>
+                        <!-- 用于 ECharts 的 v-t 曲线容器 -->
+                        <div id="vtChart" style="height:120px;width:100%;" class="w-full border rounded bg-gray-50"></div>
                         <div class="text-xs text-gray-400 mt-1 text-center">速度-时间 (v-t) 实时曲线</div>
                     </div>
                 </div>
