@@ -103,7 +103,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                     resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
                 }
             }
-            printf("chosen obstacle: %d\n", resultObs.id);
+            printf("chosen obstacle: %s\n", resultObs.label);
 
             // 障碍框底部两点进行透视变换
             _imgprocess.mapPerspective(resultObs.x, resultObs.y + resultObs.height, pointLeftTrans, 0);    // 左侧点透视变换
