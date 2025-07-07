@@ -179,11 +179,11 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
         int obstacle_distance; // 障碍物距离
         switch (flag_obstacle_type) // 根据障碍物类型处理
         {
-        case Obstacle::ObstacleType::ObstacleType:Block
+        case Obstacle::ObstacleType::Block:
             obstacle_distance = 150;
             break;
-        case Obstacle::ObstacleType::ObstacleType::Cone:
-        case Obstacle::ObstacleType::ObstacleType::Pedestrian:
+        case Obstacle::ObstacleType::Cone:
+        case Obstacle::ObstacleType::Pedestrian:
             obstacle_distance = 100;
             break;
         default:
