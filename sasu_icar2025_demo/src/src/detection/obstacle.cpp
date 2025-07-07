@@ -107,7 +107,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                     resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
                 }
             }
-            printf("chosen obstacle: %s\n", resultObs.label);
+            printf("chosen obstacle: %d\n", resultObs.label);
 
             // 障碍框底部两点进行透视变换
             _imgprocess.mapPerspective(resultObs.x, resultObs.y + resultObs.height, pointLeftTrans, 0);    // 左侧点透视变换
@@ -189,18 +189,18 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                 flag_obstacle_pos = Obstacle::ObstaclePos::Left;
                 // 计算偏移量，使用滑动平均增加准确性
                 if (track_offset == 0.0f)
-                    track_offset = minDistLeft / PIXEL_PER_METER; // 左侧点偏移量
+                    track_offset = minDistLeft / PIXEL_PER_METER / 2.0f; // 左侧点偏移量
                 else
-                    track_offset = (track_offset + minDistLeft / PIXEL_PER_METER) / 2.0f; // 左侧点偏移量
+                    track_offset = (track_offset + minDistLeft / PIXEL_PER_METER / 2.0f) / 2.0f; // 左侧点偏移量
             }
             else // 右侧障碍
             {
                 flag_obstacle_pos = Obstacle::ObstaclePos::Right;
                 // 计算偏移量
                 if (track_offset == 0.0f)
-                    track_offset = minDistRight / PIXEL_PER_METER; // 右侧点偏移量
+                    track_offset = minDistRight / PIXEL_PER_METER / 2.0f; // 右侧点偏移量
                 else
-                    track_offset = (track_offset + minDistRight / PIXEL_PER_METER) / 2.0f; // 右侧点偏移量
+                    track_offset = (track_offset + minDistRight / PIXEL_PER_METER / 2.0f) / 2.0f; // 右侧点偏移量
             }
             printf("Obstacle: state=%d, pos=%d, type=%d, track_offset=%.2f\n",current_state, flag_obstacle_pos, flag_obstacle_type, track_offset);
         }
