@@ -29,13 +29,12 @@ bool Catering::process(vector<PredictResult> predict)
 
 int Catering::run(vector<PredictResult> predict, UartStatus &status)
 {
-    cout << "Catering: Running, current state: " << static_cast<int>(state) << endl;
     if (state == CateringState::Enter) // 进入快餐店状态
     {
         if (!process(predict)) // 丢失检测
         {
             counter++;
-            if (counter > 4) // 连续5帧无检测结果
+            if (counter > 3) // 连续3帧无检测结果
             {
                 state = CateringState::In; // 进入通道
                 counter = 0; // 重置计数器
