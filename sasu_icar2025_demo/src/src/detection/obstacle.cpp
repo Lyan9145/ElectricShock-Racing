@@ -54,6 +54,10 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     {
         current_state = state::EnterObstacle;      // 进入障碍区
         // 通过底部坐标y值找到最近的，y最大最近
+        resultObs.height = 0;
+        resultObs.width = 0;
+        resultObs.x = 0;
+        resultObs.y = 0;
         for (int i = 0; i < resultsObs.size(); i++)
         {
             if (resultsObs[i].y + resultsObs[i].height > resultObs.y + resultObs.height)
@@ -107,7 +111,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                     resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
                 }
             }
-            printf("chosen obstacle: %d\n", resultObs.label);
+            printf("chosen obstacle: %d\n", resultObs.type);
 
             // 障碍框底部两点进行透视变换
             _imgprocess.mapPerspective(resultObs.x, resultObs.y + resultObs.height, pointLeftTrans, 0);    // 左侧点透视变换
