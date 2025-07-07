@@ -49,32 +49,27 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     //     return 0;
     // }
 
-    // 选取距离最近的锥桶
-    int areaMax = 0; // 框面积
-    int index = 0;   // 目标序号
-    for (size_t i = 0; i < resultsObs.size(); i++)
-    {
-        int area = resultsObs[i].width * resultsObs[i].height;
-        if (area >= areaMax)
-        {
-            index = i;
-            areaMax = area;
-        }
-    }
-    resultObs = resultsObs[index];
 
     if (current_state == state::StateNone && resultsObs.size() > 0) // 无障碍，遭遇障碍
     {
         current_state = state::EnterObstacle;      // 进入障碍区
-        if (resultsObs[index].type == LABEL_BLOCK) // 黑色路障特殊处理
+        // 通过底部坐标y值找到最近的，y最大最近
+        for (int i = 0; i < resultsObs.size(); i++)
+        {
+            if (resultsObs[i].y + resultsObs[i].height > resultObs.y + resultObs.height)
+            {
+                resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
+            }
+        }
+        if (resultObs.type == LABEL_BLOCK) // 黑色路障特殊处理
         {
             flag_obstacle_type = Obstacle::ObstacleType::Block;
         }
-        else if (resultsObs[index].type == LABEL_PEDESTRIAN) // 行人特殊处理
+        else if (resultObs.type == LABEL_PEDESTRIAN) // 行人特殊处理
         {
             flag_obstacle_type = Obstacle::ObstacleType::Pedestrian;
         }
-        else if (resultsObs[index].type == LABEL_CONE) // 锥桶特殊处理
+        else if (resultObs.type == LABEL_CONE) // 锥桶特殊处理
         {
             flag_obstacle_type = Obstacle::ObstacleType::Cone;
         }
@@ -90,7 +85,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
         {
             printf("Obstacle: EnterObstacle, no obstacle detected counter=%d\n", obstacle_counter);
             obstacle_counter++; // 增加障碍计数器
-            if (obstacle_counter > 20) // 滤波器，连续丢失进入下一阶段
+            if (obstacle_counter > 10) // 滤波器，连续丢失进入下一阶段
             {
                 current_state = state::InObstacle; // 进入障碍区中
                 obstacle_counter = 0;              // 重置障碍计数器
@@ -99,6 +94,17 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
         else
         {
             obstacle_counter = 0; // 重置障碍计数器
+
+            // 通过底部坐标y值找到最近的，y最大最近
+            for (int i = 0; i < resultsObs.size(); i++)
+            {
+                if (resultsObs[i].y + resultsObs[i].height > resultObs.y + resultObs.height)
+                {
+                    resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
+                }
+            }
+            printf("chosen obstacle: %d\n", resultObs.id);
+
             // 障碍框底部两点进行透视变换
             _imgprocess.mapPerspective(resultObs.x, resultObs.y + resultObs.height, pointLeftTrans, 0);    // 左侧点透视变换
             _imgprocess.mapPerspective(resultObs.x + resultObs.width, resultObs.y + resultObs.height, pointRightTrans, 0); // 右侧点透视变换
@@ -136,9 +142,11 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             // 赛道外检测
             if (pointLeftTrans[0] > rpts1s[rightIndex][0] || pointRightTrans[0] < rpts0s[leftIndex][0])
             {
+                flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone; // 无障碍
                 flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone; // 无障碍
                 current_state = state::StateNone;                     // 无障碍
                 obstacle_counter = 0;                            // 重置障碍计数器
+                printf("Obstacle: EnterObstacle, out of track, reset state\n");
                 return 0;
             }
     
@@ -168,13 +176,24 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     }
     if (current_state == state::InObstacle) // 在障碍区
     {
+        int obstacle_distance; // 障碍物距离
+        switch (flag_obstacle_type) // 根据障碍物类型处理
+        {
+        case Obstacle::ObstacleType::ObstacleType:Block
+            obstacle_distance = 150;
+            break;
+        case Obstacle::ObstacleType::ObstacleType::Cone:
+        case Obstacle::ObstacleType::ObstacleType::Pedestrian:
+            obstacle_distance = 100;
+            break;
+        default:
+            obstacle_distance = 50; // 默认距离
+            break;
+        }
+        // TODO：改用里程计
         printf("in obstacle, counter=%d\n", obstacle_counter);
-        if (resultsObs.size() <= 0) // 丢失检测
-            obstacle_counter++;     // 增加障碍计数器
-        else                        // 仍然有障碍物
-            obstacle_counter = 0;   // 重置障碍计数器
-
-        if (obstacle_counter > 100) // 离开障碍区
+        obstacle_counter++; // 增加障碍计数器
+        if (obstacle_counter > obstacle_distance) // 离开障碍区
         {
             current_state = state::ExitObstacle;
         }
