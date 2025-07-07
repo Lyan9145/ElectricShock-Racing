@@ -726,6 +726,15 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
+        // 餐厅
+        if (elem_state == Scene::NormalScene && flag_elem_over) {
+            if (catering.process(predict_result)) {
+                elem_state = Scene::CateringScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
+
         // 十字
         if (elem_state == Scene::NormalScene && flag_elem_over) {
             cross.check_cross(Lpt0_found, Lpt1_found, rpts1s_num, rpts0s_num, is_curve0, is_curve1);
@@ -846,6 +855,19 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             elem_state = Scene::NormalScene;
             flag_elem_over = false;
             track_offset = ROAD_WIDTH / 2.0f;
+        }
+    } else if (elem_state == Scene::CateringScene) {
+        catering.run(predict_result, status);
+        switch (catering.direction)
+        {
+        case Catering::CateringDirection::Left: // 左侧餐厅靠右
+            track_state = TrackState::TRACK_LEFT;
+            break;
+        case Catering::CateringDirection::Right: // 右侧餐厅靠左
+            track_state = TrackState::TRACK_RIGHT;
+            break;
+        default:
+            break;
         }
     } else {
         track_offset = ROAD_WIDTH / 2.0f;
@@ -989,72 +1011,26 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     /* ***************************************************************** */
     /* **************************** 速度判定 **************************** */
     /* ***************************************************************** */
+    aim_speed = motion.params.speedHigh;
 
-    // if (garage.flag_garage == Garage::flag_garage_e::GARAGE_OUT) {
-    //     aim_speed = _config.speed_garage_out;
-    // }  // 出库
-    // else if (garage.flag_garage == Garage::flag_garage_e::GARAGE_IN) {
-    //     aim_speed = _config.speed_garage_in;
-    // }  // 入库
-    // else if (ramp.flag_ramp == Ramp::flag_ramp_e::RAMP_UP) {
-    //     aim_speed = _config.speed_ramp_up;
-    // }  // 坡道 上
-    // else if (ramp.flag_ramp == Ramp::flag_ramp_e::RAMP_DOWN) {
-    //     aim_speed = _config.speed_ramp_down;
-    // }  // 坡道 下
-    // else if (rescue.flag_rescue != Rescue::RESCUE_NONE) {
-    //     if (rescue.flag_rescue == Rescue::RESCUE_DETECTION_LEFT ||
-    //     rescue.flag_rescue == Rescue::RESCUE_DETECTION_RIGHT) {
-    //         aim_speed = _config.speed_rescue_detection;
-    //     } else if (rescue.flag_rescue == Rescue::RESCUE_IN_LEFT ||
-    //     rescue.flag_rescue == Rescue::RESCUE_IN_RIGHT) {
-    //         aim_speed = _config.speed_rescue_in;
-    //     } else if (rescue.flag_rescue == Rescue::RESCUE_IN_LEFT ||
-    //     rescue.flag_rescue == Rescue::RESCUE_IN_RIGHT) {
-    //         aim_speed = _config.speed_rescue_in;
-    //     } else if (rescue.flag_rescue == Rescue::RESCUE_STOP_LEFT ||
-    //     rescue.flag_rescue == Rescue::RESCUE_STOP_RIGHT) {
-    //         aim_speed = _config.speed_rescue_stop;
-    //     } else if (rescue.flag_rescue == Rescue::RESCUE_OUT_LEFT ||
-    //     rescue.flag_rescue == Rescue::RESCUE_OUT_RIGHT) {
-    //         aim_speed = _config.speed_rescue_out;
-    //     } else if (rescue.flag_rescue == Rescue::RESCUE_ADJUST_LEFT ||
-    //     rescue.flag_rescue == Rescue::RESCUE_ADJUST_RIGHT) {
-    //         aim_speed = _config.speed_rescue_adjust;
-    //     } else {
-    //         aim_speed = _config.speed_base;
-    //     }
-    // } // 救援区
-    // else if ((circle.flag_circle > 4 && circle.flag_circle < 7) || 
-    // (circle.flag_circle > 0 && circle.flag_circle < 3)) {
-    //     aim_speed = _config.speed_base;
-    // }  // 出入环岛
-    // else if (circle.flag_circle > 6 || circle.flag_circle == 3 || circle.flag_circle == 4) {
-    //     aim_speed = _config.speed_circle;
-    // }  // 环岛内部加速
-    // else if (cross.flag_cross != Cross::flag_cross_e::CROSS_NONE) {
-    //     aim_speed = _config.speed_cross;
-    // }  // 十字速度
-    // else if (danger.flag_danger != Danger::flag_danger_e::DANGER_NONE) {
-    // 	aim_speed = _config.speed_danger;
-    // }
-    // else {
-    //     // 根据偏差方差加减速
-    //     if (abs(aim_sigma) < 10.0) {
-    //         aim_speed_shift += 10.f;
-    //     } else {
-    //         aim_speed_shift -= speed_diff;
-    //     }
+    // 障碍减速
+    if (elem_state == Scene::ObstacleScene) {
+        aim_speed = motion.params.speedLow;
+    }
 
-    //     // 速度限幅
-    //     aim_speed_shift = aim_speed_shift > _config.speed_up ? _config.speed_up : aim_speed_shift < _config.speed_base ? _config.speed_base : aim_speed_shift;
-    //     aim_speed = aim_speed_shift;
-    // }
+    // 餐厅临时停车
+    if (elem_state == Scene::CateringScene && catering.state== Catering.CateringState::Stopping) {
+        aim_speed = 0.0f;
+    }
 
-    // // 停车
-    // if (garage.flag_garage == Garage::flag_garage_e::GARAGE_STOP) {
-    //     aim_speed = -0.0;
-    // }
+    // 停车
+    if (elem_state == Scene::ParkingScene) {
+        src.speed = 0.0f;
+        src.steering_pwm = PWMSERVOMID; // 停车时舵机归中
+        return;
+    }
+    src.speed = aim_speed;
+
 
     /* ***************************************************************** */
     /* **************************** 运行控制 **************************** */

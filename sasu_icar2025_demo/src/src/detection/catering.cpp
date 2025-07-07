@@ -4,136 +4,87 @@ using namespace cv;
 using namespace std;
 
 
-bool Catering::process(Tracking &track, Mat &image, vector<PredictResult> predict)
+bool Catering::process(vector<PredictResult> predict)
 {
-    if (cateringEnable) // 进入岔路
-    {   
-        if (!stopEnable && turning)
-        {
-            for (size_t i = 0; i < predict.size(); i++)
-            {
-                if (predict[i].type == LABEL_BURGER)
-                {
-                    burgerY = predict[i].y;   // 计算汉堡最高高度
-                }
-            }
-
-            // 边缘检测
-            Mat edges;
-            Mat blurred;
-            GaussianBlur(image, blurred, Size(3, 3), 0);  // 添加高斯模糊预处理
-            Canny(blurred, edges, 30, 150, 3);  // 调整Canny参数，使用3x3 Sobel算子
-
-            // 霍夫变换检测直线
-            vector<Vec4i> lines;
-            HoughLinesP(edges, lines, 1, CV_PI / 180, 50, 50, 10);
-
-            // 遍历检测到的直线
-            for (size_t i = 0; i < lines.size(); i++) {
-                Vec4i line = lines[i];
-                Point pt1(line[0], line[1]); // 直线起点
-                Point pt2(line[2], line[3]); // 直线终点
-
-                // 计算直线的斜率
-                double slope = static_cast<double>(pt2.y - pt1.y) / (pt2.x - pt1.x + 1e-5); // 避免除零
-                
-                int maxY = max(line[1],line[3]); // 直线最左侧(最下方)的Y坐标
-                // std::cout << "直线最左侧(最下方)的Y坐标: " << maxY << "汉堡Y: " << burgerY << std::endl;
-                if (maxY > burgerY) // 如果找到的直线低于汉堡则跳过
-                    continue;
-                
-                // 限定斜率
-                if ((slope > -0.3 || slope < -1) && burgerLeft) {
-                    continue; // 跳过不符合斜率条件的直线
-                }
-                else if ((slope < 0.3 || slope > 1) && !burgerLeft ) {
-                    continue; // 跳过不符合斜率条件的直线
-                }
-                
-                int y3 = slope * (0 - pt1.x) + pt1.y;        // 延长起点的Y坐标
-                int y4 = slope * (COLSIMAGE - pt1.x) + pt1.y;// 延长终点的Y坐标
-                    
-                Point start(0, y3);           // 延长起点
-                Point end(COLSIMAGE, y4);     // 延长终点
-                
-                if (burgerLeft)
-                    track.pointsEdgeLeft.clear(); // 清空原始点集
-                else
-                    track.pointsEdgeRight.clear(); // 清空原始点集
-
-                for (int x = start.x; x <= end.x; x++) {
-                    int y = static_cast<int>(start.y + slope * (x - start.x)); // 根据斜率计算 y 值
-                    POINT pt;
-                    pt.x = y; // 将 cv::Point 的 x 赋值给 POINT 的 y
-                    pt.y = x; // 将 cv::Point 的 y 赋值给 POINT 的 x
-                    if (burgerLeft)
-                        track.pointsEdgeLeft.push_back(pt); // 将 POINT 存入点集
-                    else
-                        track.pointsEdgeRight.push_back(pt); // 将 POINT 存入点集
-                }
-
-                // 如果找到符合条件的直线，绘制并输出
-                // Mat imgRes = Mat::zeros(Size(COLSIMAGE, ROWSIMAGE), CV_8UC3); // 创建全黑图像
-                // cv::line(imgRes, start, end, Scalar(0, 255, 0), 2); // 用黄色绘制符合条件的直线
-                // std::cout << "检测到符合条件的斜线: (" << pt1.x << "," << pt1.y << ") -> (" << pt2.x << "," << pt2.y << ")" << endl;
-                // 显示结果
-                // imshow("Detected Lines", imgRes);
-                // waitKey(0);
-            }
-        }
-
-        counterSession++;
-        if (counterSession > (truningTime + travelTime + stopTime))  // 结束餐饮区域
-        {
-            counterRec = 0;
-            counterSession = 0;
-            cateringEnable = false;
-            turning = true;       // 转向标志
-            stopEnable = false;  // 停车使能
-            noRing = false;      // 区分环岛
-        }
-        else if (counterSession > (truningTime + travelTime)) // 驶入餐饮区
-            stopEnable = true;  // 停车使能
-        else if (counterSession > truningTime) // 进入岔路
-            turning = false;   // 关闭转向标志
-
-        return true;
-    }
-    else // 检测汉堡标志
+    detected = false; // 无检测结果
+    if (predict.empty())
     {
-        for (size_t i = 0; i < predict.size(); i++)
-        {
-            if (predict[i].type == LABEL_BURGER && predict[i].score > 0.4 && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.3)
-            {
-                counterRec++;
-                noRing = true;
-                if (predict[i].x < COLSIMAGE / 2)   // 汉堡在左侧
-                    burgerLeft = true;
-                else
-                    burgerLeft = false;
-                break;
-            }
-        }
-
-        if (counterRec)
-        {
-            counterSession++;
-            if (counterRec >= 3 && counterSession < 8)
-            {
-                counterRec = 0;
-                counterSession = 0;
-                cateringEnable = true; // 检测到汉堡标志
-                return true;
-            }
-            else if (counterSession >= 8)
-            {
-                counterRec = 0;
-                counterSession = 0;
-            }
-        }
-
-        return false;
+        return false; // 无检测结果
     }
+    for (int i = 0; i < predict.size(); i++)
+    {
+        if (predict[i].type == LABEL_BURGER) // 检测到汉堡标志
+        {
+            if (predict[i].y > ROWSIMAGE * 0.5) // 汉堡标志在下半部分
+            {
+                state = CateringState::In;
+            }
+            detected = true; // 有检测结果
+            return true;
+        }
+    }
+    return false; // 无汉堡标志检测结果
+}
+
+
+int Catering::run(vector<PredictResult> predict, Uartstatus &status)
+{
+    if (state == CateringState::Enter) // 进入快餐店状态
+    {
+        if (!process(predict)) // 丢失检测
+        {
+            counter++;
+            if (counter > 4) // 连续5帧无检测结果
+            {
+                state = CateringState::In; // 进入通道
+                counter = 0; // 重置计数器
+                start_odometer = status.distance; // 记录起始里程
+                printf("Catering: Entering, direction: %d\n", direction);
+            }
+        }
+        else // 有检测结果
+        {
+            counter = 0; // 重置计数器
+            for (int i = 0; i < predict.size(); i++)
+            {
+                if (predict[i].type == LABEL_BURGER) // 检测到汉堡标志
+                {
+                    direction = ((predict[i].x + predict[i].width / 2) < COLSIMAGE / 2) ? CateringDirection::Left : CateringDirection::Right; // 判断方向
+                }
+            }
+        }
+    }
+    else if (state == CateringState::In) // 在快餐店状态
+    {
+        if (status.distance - start_odometer >= stop_distance) // 距离达到停车距离
+        {
+            state = CateringState::Stopping; // 准备减速停车状态
+            printf("Catering: Stopping\n");
+        }
+    }
+    else if (state == CateringState::Stopping) // 减速停车状态
+    {
+        if (status.speed < 0.01f) // 是否已经停车
+        {
+            state = CateringState::Leave; // 准备离开快餐店状态
+            start_odometer = status.distance; // 记录离开时的里程
+            printf("Catering: Leaving\n");
+        }
+
+    }
+    else if (state == CateringState::Leave) // 离开快餐店状态
+    {
+        if (status.distance - start_odometer >= stop_distance)
+        {
+            state = CateringState::None; // 重置为无快餐店状态
+            direction = CateringDirection::Unknown; // 重置方向
+            counter = 0; // 重置计数器
+            start_odometer = 0.0f; // 重置起始里程
+            printf("Catering: exit\n");
+        }
+    }
+
+    return 1; // 返回操作成功标志
 }
 
 

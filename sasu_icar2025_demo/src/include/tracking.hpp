@@ -36,6 +36,7 @@
 #include "thread.hpp"
 #include "obstacle.hpp"
 #include "uart.hpp"
+#include "catering.hpp"
 
 using namespace cv;
 using namespace std;
@@ -48,6 +49,7 @@ public:
     Cross cross;
     Motion motion; // 运动控制类
     Obstacle obstacle; // 障碍物处理类
+    Catering catering; // 快餐店处理类
 
     vector<POINT> pointsEdgeLeft;     // 赛道左边缘点集
     vector<POINT> pointsEdgeRight;    // 赛道右边缘点集

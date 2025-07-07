@@ -16,22 +16,31 @@ using namespace std;
 class Catering
 {
 public:
+    enum CateringState
+    {
+        None,       // 无快餐店
+        Enter,      // 进入快餐店
+        In,         // 在快餐店
+        Stopping,   // 减速停车
+        Leave       // 离开快餐店
+    };
+    enum CateringDirection
+    {
+        Unknown,
+        Left,       // 左侧进入快餐店
+        Right      // 右侧进入快餐店
+    };
 
-    bool stopEnable = false;        // 停车使能标志
-    bool noRing = false;            // 用来区分环岛路段
+    CateringState state = CateringState::None;
+    CateringDirection direction = CateringDirection::Unknown;
 
-    bool process(Tracking &track, Mat &image, vector<PredictResult> predict);
-    void drawImage(Tracking track, Mat &image);
+    bool process(vector<PredictResult> predict);
+    int run(vector<PredictResult> predict, Uartstatus &status);
 
 
 private:
-    uint16_t counterSession = 0;    // 图像场次计数器
-    uint16_t counterRec = 0;        // 汉堡标志检测计数器
-    bool cateringEnable = false;    // 岔路区域使能标志
-    bool burgerLeft = true;         // 汉堡在左侧
-    bool turning = true;            // 转向标志
-    int burgerY = 0;                // 汉堡高度
-    int truningTime = 25;           // 转弯时间 25帧
-    int travelTime = 10;            // 行驶时间 10帧 在斜线路段的行驶时间
-    int stopTime = 25;              // 停车时间 25帧
+    bool detected = false; // 是否检测到快餐店
+    int counter = 0;
+    float start_odometer = 0.0f; // 起始里程
+    const float stop_distance = 1.1f; // 快餐店距离
 };

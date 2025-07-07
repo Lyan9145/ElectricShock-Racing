@@ -99,7 +99,9 @@ int main(int argc, char const *argv[])
     std::thread task_consumer(&consumer, std::ref(task_factory), std::ref(debug_factory), std::ref(predict_result), std::ref(predict_result_lock), std::ref(motion), std::ref(*uart));
     // std::thread debug_data_consumer(&debugDataConsumer, std::ref(debug_factory));
     // debug_data_consumer.join();
-
+    
+    UartStatus status = uart->getStatus();
+    std::cout << "[INFO] Battery voltage: " << status.voltage << std::endl;
     sleep(3);
 
     task_producer.join();
@@ -107,6 +109,8 @@ int main(int argc, char const *argv[])
     AI_consumer.join();
 
     std::cout << "[INFO] All threads have finished." << std::endl;
+    status = uart->getStatus();
+    std::cout << "[INFO] Battery voltage: " << status.voltage << std::endl;
 
     // 可在合适位置读取串口状态，例如：
     // UartStatus status = uart->getStatus();
