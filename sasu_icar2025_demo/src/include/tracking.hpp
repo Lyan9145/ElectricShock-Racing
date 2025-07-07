@@ -35,6 +35,7 @@
 #include "cross.hpp"
 #include "thread.hpp"
 #include "obstacle.hpp"
+#include "uart.hpp"
 
 using namespace cv;
 using namespace std;
@@ -69,7 +70,7 @@ public:
     void findline_righthand_adaptive(cv::Mat img, int block_size, int clip_value,
                                      int x, int y, int pts[][2], int *num);
     void trackRecognition_new(Mat &imageBinary, Mat &result_img,
-                              TaskData &src, std::vector<PredictResult> &predict_result);
+                              TaskData &src, std::vector<PredictResult> &predict_result, UartStatus &status);
     void blur_points(float pts_in[][2], int num, float pts_out[][2], int kernel);
     void resample_points(float pts_in[][2], int num1, float pts_out[][2], int *num2,
                                    float dist);

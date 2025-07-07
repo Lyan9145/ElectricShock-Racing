@@ -303,11 +303,11 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 			// tracking.trackRecognition(imgBinary);
 			UartStatus status = uart.getStatus();
-    		printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
+    		// printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
 
 
 			result_img = src.img.clone(); // 克隆原图像用于绘制结果
-			tracking.trackRecognition_new(imgBinary, result_img, src, predict_result_buffer);
+			tracking.trackRecognition_new(imgBinary, result_img, src, predict_result_buffer, status);
 			drawUI(result_img, predict_result_buffer); // 绘制检测结果
 
 			imshow("Tracking", result_img);

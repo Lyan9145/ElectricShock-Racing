@@ -32,6 +32,7 @@
 #include "detection.hpp"
 // #include "tracking.hpp"
 #include "imgprocess.hpp"
+#include "uart.hpp"
 
 using namespace std;
 using namespace cv;
@@ -70,10 +71,12 @@ public:
     };
     ObstacleType flag_obstacle_type = ObstacleType::ObstacleTypeNone;
 
-    int obstacle_counter = 0; // 障碍计数器(里程计)
+    int obstacle_counter = 0; // 障碍计数器
+    float odometer = 0.0f; // 里程计
+    float start_odometer = 0.0f; // 起始里程计
 
     bool process(vector<PredictResult> &predict, bool is_straight0, bool is_straight1);
-    int run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2]);
+    int run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2], UartStatus &status);
     float getTrackOffset();
     void drawImage(Mat &img);
 
@@ -86,6 +89,7 @@ private:
     float pointLeftTrans[2], pointRightTrans[2]; // 避障目标锥桶透视变换后点
 
     float track_offset = 0.0f; // 赛道偏移量
+    float obstacle_distance; // 障碍物距离
 
 
     // void curtailTracking(Tracking &track, bool left);

@@ -29,7 +29,7 @@ bool Obstacle::process(vector<PredictResult> &predict, bool is_straight0, bool i
     return enable;
 }
 
-int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2])
+int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], float rpts1s[ROWSIMAGE][2], UartStatus &status)
 {
     // assert(predict != nullptr); // 确保预测结果不为空
     // assert(rpts0s != nullptr && rpts1s != nullptr); // 确保赛道点集不为空
@@ -87,12 +87,14 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
 
         if (resultsObs.size() <= 0) // 丢失检测
         {
-            printf("Obstacle: EnterObstacle, no obstacle detected counter=%d\n", obstacle_counter);
+            // printf("Obstacle: EnterObstacle, no obstacle detected counter=%d\n", obstacle_counter);
             obstacle_counter++; // 增加障碍计数器
             if (obstacle_counter > 4) // 滤波器，连续丢失进入下一阶段
             {
                 current_state = state::InObstacle; // 进入障碍区中
                 obstacle_counter = 0;              // 重置障碍计数器
+                start_odometer = status.distance; // 记录丢失目标位置
+                printf("Obstacle: lose target, start_odometer=%.2f", start_odometer);
             }
         }
         else
@@ -216,24 +218,21 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     }
     if (current_state == state::InObstacle) // 在障碍区
     {
-        int obstacle_distance; // 障碍物距离
+        
         switch (flag_obstacle_type) // 根据障碍物类型处理
         {
         case Obstacle::ObstacleType::Block:
-            obstacle_distance = 40;
+            obstacle_distance = 0.6;
             break;
         case Obstacle::ObstacleType::Cone:
         case Obstacle::ObstacleType::Pedestrian:
-            obstacle_distance = 15;
+            obstacle_distance = 0.3;
             break;
         default:
-            obstacle_distance = 30; // 默认距离
+            obstacle_distance = 0.5; // 默认距离
             break;
         }
-        // TODO：改用里程计
-        printf("in obstacle, counter=%d\n", obstacle_counter);
-        obstacle_counter++; // 增加障碍计数器
-        if (obstacle_counter > obstacle_distance) // 离开障碍区
+        if (status.distance > obstacle_distance + start_odometer) // 离开障碍区
         {
             current_state = state::ExitObstacle;
         }

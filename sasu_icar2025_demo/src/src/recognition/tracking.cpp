@@ -333,7 +333,7 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
     }
 }
 
-void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData &src, std::vector<PredictResult> &predict_result)
+void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData &src, std::vector<PredictResult> &predict_result, UartStatus &status)
 {
     imagePath = imageBinary;
     
