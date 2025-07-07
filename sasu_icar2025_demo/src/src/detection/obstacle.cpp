@@ -94,7 +94,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                 current_state = state::InObstacle; // 进入障碍区中
                 obstacle_counter = 0;              // 重置障碍计数器
                 start_odometer = status.distance; // 记录丢失目标位置
-                printf("Obstacle: lose target, start_odometer=%.2f", start_odometer);
+                printf("Obstacle: lose target, start_odometer=%.2f\n", start_odometer);
             }
         }
         else
@@ -113,7 +113,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                     resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
                 }
             }
-            printf("chosen obstacle: %d\n", resultObs.type);
+            // printf("chosen obstacle: %d\n", resultObs.type);
 
             // 障碍框底部两点进行透视变换
             _imgprocess.mapPerspective(resultObs.x, resultObs.y + resultObs.height, pointLeftTrans, 0);    // 左侧点透视变换
@@ -121,7 +121,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
 
             // 显示透视变换后的道路边线和障碍物点
             // 绘制透视变换后的道路边线和障碍物点
-            if (true)
+            if (false)
             {
                 Mat perspectiveImg = Mat::zeros(ROWSIMAGE, COLSIMAGE, CV_8UC3);
     
@@ -212,7 +212,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                 track_offset = 0.1f;
             else if (track_offset > ROAD_WIDTH / 2.0f)
                 track_offset = ROAD_WIDTH / 2.0f;
-            printf("Obstacle: state=%d, pos=%d, type=%d, track_offset=%.2f\n",current_state, flag_obstacle_pos, flag_obstacle_type, track_offset);
+            // printf("Obstacle: state=%d, pos=%d, type=%d, track_offset=%.2f\n",current_state, flag_obstacle_pos, flag_obstacle_type, track_offset);
         }
 
     }
