@@ -20,6 +20,8 @@ class CarControlSystem {
         this.loadWASDSettings();
 
         this.activeKeys = new Set(); // 新增：追踪当前按下的键
+
+        this.initSerialDataStream();
     }
 
     initializeElements() {
@@ -587,6 +589,40 @@ class CarControlSystem {
         if (this.mjpegStream && this.cameraFeed) {
             this.cameraFeed.src = '';
             this.mjpegStream = null;
+        }
+    }
+
+    // --- Real-time Serial Data Streaming ---
+    initSerialDataStream() {
+        const distanceElem = document.getElementById('serialDistance');
+        const voltageElem = document.getElementById('serialVoltage');
+        const speedElem = document.getElementById('serialSpeed');
+        const tsElem = document.getElementById('serialDataTimestamp');
+        if (!distanceElem || !voltageElem || !speedElem) return;
+
+        try {
+            const evtSource = new EventSource('/serial/stream');
+            evtSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    distanceElem.textContent = (data.distance !== null) ? data.distance.toFixed(3) : '--';
+                    voltageElem.textContent = (data.voltage !== null) ? data.voltage.toFixed(2) : '--';
+                    speedElem.textContent = (data.speed !== null) ? data.speed.toFixed(3) : '--';
+                    if (data.timestamp && tsElem) {
+                        tsElem.textContent = '更新时间: ' + new Date(data.timestamp).toLocaleTimeString();
+                    }
+                } catch (e) {
+                    // ignore parse errors
+                }
+            };
+            evtSource.onerror = () => {
+                distanceElem.textContent = '--';
+                voltageElem.textContent = '--';
+                speedElem.textContent = '--';
+                if (tsElem) tsElem.textContent = '串口数据流断开';
+            };
+        } catch (e) {
+            // ignore
         }
     }
 

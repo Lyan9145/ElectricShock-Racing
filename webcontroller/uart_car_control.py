@@ -14,18 +14,24 @@ import subprocess
 import shutil
 from pathlib import Path
 from uart_proxy import UartProxy
+import glob
+import re
 
 # USB通信帧
 USB_FRAME_HEAD = 0x42
 USB_ADDR_CARCTRL = 1
 
 # --- Configuration ---
-CONFIG_FILE = 'serial_config.json'
-# Set OS-specific default serial port
-if platform.system() == "Windows":
-    SERIAL_PORT = 'COM3'
-else:
-    SERIAL_PORT = '/dev/ttyUSB0'
+# 移除Windows支持和配置文件
+# CONFIG_FILE = 'serial_config.json'
+def find_linux_serial_port():
+    usb_ports = sorted(glob.glob('/dev/ttyUSB*'))
+    if usb_ports:
+        return usb_ports[0]
+    else:
+        return None
+
+SERIAL_PORT = find_linux_serial_port()
 BAUD_RATE = 115200
 
 # Camera Configuration
@@ -333,42 +339,63 @@ def get_default_serial_port():
     else:
         return "/dev/ttyUSB0"  # Linux/Unix serial port
 
-def load_serial_config():
-    """Load serial configuration from JSON file with OS-specific defaults"""
-    global SERIAL_PORT, BAUD_RATE
-    
-    try:
-        if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE, 'r') as f:
-                config = json.load(f)
-                SERIAL_PORT = config.get('serial_port', SERIAL_PORT)
-                BAUD_RATE = config.get('baud_rate', BAUD_RATE)
-                print(f"Loaded serial config: Port={SERIAL_PORT}, Baud={BAUD_RATE}")
-                return True
-    except Exception as e:
-        print(f"Error loading serial config: {e}")
-    
-    # Set OS-specific default if no config found
-    if SERIAL_PORT == '/dev/ttyUSB0' and platform.system() == "Windows":
-        SERIAL_PORT = get_default_serial_port()
-    
-    return False
+# --- Serial Data Streaming (Distance, Voltage, Speed) ---
+serial_data_pattern = re.compile(r'D:(-?\d+\.\d+) , V:(-?\d+\.\d+) , S:(-?\d+\.\d+)')
+latest_serial_data = {
+    'distance': None,
+    'voltage': None,
+    'speed': None,
+    'timestamp': None
+}
+serial_data_lock = threading.Lock()
+serial_data_thread = None
+serial_data_thread_running = False
 
-def save_serial_config():
-    """Save serial configuration to JSON file"""
-    try:
-        config = {
-            'serial_port': SERIAL_PORT,
-            'baud_rate': BAUD_RATE,
-            'last_updated': datetime.now().isoformat()
-        }
-        with open(CONFIG_FILE, 'w') as f:
-            json.dump(config, f, indent=2)
-        print(f"Saved serial config: Port={SERIAL_PORT}, Baud={BAUD_RATE}")
-        return True
-    except Exception as e:
-        print(f"Error saving serial config: {e}")
-        return False
+def serial_data_reader():
+    global ser, serial_data_thread_running, latest_serial_data
+    serial_data_thread_running = True
+    while serial_data_thread_running:
+        try:
+            if ser and ser.is_open:
+                line = ser.readline().decode('utf-8', errors='ignore').strip()
+                if line:
+                    m = serial_data_pattern.match(line)
+                    if m:
+                        with serial_data_lock:
+                            latest_serial_data['distance'] = float(m.group(1))
+                            latest_serial_data['voltage'] = float(m.group(2))
+                            latest_serial_data['speed'] = float(m.group(3))
+                            latest_serial_data['timestamp'] = datetime.now().isoformat()
+            else:
+                time.sleep(0.2)
+        except Exception as e:
+            time.sleep(0.2)
+
+def start_serial_data_thread():
+    global serial_data_thread
+    if serial_data_thread is None or not serial_data_thread.is_alive():
+        t = threading.Thread(target=serial_data_reader, daemon=True)
+        t.start()
+        serial_data_thread = t
+
+def stop_serial_data_thread():
+    global serial_data_thread_running
+    serial_data_thread_running = False
+
+atexit.register(stop_serial_data_thread)
+
+@app.route('/serial/stream')
+def serial_data_stream():
+    def event_stream():
+        last_sent = None
+        while True:
+            with serial_data_lock:
+                data = latest_serial_data.copy()
+            if data['timestamp'] != last_sent and data['distance'] is not None:
+                yield f"data: {json.dumps(data)}\n\n"
+                last_sent = data['timestamp']
+            time.sleep(0.1)
+    return Response(event_stream(), mimetype='text/event-stream')
 
 # --- Flask Web Interface ---
 
@@ -505,67 +532,51 @@ def init_camera_route():
 
 @app.route('/serial/settings', methods=['GET', 'POST'])
 def serial_settings_route():
-    """Get or update serial port settings"""
+    """Get or update serial port settings (Linux only, auto-detect)"""
     global SERIAL_PORT, BAUD_RATE, ser
-    
+
     if request.method == 'GET':
         return jsonify({
             'serial_port': SERIAL_PORT,
             'baud_rate': BAUD_RATE,
             'connected': ser is not None and ser.is_open if ser else False
         })
-    
+
     elif request.method == 'POST':
-        data = request.get_json()
-        
-        new_port = data.get('serial_port')
-        new_baud = data.get('baud_rate')
-        
-        # Validate inputs
-        if new_port is None or new_baud is None:
-            return jsonify({'success': False, 'message': 'Missing serial_port or baud_rate'})
-        
-        try:
-            new_baud = int(new_baud)
-        except ValueError:
-            return jsonify({'success': False, 'message': 'Invalid baud rate'})
-        
-        # Close current connection if open
+        # 仅允许刷新串口（重新自动检测）
+        SERIAL_PORT_NEW = find_linux_serial_port()
+        if SERIAL_PORT_NEW is None:
+            return jsonify({'success': False, 'message': 'No /dev/ttyUSB* device found'})
         close_serial_port()
-        
-        # Update settings
-        SERIAL_PORT = new_port
-        BAUD_RATE = new_baud
-        
-        # Save to config file
-        if save_serial_config():
-            # Try to reconnect with new settings
-            if init_serial(SERIAL_PORT):
-                return jsonify({
-                    'success': True,
-                    'message': 'Serial settings updated and connected',
-                    'settings': {
-                        'serial_port': SERIAL_PORT,
-                        'baud_rate': BAUD_RATE,
-                        'connected': True
-                    }
-                })
-            else:
-                return jsonify({
-                    'success': True,
-                    'message': 'Serial settings updated but connection failed',
-                    'settings': {
-                        'serial_port': SERIAL_PORT,
-                        'baud_rate': BAUD_RATE,
-                        'connected': False
-                    }
-                })
+        SERIAL_PORT = SERIAL_PORT_NEW
+        if init_serial(SERIAL_PORT):
+            return jsonify({
+                'success': True,
+                'message': 'Serial port auto-detected and connected',
+                'settings': {
+                    'serial_port': SERIAL_PORT,
+                    'baud_rate': BAUD_RATE,
+                    'connected': True
+                }
+            })
         else:
-            return jsonify({'success': False, 'message': 'Failed to save serial settings'})
+            return jsonify({
+                'success': False,
+                'message': 'Failed to connect to detected serial port',
+                'settings': {
+                    'serial_port': SERIAL_PORT,
+                    'baud_rate': BAUD_RATE,
+                    'connected': False
+                }
+            })
 
 @app.route('/serial/connect', methods=['POST'])
 def serial_connect_route():
-    """Connect to serial port with current settings"""
+    """Connect to serial port with current settings (auto-detect on Linux)"""
+    global SERIAL_PORT
+    SERIAL_PORT = find_linux_serial_port()
+    if SERIAL_PORT is None:
+        return jsonify({'success': False, 'message': 'No /dev/ttyUSB* device found'})
     if init_serial(SERIAL_PORT):
         return jsonify({'success': True, 'message': 'Serial port connected'})
     else:
@@ -635,6 +646,56 @@ def toggle_forwarding():
 
 if __name__ == '__main__':
     print(f"Starting application on {platform.system()}")
+    # 移除串口配置文件加载和输入
+    print("Auto-detecting serial port on Linux...")
+    SERIAL_PORT = find_linux_serial_port()
+    if SERIAL_PORT is None:
+        print("No /dev/ttyUSB* device found. Exiting.")
+        exit(1)
+    print(f"Using serial port: {SERIAL_PORT}")
+
+    # Initialize camera for MJPEG streaming
+    print(f"Initializing camera on {platform.system()} for MJPEG streaming...")
+    if init_camera(CAMERA_DEFAULT_INDEX, CAMERA_DEFAULT_WIDTH, CAMERA_DEFAULT_HEIGHT, CAMERA_DEFAULT_FPS, CAMERA_DEFAULT_QUALITY):
+        print("Camera initialized successfully for MJPEG streaming")
+    else:
+        print("Warning: Camera initialization failed, camera features will be unavailable")
+
+    if init_serial(SERIAL_PORT):
+        # Start serial data background thread
+        start_serial_data_thread()
+        print("Flask server starting on http://0.0.0.0:5000")
+        print("Open this address in your web browser.")
+        print("MJPEG video streaming available at: http://0.0.0.0:5000/video_feed")
+        try:
+            app.run(host='0.0.0.0', port=5000, debug=False)
+        except KeyboardInterrupt:
+            print("\nFlask server stopping.")
+    else:
+        print(f"Could not initialize serial port {SERIAL_PORT}. Exiting.")
+        return jsonify({'success': True, 'message': 'UART proxy initialized'})
+    else:
+        return jsonify({'success': False, 'message': 'UART proxy already running'})
+
+@app.route('/proxy/toggle_forwarding', methods=['POST'])
+def toggle_forwarding():
+    """Toggle forwarding for a virtual port."""
+    global uart_proxy
+    if uart_proxy is None:
+        return jsonify({'success': False, 'message': 'UART proxy not initialized'})
+
+    data = request.get_json()
+    virtual_port_index = data.get('virtual_port_index')
+    enable = data.get('enable', True)
+
+    if virtual_port_index is None:
+        return jsonify({'success': False, 'message': 'Missing virtual_port_index'})
+
+    uart_proxy.toggle_forwarding(virtual_port_index, enable)
+    return jsonify({'success': True, 'message': f'Forwarding {"enabled" if enable else "disabled"} for virtual port {virtual_port_index}'})
+
+if __name__ == '__main__':
+    print(f"Starting application on {platform.system()}")
     
     # Load serial configuration from file
     print("Loading serial configuration...")
@@ -655,6 +716,8 @@ if __name__ == '__main__':
         print("Warning: Camera initialization failed, camera features will be unavailable")
 
     if init_serial(SERIAL_PORT):
+        # Start serial data background thread
+        start_serial_data_thread()
         print("Flask server starting on http://0.0.0.0:5000")
         print("Open this address in your web browser.")
         print("MJPEG video streaming available at: http://0.0.0.0:5000/video_feed")
