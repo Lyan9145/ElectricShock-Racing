@@ -1019,7 +1019,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     }
 
     // 餐厅临时停车
-    if (elem_state == Scene::CateringScene && catering.state== Catering.CateringState::Stopping) {
+    if (elem_state == Scene::CateringScene && catering.state== Catering::CateringState::Stopping) {
         aim_speed = 0.0f;
     }
 
