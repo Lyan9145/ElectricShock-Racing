@@ -85,7 +85,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
         {
             printf("Obstacle: EnterObstacle, no obstacle detected counter=%d\n", obstacle_counter);
             obstacle_counter++; // 增加障碍计数器
-            if (obstacle_counter > 10) // 滤波器，连续丢失进入下一阶段
+            if (obstacle_counter > 4) // 滤波器，连续丢失进入下一阶段
             {
                 current_state = state::InObstacle; // 进入障碍区中
                 obstacle_counter = 0;              // 重置障碍计数器
@@ -216,7 +216,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             break;
         case Obstacle::ObstacleType::Cone:
         case Obstacle::ObstacleType::Pedestrian:
-            obstacle_distance = 20;
+            obstacle_distance = 15;
             break;
         default:
             obstacle_distance = 30; // 默认距离
