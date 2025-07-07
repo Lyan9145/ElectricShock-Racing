@@ -36,7 +36,7 @@ public:
     CateringDirection direction = CateringDirection::Unknown;
 
     bool process(vector<PredictResult> predict);
-    int run(vector<PredictResult> predict, Uartstatus &status);
+    int run(vector<PredictResult> predict, UartStatus &status);
 
 
 private:

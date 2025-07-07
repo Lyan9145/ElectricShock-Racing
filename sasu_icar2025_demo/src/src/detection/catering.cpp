@@ -27,7 +27,7 @@ bool Catering::process(vector<PredictResult> predict)
 }
 
 
-int Catering::run(vector<PredictResult> predict, Uartstatus &status)
+int Catering::run(vector<PredictResult> predict, UartStatus &status)
 {
     if (state == CateringState::Enter) // 进入快餐店状态
     {
@@ -87,22 +87,4 @@ int Catering::run(vector<PredictResult> predict, Uartstatus &status)
     return 1; // 返回操作成功标志
 }
 
-
-void Catering::drawImage(Tracking track, Mat &image)
-{
-    // 赛道边缘
-    for (size_t i = 0; i < track.pointsEdgeLeft.size(); i++)
-    {
-        circle(image, Point(track.pointsEdgeLeft[i].y, track.pointsEdgeLeft[i].x), 1,
-                Scalar(0, 255, 0), -1); // 绿色点
-    }
-    for (size_t i = 0; i < track.pointsEdgeRight.size(); i++)
-    {
-        circle(image, Point(track.pointsEdgeRight[i].y, track.pointsEdgeRight[i].x), 1,
-                Scalar(0, 255, 255), -1); // 黄色点
-    }
-    
-    if (cateringEnable)
-        putText(image, "[1] Burger - ENABLE", Point(COLSIMAGE / 2 - 30, 10), cv::FONT_HERSHEY_TRIPLEX, 0.3, cv::Scalar(0, 255, 0), 1, CV_AA);
-}
 
