@@ -96,6 +96,10 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             obstacle_counter = 0; // 重置障碍计数器
 
             // 通过底部坐标y值找到最近的，y最大最近
+            resultObs.height = 0;
+            resultObs.width = 0;
+            resultObs.x = 0;
+            resultObs.y = 0;
             for (int i = 0; i < resultsObs.size(); i++)
             {
                 if (resultsObs[i].y + resultsObs[i].height > resultObs.y + resultObs.height)
