@@ -869,7 +869,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         default:
             break;
         }
-        if (catering.current_state == Catering::state::StateNone) {
+        if (catering.state == Catering::CateringState::None) {
             elem_state = Scene::NormalScene;
             flag_elem_over = false;
         }
