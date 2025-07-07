@@ -708,7 +708,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     if (!flag_elem_over) {
         ++elem_over_cnt;
     }
-    if (elem_over_cnt >= 80) {
+    if (elem_over_cnt >= 10) {
         flag_elem_over = true;
         elem_over_cnt = 0;
     }
