@@ -174,7 +174,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			}
 			if (!capture.read(img_buffer))
 			{
-				usleep(50);
+				usleep(100);
 				continue;
 			}
 			TaskData src;
