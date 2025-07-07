@@ -1,4 +1,7 @@
 #include "../include/uart.hpp"
+#include <regex>
+#include <string>
+#include <sstream>
 
 using namespace LibSerial;
 using namespace std;
@@ -104,6 +107,9 @@ int Uart::open(void)
     serialStr.index = 0;
     isOpen = true;
 
+    // 新增：启动行接收线程
+    startLineReceive();
+
     return 0;
 }
 
@@ -132,6 +138,7 @@ void Uart::close(void)
 {
     // printf(" uart thread exit!\n");
     carControl(0, PWMSERVOMID);
+    stopLineReceive(); // 新增：关闭行接收线程
     // threadRec->join();
     if (serialPort != nullptr)
     {
@@ -309,4 +316,83 @@ void Uart::buzzerSound(Buzzer sound)
     // 循环发送数据
     for (size_t i = 0; i < 6; i++)
         transmitByte(buff[i]);
+}
+
+void Uart::lineReceiveThread()
+{
+    std::string buffer;
+    std::regex pattern(R"(D:(-?\d+\.\d+)\s*,\s*V:(-?\d+\.\d+)\s*,\s*S:(-?\d+\.\d+))");
+    while (!stopLineRecv && isOpen && serialPort != nullptr)
+    {
+        try
+        {
+            char c;
+            // 逐字节读取，直到遇到换行
+            while (serialPort->IsOpen() && !stopLineRecv)
+            {
+                serialPort->ReadByte(c, 10); // 10ms超时
+                if (c == '\n' || c == '\r')
+                {
+                    if (!buffer.empty())
+                    {
+                        parseLine(buffer);
+                        buffer.clear();
+                    }
+                }
+                else
+                {
+                    buffer += c;
+                    // 防止异常长行
+                    if (buffer.size() > 128)
+                        buffer.clear();
+                }
+            }
+        }
+        catch (...)
+        {
+            // 读取异常，短暂休眠
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
+}
+
+void Uart::parseLine(const std::string &line)
+{
+    static std::regex pattern(R"(D:(-?\d+\.\d+)\s*,\s*V:(-?\d+\.\d+)\s*,\s*S:(-?\d+\.\d+))");
+    std::smatch m;
+    if (std::regex_match(line, m, pattern))
+    {
+        UartStatus new_status;
+        new_status.distance = std::stof(m[1]);
+        new_status.voltage = std::stof(m[2]);
+        new_status.speed = std::stof(m[3]);
+        std::lock_guard<std::mutex> lock(status_mutex);
+        status = new_status;
+    }
+    // 可选：else分支可记录无法解析的数据
+}
+
+UartStatus Uart::getStatus()
+{
+    std::lock_guard<std::mutex> lock(status_mutex);
+    return status;
+}
+
+void Uart::startLineReceive()
+{
+    stopLineRecv = false;
+    if (!threadLineRecv)
+    {
+        threadLineRecv = std::make_unique<std::thread>(&Uart::lineReceiveThread, this);
+    }
+}
+
+void Uart::stopLineReceive()
+{
+    stopLineRecv = true;
+    if (threadLineRecv && threadLineRecv->joinable())
+    {
+        threadLineRecv->join();
+        threadLineRecv.reset();
+    }
 }

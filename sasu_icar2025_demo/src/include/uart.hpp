@@ -30,6 +30,8 @@
 #include <stdint.h>               // 整型数据类
 #include <string.h>
 #include <thread>
+#include <regex>
+#include <mutex>
 
 using namespace LibSerial;
 using namespace std;
@@ -44,6 +46,12 @@ using namespace std;
 #define USB_ADDR_BUZZER 4  // 蜂鸣器音效控制
 #define USB_ADDR_LED 5     // LED灯效控制
 #define USB_ADDR_KEY 6     // 按键信息
+
+struct UartStatus {
+    float distance = 0.0f;
+    float voltage = 0.0f;
+    float speed = 0.0f;
+};
 
 class Uart
 {
@@ -61,6 +69,7 @@ private:
   } SerialStruct;
 
   std::unique_ptr<std::thread> threadRec; // 串口接收子线程
+  std::unique_ptr<std::thread> threadLineRecv; // 新增：串口行接收线程
   std::shared_ptr<SerialPort> serialPort = nullptr;
   std::string portName; // 端口名字
   bool isOpen = false;
@@ -88,11 +97,16 @@ private:
     uint16_t uint16;
   } Bit16Union;
 
-
   int receiveBytes(unsigned char &charBuffer, size_t msTimeout = 0);
 
   int transmitByte(unsigned char data);
 
+  bool stopLineRecv = false; // 控制线程退出
+  UartStatus status; // 共享数据
+  std::mutex status_mutex; // 互斥锁保护共享数据
+
+  void lineReceiveThread(); // 新增：线程函数
+  void parseLine(const std::string& line); // 新增：解析函数
 
 public:
   // 定义构造函数
@@ -126,4 +140,11 @@ public:
   void dataTransform(void);
   void carControl(float speed, uint16_t servo);
   void buzzerSound(Buzzer sound);
+
+  // 新增：获取最新状态
+  UartStatus getStatus();
+
+  // 新增：启动/停止行接收线程
+  void startLineReceive();
+  void stopLineReceive();
 };

@@ -108,6 +108,10 @@ int main(int argc, char const *argv[])
 
     std::cout << "[INFO] All threads have finished." << std::endl;
 
+    // 可在合适位置读取串口状态，例如：
+    // UartStatus status = uart->getStatus();
+    // printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
+
     uart->close(); // 串口通信关闭 去掉接收线程
     capture.release();
     return 0;
