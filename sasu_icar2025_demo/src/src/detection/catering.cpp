@@ -49,7 +49,7 @@ int Catering::run(vector<PredictResult> predict, UartStatus &status)
             {
                 if (predict[i].type == LABEL_BURGER) // 检测到汉堡标志
                 {
-                    direction = ((predict[i].x + predict[i].width / 2) < COLSIMAGE / 2) ? CateringDirection::Left : CateringDirection::Right; // 判断方向
+                    direction = ((predict[i].x + predict[i].width / 2) < COLSIMAGE / 2) ? CateringDirection::Right : CateringDirection::Left; // 判断方向
                 }
             }
         }
