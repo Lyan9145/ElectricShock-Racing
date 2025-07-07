@@ -869,6 +869,10 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         default:
             break;
         }
+        if (catering.current_state == Catering::state::StateNone) {
+            elem_state = Scene::NormalScene;
+            flag_elem_over = false;
+        }
     } else {
         track_offset = ROAD_WIDTH / 2.0f;
         elem_state = Scene::NormalScene;

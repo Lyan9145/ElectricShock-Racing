@@ -29,6 +29,7 @@ bool Catering::process(vector<PredictResult> predict)
 
 int Catering::run(vector<PredictResult> predict, UartStatus &status)
 {
+    cout << "Catering: Running, current state: " << static_cast<int>(state) << endl;
     if (state == CateringState::Enter) // 进入快餐店状态
     {
         if (!process(predict)) // 丢失检测
