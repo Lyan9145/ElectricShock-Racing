@@ -160,7 +160,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                 float minY = abs(pointRightTrans[1] - rpts1s[i][1]); // 计算y轴距离
                 if (minY < minYright)
                 {
-                    minDistRight = pointRightTrans[0] - rpts1s[i][0];
+                    minDistRight = rpts1s[i][0] - pointRightTrans[0];
                     rightIndex = i;
                     minYright = minY; // 记录y最接近的点
                 }
