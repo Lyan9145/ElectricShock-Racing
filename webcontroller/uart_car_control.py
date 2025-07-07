@@ -22,16 +22,21 @@ USB_FRAME_HEAD = 0x42
 USB_ADDR_CARCTRL = 1
 
 # --- Configuration ---
-# 移除Windows支持和配置文件
-# CONFIG_FILE = 'serial_config.json'
-def find_linux_serial_port():
+# 新增：虚拟串口配置
+VIRTUAL_PORT_PREFIX = "ttyPX"
+NUM_VIRTUAL_PORTS = 2
+
+def find_physical_serial_port():
+    """查找物理串口 /dev/ttyUSB*"""
     usb_ports = sorted(glob.glob('/dev/ttyUSB*'))
     if usb_ports:
         return usb_ports[0]
     else:
         return None
 
-SERIAL_PORT = find_linux_serial_port()
+# 修改：主程序现在使用虚拟串口，物理串口仅用于代理
+PHYSICAL_SERIAL_PORT = find_physical_serial_port()
+SERIAL_PORT = f"/dev/{VIRTUAL_PORT_PREFIX}1"  # Flask应用将连接到此虚拟端口
 BAUD_RATE = 115200
 
 # Camera Configuration
@@ -108,7 +113,16 @@ def close_serial_port():
         print("Serial port closed.")
         ser = None
 
+# 新增：代理服务的清理函数
+def cleanup_proxy():
+    global uart_proxy
+    if uart_proxy:
+        print("Cleaning up UART proxy...")
+        uart_proxy._cleanup()
+
+# 修改：注册所有清理函数
 atexit.register(close_serial_port)
+atexit.register(cleanup_proxy)
 
 
 def send_car_control_command(speed, servo):
@@ -644,33 +658,65 @@ def toggle_forwarding():
     uart_proxy.toggle_forwarding(virtual_port_index, enable)
     return jsonify({'success': True, 'message': f'Forwarding {"enabled" if enable else "disabled"} for virtual port {virtual_port_index}'})
 
+
+# --- MODIFIED MAIN EXECUTION BLOCK ---
+
 if __name__ == '__main__':
     print(f"Starting application on {platform.system()}")
-    # 移除串口配置文件加载和输入
-    print("Auto-detecting serial port on Linux...")
-    SERIAL_PORT = find_linux_serial_port()
-    if SERIAL_PORT is None:
-        print("No /dev/ttyUSB* device found. Exiting.")
+
+    # Step 1: Find physical port for the proxy
+    print("Auto-detecting physical serial port for UART proxy...")
+    PHYSICAL_SERIAL_PORT = find_physical_serial_port()
+    if PHYSICAL_SERIAL_PORT is None:
+        print("Error: No /dev/ttyUSB* device found for the proxy. Exiting.")
         exit(1)
-    print(f"Using serial port: {SERIAL_PORT}")
+    print(f"Found physical port: {PHYSICAL_SERIAL_PORT}")
 
-    # Initialize camera for MJPEG streaming
-    print(f"Initializing camera on {platform.system()} for MJPEG streaming...")
+    # Step 2: Initialize and start the UART proxy in a background thread
+    print(f"Initializing UART proxy on {PHYSICAL_SERIAL_PORT}...")
+    uart_proxy = UartProxy(
+        physical_device=PHYSICAL_SERIAL_PORT,
+        baudrate=BAUD_RATE,
+        num_virtual_ports=NUM_VIRTUAL_PORTS,
+        virtual_port_prefix=VIRTUAL_PORT_PREFIX
+    )
+    proxy_thread = threading.Thread(target=uart_proxy.start, daemon=True)
+    proxy_thread.start()
+    print("UART proxy thread started. Waiting for virtual ports to be created...")
+    time.sleep(2)  # Give the OS time to create the pty and symlinks
+
+    # The main application will now use the first virtual port
+    print(f"Application will use virtual serial port: {SERIAL_PORT}")
+    
+    # By default, enable forwarding only for our main control port
+    uart_proxy.toggle_forwarding(0, True)
+    for i in range(1, NUM_VIRTUAL_PORTS):
+        uart_proxy.toggle_forwarding(i, False)
+    print(f"Forwarding enabled for {SERIAL_PORT}, disabled for other virtual ports.")
+
+    # Step 3: Initialize camera
+    print("Initializing camera for MJPEG streaming...")
     if init_camera(CAMERA_DEFAULT_INDEX, CAMERA_DEFAULT_WIDTH, CAMERA_DEFAULT_HEIGHT, CAMERA_DEFAULT_FPS, CAMERA_DEFAULT_QUALITY):
-        print("Camera initialized successfully for MJPEG streaming")
+        print("Camera initialized successfully.")
     else:
-        print("Warning: Camera initialization failed, camera features will be unavailable")
+        print("Warning: Camera initialization failed.")
 
+    # Step 4: Connect the main application to the VIRTUAL serial port
     if init_serial(SERIAL_PORT):
-        # Start serial data background thread
         start_serial_data_thread()
-        print("Flask server starting on http://0.0.0.0:5000")
+        print("\n----------------------------------------------------")
+        print(f"Flask server starting on http://0.0.0.0:5000")
+        print(f"Car control is on virtual port: {SERIAL_PORT} (via {PHYSICAL_SERIAL_PORT})")
         print("Open this address in your web browser.")
-        print("MJPEG video streaming available at: http://0.0.0.0:5000/video_feed")
+        print("----------------------------------------------------\n")
         try:
             app.run(host='0.0.0.0', port=5000, debug=False)
         except KeyboardInterrupt:
             print("\nFlask server stopping.")
     else:
-        print(f"Could not initialize serial port {SERIAL_PORT}. Exiting.")
+        print(f"\nFATAL: Could not connect to virtual serial port {SERIAL_PORT}. Exiting.")
+        print("Please check proxy logs and permissions (e.g., 'sudo chmod 666 /dev/pts/*').")
+        # Trigger cleanup explicitly if app fails to start
+        if uart_proxy:
+            uart_proxy._cleanup()
 
