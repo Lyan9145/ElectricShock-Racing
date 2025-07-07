@@ -25,6 +25,10 @@ class CarControlSystem {
         this.vtData = []; // {t: timestamp, v: speed}
         this.vtMaxPoints = 120; // 最多显示120个点（约2分钟，1s/点）
         this.vtChartElem = document.getElementById('vtChart');
+        // 新增：初始化ECharts实例
+        if (this.vtChartElem) {
+            this.vtChartEcharts = echarts.init(this.vtChartElem);
+        }
         this.vtChartLastDraw = 0;
 
         this.initSerialDataStream();
@@ -645,75 +649,43 @@ class CarControlSystem {
         }
     }
 
-    // 新增：绘制速度-时间(v-t)曲线
+    // 新增：用ECharts绘制速度-时间(v-t)曲线
     drawVTChart() {
-        const canvas = this.vtChartElem;
-        if (!canvas || !this.vtData.length) return;
-        const ctx = canvas.getContext('2d');
-        const W = canvas.width = canvas.offsetWidth;
-        const H = canvas.height = canvas.offsetHeight;
-        ctx.clearRect(0, 0, W, H);
-
-        // 取数据
+        if (!this.vtChartEcharts || !this.vtData.length) return;
         const data = this.vtData;
-        // 计算时间范围
-        const t0 = data[0].t, t1 = data[data.length - 1].t;
-        const dt = t1 - t0 || 1;
-        // 速度范围
-        let vMin = Math.min(...data.map(d => d.v));
-        let vMax = Math.max(...data.map(d => d.v));
-        if (vMin === vMax) { vMin -= 0.5; vMax += 0.5; }
-        // 留边
-        const padX = 40, padY = 20;
-        // 坐标变换
-        function tx(t) { return padX + (W - 2 * padX) * (t - t0) / dt; }
-        function ty(v) { return H - padY - (H - 2 * padY) * (v - vMin) / (vMax - vMin); }
-
-        // 坐标轴
-        ctx.strokeStyle = '#bbb';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(padX, padY); ctx.lineTo(padX, H - padY); // y轴
-        ctx.lineTo(W - padX, H - padY); // x轴
-        ctx.stroke();
-
-        // y轴刻度
-        ctx.fillStyle = '#888';
-        ctx.font = '12px monospace';
-        for (let i = 0; i <= 4; ++i) {
-            const v = vMin + (vMax - vMin) * i / 4;
-            const y = ty(v);
-            ctx.fillText(v.toFixed(2), 2, y + 4);
-            ctx.beginPath();
-            ctx.moveTo(padX - 3, y); ctx.lineTo(padX, y); ctx.stroke();
-        }
-        // x轴刻度
-        for (let i = 0; i <= 4; ++i) {
-            const t = t0 + (dt) * i / 4;
-            const x = tx(t);
-            const tLabel = new Date(t).toLocaleTimeString().slice(3, 8);
-            ctx.fillText(tLabel, x - 15, H - 2);
-            ctx.beginPath();
-            ctx.moveTo(x, H - padY); ctx.lineTo(x, H - padY + 3); ctx.stroke();
-        }
-
-        // 曲线
-        ctx.strokeStyle = '#059669';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        data.forEach((d, i) => {
-            const x = tx(d.t), y = ty(d.v);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+        // x轴为时间字符串，y轴为速度
+        const times = data.map(d => {
+            const date = new Date(d.t);
+            return date.toLocaleTimeString().slice(3, 8);
         });
-        ctx.stroke();
+        const speeds = data.map(d => d.v);
 
-        // 当前点
-        const last = data[data.length - 1];
-        ctx.fillStyle = '#dc2626';
-        ctx.beginPath();
-        ctx.arc(tx(last.t), ty(last.v), 3, 0, 2 * Math.PI);
-        ctx.fill();
+        const option = {
+            animation: false,
+            grid: { left: 50, right: 20, top: 20, bottom: 30 },
+            tooltip: { trigger: 'axis' },
+            xAxis: {
+                type: 'category',
+                data: times,
+                boundaryGap: false,
+                axisLabel: { fontFamily: 'monospace', fontSize: 12 }
+            },
+            yAxis: {
+                type: 'value',
+                name: '速度',
+                axisLabel: { fontFamily: 'monospace', fontSize: 12 }
+            },
+            series: [{
+                name: '速度',
+                type: 'line',
+                data: speeds,
+                smooth: true,
+                showSymbol: false,
+                lineStyle: { color: '#059669', width: 2 },
+                areaStyle: { color: 'rgba(5,150,105,0.08)' }
+            }]
+        };
+        this.vtChartEcharts.setOption(option);
     }
 
     // Utility Methods
@@ -755,6 +727,34 @@ class CarControlSystem {
             }
         } catch (error) {
             this.showStatus(`🔌 Error toggling forwarding: ${error}`, 'error');
+            console.error('Error toggling forwarding:', error);
+        }
+    }    // 新增：初始化UART Proxy方法
+    async initUartProxy() {
+        this.showStatus('🔌 正在初始化 UART Proxy...', 'info');
+        try {
+            const response = await fetch('/proxy/init', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}) // 可根据需要添加参数
+            });
+            const result = await response.json();
+            if (result.success) {
+                this.showStatus('✅ UART Proxy 初始化成功', 'success');
+            } else {
+                this.showStatus(`❌ UART Proxy 初始化失败: ${result.message}`, 'error');
+            }
+        } catch (error) {
+            this.showStatus(`🔌 UART Proxy 初始化异常: ${error}`, 'error');
+            console.error('UART Proxy init error:', error);
+        }
+    }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new CarControlSystem();
+});
             console.error('Error toggling forwarding:', error);
         }
     }    // 新增：初始化UART Proxy方法

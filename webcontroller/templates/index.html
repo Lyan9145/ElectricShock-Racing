@@ -332,60 +332,58 @@
                 </div>
             </div>
         </div>
-    </main>
-
-    
-    <!-- WASD Control Settings Card -->
-    <div class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <svg class="w-6 h-6 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-9a7 7 0 110 14A7 7 0 019 4zm0 2a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                </svg>
-                WASD 键控制设置
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-gray-700 mb-1">W (前进)</label>
-                    <div class="flex space-x-2">
-                        <input type="number" id="wasdWSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
-                        <input type="number" id="wasdWServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+        <!-- WASD Control Settings Card -->
+        <div class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-9a7 7 0 110 14A7 7 0 019 4zm0 2a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
+                    </svg>
+                    WASD 键控制设置
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">W (前进)</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="wasdWSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                            <input type="number" id="wasdWServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
-                </div>
-                <div>
-                    <label class="block font-bold text-gray-700 mb-1">S (后退)</label>
-                    <div class="flex space-x-2">
-                        <input type="number" id="wasdSSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
-                        <input type="number" id="wasdSServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">S (后退)</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="wasdSSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                            <input type="number" id="wasdSServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
-                </div>
-                <div>
-                    <label class="block font-bold text-gray-700 mb-1">A (左转)</label>
-                    <div class="flex space-x-2">
-                        <input type="number" id="wasdASpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
-                        <input type="number" id="wasdAServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">A (左转)</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="wasdASpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                            <input type="number" id="wasdAServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
-                </div>
-                <div>
-                    <label class="block font-bold text-gray-700 mb-1">D (右转)</label>
-                    <div class="flex space-x-2">
-                        <input type="number" id="wasdDSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
-                        <input type="number" id="wasdDServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">D (右转)</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="wasdDSpeedInput" step="0.05" min="-1" max="1" placeholder="速度" class="w-1/2 px-2 py-1 border rounded" />
+                            <input type="number" id="wasdDServoInput" step="10" min="0" max="65535" placeholder="舵机" class="w-1/2 px-2 py-1 border rounded" />
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">速度/舵机值，留空则不变</div>
                 </div>
-            </div>
-            <button id="saveWASDButton" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold transition-colors">
-                保存 WASD 设置
-            </button>
-            <div class="text-xs text-gray-400 mt-2">
-                按下 W/A/S/D 键将根据此处设置控制车辆。速度范围 -1~1，舵机为 PWM 值。
+                <button id="saveWASDButton" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold transition-colors">
+                    保存 WASD 设置
+                </button>
+                <div class="text-xs text-gray-400 mt-2">
+                    按下 W/A/S/D 键将根据此处设置控制车辆。速度范围 -1~1，舵机为 PWM 值。
+                </div>
             </div>
         </div>
-    </div>
+    </main>
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-8 mt-12">
         <div class="container mx-auto px-4 text-center">
