@@ -222,14 +222,14 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
         switch (flag_obstacle_type) // 根据障碍物类型处理
         {
         case Obstacle::ObstacleType::Block:
-            obstacle_distance = 0.6;
+            obstacle_distance = 0.4;
             break;
         case Obstacle::ObstacleType::Cone:
         case Obstacle::ObstacleType::Pedestrian:
-            obstacle_distance = 0.3;
+            obstacle_distance = 0.2;
             break;
         default:
-            obstacle_distance = 0.5; // 默认距离
+            obstacle_distance = 0.3; // 默认距离
             break;
         }
         if (status.distance > obstacle_distance + start_odometer) // 离开障碍区
