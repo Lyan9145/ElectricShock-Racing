@@ -138,6 +138,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                     minYright = minY; // 记录y最接近的点
                 }
             }
+            printf("leftdist=%.2f, rightdist=%.2f, leftIndex=%d, rightIndex=%d\n", minDistLeft, minDistRight, leftIndex, rightIndex);
     
             // 赛道外检测
             if (pointLeftTrans[0] > rpts1s[rightIndex][0] || pointRightTrans[0] < rpts0s[leftIndex][0])
