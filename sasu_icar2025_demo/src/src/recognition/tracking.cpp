@@ -1080,8 +1080,8 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     int aim_angle_pwm = 0;
     aim_angle_pwm = (int)(pid_realize_a(aim_angle_filter, 0.0f, aim_angle_p, aim_angle_d) + 0.5f);
     // cout << "> aim_angle: " << aim_angle_pwm << endl;
-    aim_angle_pwm += 60;
-    aim_angle_pwm = clip(5000 + aim_angle_pwm, 4000, 6000); // 限幅 4000 ~ 6000
+    aim_angle_pwm += PWMSERVO_OFFSET;
+    aim_angle_pwm = clip(PWMSERVOMID + aim_angle_pwm, PWMSERVOMIN, PWMSERVOMAX); // 限幅 4000 ~ 6000
     src.steering_pwm = aim_angle_pwm;
 
 

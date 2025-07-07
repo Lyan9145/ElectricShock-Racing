@@ -41,6 +41,7 @@ using namespace cv;
 #define PWMSERVOMAX 6000   // 舵机PWM最大值（左）
 #define PWMSERVOMID 5000   // 舵机PWM中值
 #define PWMSERVOMIN 4000   // 舵机PWM最小值（右）
+#define PWMSERVO_OFFSET 50 // 舵机PWM偏移值（角度）
 
 #define LABEL_BATTERY 0    // AI标签：充电站
 #define LABEL_BLOCK 1      // AI标签：障碍物
