@@ -302,7 +302,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
 			// tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 			// tracking.trackRecognition(imgBinary);
-			UartStatus status = uart->getStatus();
+			UartStatus status = uart.getStatus();
     		printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
 
 
