@@ -369,6 +369,11 @@ void Uart::parseLine(const std::string &line)
         std::lock_guard<std::mutex> lock(status_mutex);
         status = new_status;
     }
+    else
+    {
+        // 解析失败，可能是格式不正确或数据异常
+        std::cerr << "[ERROR] Failed to parse line: " << line << std::endl;
+    }
     // 可选：else分支可记录无法解析的数据
 }
 
