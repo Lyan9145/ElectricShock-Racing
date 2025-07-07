@@ -39,7 +39,7 @@ int Catering::run(vector<PredictResult> predict, UartStatus &status)
                 state = CateringState::In; // 进入通道
                 counter = 0; // 重置计数器
                 start_odometer = status.distance; // 记录起始里程
-                printf("Catering: Entering, direction: %d\n", direction);
+                cout << "Catering: Entering, direction: " << (direction == CateringDirection::Left ? "Left" : "Right") << endl;
             }
         }
         else // 有检测结果
@@ -59,7 +59,7 @@ int Catering::run(vector<PredictResult> predict, UartStatus &status)
         if (status.distance - start_odometer >= stop_distance) // 距离达到停车距离
         {
             state = CateringState::Stopping; // 准备减速停车状态
-            printf("Catering: Stopping\n");
+            cout << "Catering: Stopping" << endl;
         }
     }
     else if (state == CateringState::Stopping) // 减速停车状态
@@ -68,7 +68,7 @@ int Catering::run(vector<PredictResult> predict, UartStatus &status)
         {
             state = CateringState::Leave; // 准备离开快餐店状态
             start_odometer = status.distance; // 记录离开时的里程
-            printf("Catering: Leaving\n");
+            cout << "Catering: Stopped, preparing to leave" << endl;
         }
 
     }
@@ -80,7 +80,7 @@ int Catering::run(vector<PredictResult> predict, UartStatus &status)
             direction = CateringDirection::Unknown; // 重置方向
             counter = 0; // 重置计数器
             start_odometer = 0.0f; // 重置起始里程
-            printf("Catering: exit\n");
+            cout << "Catering: Exit" << endl;
         }
     }
 

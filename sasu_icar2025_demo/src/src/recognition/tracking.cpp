@@ -860,10 +860,10 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         catering.run(predict_result, status);
         switch (catering.direction)
         {
-        case Catering::CateringDirection::Left: // 左侧餐厅靠右
+        case Catering::CateringDirection::Left: // 左侧餐厅
             track_state = TrackState::TRACK_LEFT;
             break;
-        case Catering::CateringDirection::Right: // 右侧餐厅靠左
+        case Catering::CateringDirection::Right: // 右侧餐厅
             track_state = TrackState::TRACK_RIGHT;
             break;
         default:
