@@ -109,6 +109,30 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             _imgprocess.mapPerspective(resultObs.x, resultObs.y + resultObs.height, pointLeftTrans, 0);    // 左侧点透视变换
             _imgprocess.mapPerspective(resultObs.x + resultObs.width, resultObs.y + resultObs.height, pointRightTrans, 0); // 右侧点透视变换
 
+            // 显示透视变换后的道路边线和障碍物点
+            // 绘制透视变换后的道路边线和障碍物点
+            Mat perspectiveImg = Mat::zeros(ROWSIMAGE, COLSIMAGE, CV_8UC3);
+
+            // 绘制左边线点集
+            for (int i = 0; i < ROWSIMAGE; i++)
+            {
+                circle(perspectiveImg, Point(rpts0s[i][0], rpts0s[i][1]), 2, Scalar(255, 0, 0), -1); // 蓝色点表示左边线
+            }
+
+            // 绘制右边线点集
+            for (int i = 0; i < ROWSIMAGE; i++)
+            {
+                circle(perspectiveImg, Point(rpts1s[i][0], rpts1s[i][1]), 2, Scalar(0, 255, 0), -1); // 绿色点表示右边线
+            }
+
+            // 绘制障碍物点
+            circle(perspectiveImg, Point(pointLeftTrans[0], pointLeftTrans[1]), 5, Scalar(0, 0, 255), -1); // 红色点表示左侧障碍物点
+            circle(perspectiveImg, Point(pointRightTrans[0], pointRightTrans[1]), 5, Scalar(0, 0, 255), -1); // 红色点表示右侧障碍物点
+
+            // 显示绘制结果
+            imshow("Perspective View", perspectiveImg);
+            waitKey(1);
+
             // rpts0s为左边线点集，找y最接近的x距离
             float minDistLeft = 1000.0f; // 左侧点距离左边线最近距离
             int leftIndex = 0;           // 左侧点索引
