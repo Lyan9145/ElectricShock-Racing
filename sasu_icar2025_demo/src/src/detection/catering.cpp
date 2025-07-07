@@ -15,7 +15,7 @@ bool Catering::process(vector<PredictResult> predict)
     {
         if (predict[i].type == LABEL_BURGER) // 检测到汉堡标志
         {
-            if (predict[i].y > ROWSIMAGE * 0.5) // 汉堡标志在下半部分
+            if (predict[i].y > ROWSIMAGE * 0.3) // 汉堡标志在下半部分
             {
                 state = CateringState::Enter;
             }
@@ -66,10 +66,16 @@ int Catering::run(vector<PredictResult> predict, UartStatus &status)
     {
         if (status.speed < 0.01f) // 是否已经停车
         {
-            state = CateringState::Leave; // 准备离开快餐店状态
-            start_odometer = status.distance; // 记录离开时的里程
-            cout << "Catering: Stopped, preparing to leave" << endl;
+            counter++;
+            if (counter > 3) // 连续3帧停车状态
+            {
+                state = CateringState::Leave; // 准备离开快餐店状态
+                start_odometer = status.distance; // 记录离开时的里程
+                cout << "Catering: Stopped, preparing to leave" << endl;
+            }
         }
+        else
+            counter = 0;
 
     }
     else if (state == CateringState::Leave) // 离开快餐店状态
