@@ -184,7 +184,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     
             // 确定避障方向：左侧或右侧
             // 规则：看那一侧的minDist较大
-            if (minDistLeft >= minDistRight) // 左侧障碍
+            if (minDistLeft <= minDistRight) // 左侧障碍
             {
                 flag_obstacle_pos = Obstacle::ObstaclePos::Left;
                 // 计算偏移量，使用滑动平均增加准确性
