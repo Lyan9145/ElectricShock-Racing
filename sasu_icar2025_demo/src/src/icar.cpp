@@ -32,7 +32,7 @@ int main(int argc, char const *argv[])
 
     // USB转串口初始化： /dev/ttyUSB0
     // 检测/dev/ttyPX0是否存在
-    const char *ttyPX0 = "/dev/ttyPX0";
+    const char *ttyPX0 = "/dev/ttyPX1";
     const char *ttyUSB0 = "/dev/ttyUSB0";
     shared_ptr<Uart> uart = nullptr;
     if (access(ttyPX0, F_OK) == 0)

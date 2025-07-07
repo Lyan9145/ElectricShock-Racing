@@ -36,7 +36,7 @@ def find_physical_serial_port():
 
 # 修改：主程序现在使用虚拟串口，物理串口仅用于代理
 PHYSICAL_SERIAL_PORT = find_physical_serial_port()
-SERIAL_PORT = f"/dev/{VIRTUAL_PORT_PREFIX}1"  # Flask应用将连接到此虚拟端口
+SERIAL_PORT = f"/dev/{VIRTUAL_PORT_PREFIX}0"  # Flask应用将连接到此虚拟端口
 BAUD_RATE = 115200
 
 # Camera Configuration
