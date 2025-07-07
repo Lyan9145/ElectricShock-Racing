@@ -17,7 +17,7 @@ bool Catering::process(vector<PredictResult> predict)
         {
             if (predict[i].y > ROWSIMAGE * 0.5) // 汉堡标志在下半部分
             {
-                state = CateringState::In;
+                state = CateringState::Enter;
             }
             detected = true; // 有检测结果
             return true;
