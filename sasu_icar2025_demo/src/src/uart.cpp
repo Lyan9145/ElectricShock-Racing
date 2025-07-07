@@ -358,7 +358,7 @@ void Uart::lineReceiveThread()
 
 void Uart::parseLine(const std::string &line)
 {
-    static std::regex pattern(R"(D:(-?\d+\.\d+)\s*,\s*V:(-?\d+\.\d+)\s*,\s*S:(-?\d+\.\d+))");
+    static std::regex pattern(R"(D:(-?\d+\.\d{3})\s*,\s*V:(-?\d+\.\d{2})\s*,\s*S:(-?\d+\.\d{3})\s*)");
     std::smatch m;
     if (std::regex_match(line, m, pattern))
     {
