@@ -21,6 +21,12 @@ class CarControlSystem {
 
         this.activeKeys = new Set(); // 新增：追踪当前按下的键
 
+        // v-t图相关
+        this.vtData = []; // {t: timestamp, v: speed}
+        this.vtMaxPoints = 120; // 最多显示120个点（约2分钟，1s/点）
+        this.vtChartElem = document.getElementById('vtChart');
+        this.vtChartLastDraw = 0;
+
         this.initSerialDataStream();
     }
 
@@ -598,6 +604,8 @@ class CarControlSystem {
         const voltageElem = document.getElementById('serialVoltage');
         const speedElem = document.getElementById('serialSpeed');
         const tsElem = document.getElementById('serialDataTimestamp');
+        // v-t图
+        const vtChart = this.vtChartElem;
         if (!distanceElem || !voltageElem || !speedElem) return;
 
         try {
@@ -610,6 +618,17 @@ class CarControlSystem {
                     speedElem.textContent = (data.speed !== null) ? data.speed.toFixed(3) : '--';
                     if (data.timestamp && tsElem) {
                         tsElem.textContent = '更新时间: ' + new Date(data.timestamp).toLocaleTimeString();
+                    }
+                    // v-t图数据采集
+                    if (typeof data.speed === 'number' && typeof data.timestamp === 'number') {
+                        this.vtData.push({ t: data.timestamp, v: data.speed });
+                        if (this.vtData.length > this.vtMaxPoints) this.vtData.shift();
+                        // 限制绘图频率，避免过度重绘
+                        const now = Date.now();
+                        if (!this.vtChartLastDraw || now - this.vtChartLastDraw > 500) {
+                            this.drawVTChart();
+                            this.vtChartLastDraw = now;
+                        }
                     }
                 } catch (e) {
                     // ignore parse errors
@@ -624,6 +643,77 @@ class CarControlSystem {
         } catch (e) {
             // ignore
         }
+    }
+
+    // 新增：绘制速度-时间(v-t)曲线
+    drawVTChart() {
+        const canvas = this.vtChartElem;
+        if (!canvas || !this.vtData.length) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width = canvas.offsetWidth;
+        const H = canvas.height = canvas.offsetHeight;
+        ctx.clearRect(0, 0, W, H);
+
+        // 取数据
+        const data = this.vtData;
+        // 计算时间范围
+        const t0 = data[0].t, t1 = data[data.length - 1].t;
+        const dt = t1 - t0 || 1;
+        // 速度范围
+        let vMin = Math.min(...data.map(d => d.v));
+        let vMax = Math.max(...data.map(d => d.v));
+        if (vMin === vMax) { vMin -= 0.5; vMax += 0.5; }
+        // 留边
+        const padX = 40, padY = 20;
+        // 坐标变换
+        function tx(t) { return padX + (W - 2 * padX) * (t - t0) / dt; }
+        function ty(v) { return H - padY - (H - 2 * padY) * (v - vMin) / (vMax - vMin); }
+
+        // 坐标轴
+        ctx.strokeStyle = '#bbb';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padX, padY); ctx.lineTo(padX, H - padY); // y轴
+        ctx.lineTo(W - padX, H - padY); // x轴
+        ctx.stroke();
+
+        // y轴刻度
+        ctx.fillStyle = '#888';
+        ctx.font = '12px monospace';
+        for (let i = 0; i <= 4; ++i) {
+            const v = vMin + (vMax - vMin) * i / 4;
+            const y = ty(v);
+            ctx.fillText(v.toFixed(2), 2, y + 4);
+            ctx.beginPath();
+            ctx.moveTo(padX - 3, y); ctx.lineTo(padX, y); ctx.stroke();
+        }
+        // x轴刻度
+        for (let i = 0; i <= 4; ++i) {
+            const t = t0 + (dt) * i / 4;
+            const x = tx(t);
+            const tLabel = new Date(t).toLocaleTimeString().slice(3, 8);
+            ctx.fillText(tLabel, x - 15, H - 2);
+            ctx.beginPath();
+            ctx.moveTo(x, H - padY); ctx.lineTo(x, H - padY + 3); ctx.stroke();
+        }
+
+        // 曲线
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((d, i) => {
+            const x = tx(d.t), y = ty(d.v);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // 当前点
+        const last = data[data.length - 1];
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(tx(last.t), ty(last.v), 3, 0, 2 * Math.PI);
+        ctx.fill();
     }
 
     // Utility Methods

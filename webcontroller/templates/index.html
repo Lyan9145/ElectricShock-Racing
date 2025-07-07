@@ -299,6 +299,37 @@
                         用于切换虚拟串口数据转发功能。选择端口索引后点击按钮启用/禁用转发。
                     </div>
                 </div>
+                <!-- 新增：实时串口数据卡片 -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0 1 1 0 002 0zm-1 11a5 5 0 100-10 5 5 0 000 10z" clip-rule="evenodd"></path>
+                        </svg>
+                        实时串口数据
+                    </h2>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <div class="text-xs text-gray-500">距离 (m)</div>
+                            <div id="serialDistance" class="text-2xl font-bold text-blue-700">--</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">电压 (V)</div>
+                            <div id="serialVoltage" class="text-2xl font-bold text-yellow-600">--</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">速度 (m/s)</div>
+                            <div id="serialSpeed" class="text-2xl font-bold text-green-600">--</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">更新时间</div>
+                            <div id="serialDataTimestamp" class="text-xs text-gray-400">--</div>
+                        </div>
+                    </div>
+                    <div>
+                        <canvas id="vtChart" height="120" class="w-full border rounded bg-gray-50"></canvas>
+                        <div class="text-xs text-gray-400 mt-1 text-center">速度-时间 (v-t) 实时曲线</div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
