@@ -131,6 +131,26 @@ void displayImageInfo(const Mat &img, long preTime, string info = "")
   }
 }
 
+// 性能监控
+void performanceMonitor(std::chrono::high_resolution_clock::time_point &lastTime, 
+	std::chrono::high_resolution_clock::time_point &startTime, 
+	int &frameCounter, const std::string info)
+{
+  auto currentTime = chrono::high_resolution_clock::now();
+  auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - lastTime);
+  auto startDuration = chrono::duration_cast<chrono::milliseconds>(startTime - currentTime);
+  frameCounter++;
+
+  if (duration.count() >= 1000)
+  { // 每秒更新一次
+    float fps = frameCounter * 1000.0 / duration.count();
+	float computePrecent = startDuration.count() * 100.0 / duration.count(); // 等待时间占duration百分比
+    printf("[%s] FPS: %.2f, Load: %.1f %%\n", info.c_str(), fps, computePrecent);
+    frameCounter = 0;
+    lastTime = currentTime;
+  }
+}
+
 /**
  * @brief 系统信号回调函数：系统退出
  *
@@ -164,7 +184,9 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 	{
 		Preprocess preprocess;
 		cv::Mat img_buffer;
-		long preTime1;
+		auto lastTime = std::chrono::high_resolution_clock::now();
+		auto startTime = std::chrono::high_resolution_clock::now();
+		int frameCounter = 0; // 帧计数器
 		while (true)
 		{
 			if (g_exit_flag)
@@ -177,18 +199,21 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 				usleep(100);
 				continue;
 			}
+			startTime = std::chrono::high_resolution_clock::now();
 			TaskData src;
-			auto time_now = std::chrono::high_resolution_clock::now();
-			src.timestamp = time_now;
+			// auto time_now = std::chrono::high_resolution_clock::now();
+			src.timestamp = startTime;
 			// 图像预处理
 			// src.img = img_buffer.clone(); // 克隆图像数据
 			resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
 			src.img = preprocess.correction(src.img); // 图像矫正 
 			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
-			displayImageInfo(src.img, preTime1, "producer capture");
+			// displayImageInfo(src.img, preTime1, "producer capture");
 
 			task_data.produce(src);
 			AI_task_data.produce(src);
+			// 性能监控
+			performanceMonitor(lastTime, startTime, frameCounter, "Producer");
 		}
 		return true;
 	}
@@ -208,7 +233,10 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 		// 目标检测类(AI模型文件)
 		shared_ptr<Detection> detection = make_shared<Detection>(motion.params.model);
 		detection->score = motion.params.score; // AI检测置信度
-		long preTime1;
+		// long preTime1;
+		auto lastTime = std::chrono::high_resolution_clock::now();
+		auto startTime = std::chrono::high_resolution_clock::now();
+		int frameCounter = 0; // 帧计数器
 		while (true)
 		{
 			if (g_exit_flag)
@@ -218,11 +246,14 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 			}
 			TaskData dst;
 			task_data.consume(dst);
+			startTime = std::chrono::high_resolution_clock::now();
 			detection->inference(dst.img);
-			displayImageInfo(dst.img, preTime1, "AI inference");
+			// displayImageInfo(dst.img, preTime1, "AI inference");
 			predict_result_lock.lock();
 			predict_result = detection->results;
 			predict_result_lock.unlock();
+			// 性能监控
+			performanceMonitor(lastTime, startTime, frameCounter, "AI Consumer");
 		}
 		return true;
 	}
@@ -263,6 +294,10 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		Mat img;
 		Mat result_img;
 		std::vector<PredictResult> predict_result_buffer;
+
+		auto lastTime = std::chrono::high_resolution_clock::now();
+		auto startTime = std::chrono::high_resolution_clock::now();
+		int frameCounter = 0; // 帧计数器
 	
 		while (true)
 		{
@@ -274,6 +309,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 	
 			TaskData src;
 			task_data.consume(src);
+			startTime = std::chrono::high_resolution_clock::now();
 			if (src.img.empty())
 			{
 				// printf("[Warning] No image data received in consumer\n");
@@ -517,6 +553,9 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// 	scene = Scene::NormalScene;
 			// else if (scene == Scene::StopScene)
 			// 	scene = Scene::NormalScene;
+
+			// 性能监控
+			performanceMonitor(lastTime, startTime, frameCounter, "Consumer");
 	
 		}
 		return true;

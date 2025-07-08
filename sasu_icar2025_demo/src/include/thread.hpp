@@ -100,3 +100,4 @@ void drawUI(Mat &img, std::vector<PredictResult> results);
 cv::Scalar getCvcolor(int index);
 bool debugDataConsumer(Factory<DebugData> & debug_data);
 void displayImageInfo(const Mat &img, long preTime, string info);
+void performanceMonitor(std::chrono::high_resolution_clock::time_point &lastTime, std::chrono::high_resolution_clock::time_point &startTime, int &frameCounter, const std::string info);

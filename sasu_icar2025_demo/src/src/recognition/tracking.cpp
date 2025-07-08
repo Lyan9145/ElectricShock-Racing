@@ -718,7 +718,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         // auto signs = find_sign.findSigns(src_img, _config);
         // find_sign.sign_classify(signs);
         // 障碍
-        if (elem_state == Scene::NormalScene && flag_elem_over) {
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.obstacle) {
             if (obstacle.process(predict_result, is_straight0, is_straight1)) {
                 elem_state = Scene::ObstacleScene;
             } else {
@@ -727,7 +727,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         }
 
         // 餐厅
-        if (elem_state == Scene::NormalScene && flag_elem_over) {
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.catering) {
             if (catering.process(predict_result)) {
                 elem_state = Scene::CateringScene;
             } else {
@@ -735,8 +735,17 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
+        // 临时停车
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.layby) {
+            if (layby.process(predict_result)) {
+                elem_state = Scene::LaybyScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
+
         // 十字
-        if (elem_state == Scene::NormalScene && flag_elem_over) {
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.cross) {
             cross.check_cross(Lpt0_found, Lpt1_found, rpts1s_num, rpts0s_num, is_curve0, is_curve1);
             if (cross.flag_cross != Cross::flag_cross_e::CROSS_NONE) {
                 elem_state = Scene::CrossScene;
@@ -746,7 +755,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         }
 
         // 圆环
-        if (elem_state == Scene::NormalScene && flag_elem_over) {
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.ring) {
             circle.check_circle(Lpt0_found, Lpt1_found, is_straight1, is_straight0);
             if (circle.flag_circle != Circle::flag_circle_e::CIRCLE_NONE) {
                 elem_state = Scene::RingScene;
@@ -873,6 +882,32 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             elem_state = Scene::NormalScene;
             flag_elem_over = false;
         }
+    } else if (elem_state == Scene::LaybyScene) {
+        layby.run(predict_result, status);
+        track_offset = layby.getTrackOffset();
+        switch (layby.direction)
+        {
+        case Layby::LaybyDirection::Left: // 左侧临时停车
+            track_state = TrackState::TRACK_LEFT;
+            break;
+        case Layby::LaybyDirection::Right: // 右侧临时停车
+            track_state = TrackState::TRACK_RIGHT;
+            break;
+        default:
+            break;
+        }
+        if (layby.state == Layby::LaybyState::None) {
+            track_offset = ROAD_WIDTH / 2.0f;
+            elem_state = Scene::NormalScene;
+            flag_elem_over = false;
+        }
+    // } else if (elem_state == Scene::ParkingScene) {
+    //     garage.run_garage(predict_result, status);
+    //     track_state = TrackState::TRACK_MIDDLE;
+    //     if (garage.flag_garage == Garage::flag_garage_e::GARAGE_NONE) {
+    //         elem_state = Scene::NormalScene;
+    //         flag_elem_over = false;
+    //     }
     } else {
         track_offset = ROAD_WIDTH / 2.0f;
         elem_state = Scene::NormalScene;
@@ -1016,17 +1051,46 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     /* **************************** 速度判定 **************************** */
     /* ***************************************************************** */
     aim_speed = motion.params.speedHigh;
+    if (elem_state == Scene::NormalScene) {
+        // 正常巡线
+        if ((track_state == TrackState::TRACK_LEFT && is_straight0) ||
+            (track_state == TrackState::TRACK_RIGHT && is_straight1) ||
+            (is_straight0 && is_straight1)) {
+            aim_speed = motion.params.speedHigh; // 直线冲刺
+        } else {
+            aim_speed = motion.params.speedLow; // 弯道减速
+        }
+    }
 
     // 障碍减速
     if (elem_state == Scene::ObstacleScene) {
-        aim_speed = motion.params.speedLow;
+        aim_speed = motion.params.speedObstacle;
     }
+
+    // 环岛
+    if (elem_state == Scene::RingScene) {
+        aim_speed = motion.params.speedRing;
+    }
+
+    // 餐厅
+    if (elem_state == Scene::CateringScene) {
+        aim_speed = motion.params.speedCatering;
+    }
+
+    // 路边临时停车减速
+    if (elem_state == Scene::LaybyScene) {
+        aim_speed = motion.params.speedLayby;
+    }
+
 
     // 餐厅临时停车
-    if (elem_state == Scene::CateringScene && catering.state== Catering::CateringState::Stopping) {
+    if (elem_state == Scene::CateringScene && catering.state == Catering::CateringState::Stopping) {
         aim_speed = 0.0f;
     }
-
+    // 路边临时停车
+    if (elem_state == Scene::LaybyScene && layby.state == Layby::LaybyState::Stopping) {
+        aim_speed = 0.0f;
+    }
     // 停车
     if (elem_state == Scene::ParkingScene) {
         src.speed = 0.0f;
@@ -1069,10 +1133,55 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     if (_is_result) {
         // 模式
         cv::putText(result_img, sceneToString(elem_state), cv::Point(10, 30),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 2);
         // 巡线状态
         cv::putText(result_img, trackstateToString(track_state), cv::Point(10, 60),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 2);
+
+        // 当前速度
+        cv::putText(result_img, cv::format("%.2f->%.2f m/s", aim_speed, status.speed), cv::Point(10, 90),
+                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 1);
+
+        // 电池电压
+        cv::putText(result_img, cv::format("%.1f V", status.battery_voltage), cv::Point(10, 120),
+                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 1);
+
+        // 直弯道检测
+        // 显示直道/弯道状态
+        int arrow_size = 30;
+        int arrow_thickness = 4;
+        cv::Point left_arrow_base(40, result_img.rows - 20);
+        cv::Point right_arrow_base(result_img.cols - 40, result_img.rows - 20);
+
+        // 左侧
+        if (is_straight0) {
+            // 直道：绿色向上箭头
+            cv::arrowedLine(result_img, left_arrow_base, left_arrow_base + cv::Point(0, -arrow_size),
+                            cv::Scalar(0, 255, 0), arrow_thickness, cv::LINE_AA, 0, 0.3);
+        } else if (is_curve0) {
+            // 弯道：红色左弯箭头
+            std::vector<cv::Point> pts;
+            pts.push_back(left_arrow_base);
+            pts.push_back(left_arrow_base + cv::Point(-arrow_size / 2, -arrow_size / 2));
+            pts.push_back(left_arrow_base + cv::Point(-arrow_size, -arrow_size));
+            cv::polylines(result_img, pts, false, cv::Scalar(0, 0, 255), arrow_thickness, cv::LINE_AA);
+            cv::circle(result_img, left_arrow_base + cv::Point(-arrow_size, -arrow_size), 5, cv::Scalar(0, 0, 255), -1);
+        }
+
+        // 右侧
+        if (is_straight1) {
+            // 直道：绿色向上箭头
+            cv::arrowedLine(result_img, right_arrow_base, right_arrow_base + cv::Point(0, -arrow_size),
+                            cv::Scalar(0, 255, 0), arrow_thickness, cv::LINE_AA, 0, 0.3);
+        } else if (is_curve1) {
+            // 弯道：红色右弯箭头
+            std::vector<cv::Point> pts;
+            pts.push_back(right_arrow_base);
+            pts.push_back(right_arrow_base + cv::Point(arrow_size / 2, -arrow_size / 2));
+            pts.push_back(right_arrow_base + cv::Point(arrow_size, -arrow_size));
+            cv::polylines(result_img, pts, false, cv::Scalar(0, 0, 255), arrow_thickness, cv::LINE_AA);
+            cv::circle(result_img, right_arrow_base + cv::Point(arrow_size, -arrow_size), 5, cv::Scalar(0, 0, 255), -1);
+        }
 
         // 十字 ----------------------------------------------------
         if (cross.flag_cross == Cross::flag_cross_e::CROSS_IN) {
