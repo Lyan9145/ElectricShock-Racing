@@ -385,8 +385,8 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			drawUI(result_img, predict_result_buffer); // 绘制检测结果
 			auto trackEndTime = std::chrono::high_resolution_clock::now();
 
-			imshow("Tracking", result_img);
-			waitKey(1);
+			// imshow("Tracking", result_img);
+			// waitKey(1);
 			auto trackShowTime = std::chrono::high_resolution_clock::now();
 	
 			//[05] 停车区检测
