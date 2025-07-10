@@ -828,19 +828,19 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             circle.flag_circle == Circle::flag_circle_e::CIRCLE_LEFT_BEGIN) {
             for (int i = 0; i < predict_result.size(); i++)
             {
-                if (predict[i].type == LABEL_COMPANY || 
-                    predict[i].type == LABEL_SCHOOL || 
-                    predict[i].type == LABEL_BURGER ||
-                    predict[i].type == LABEL_PEDESTRIAN ||
-                    predict[i].type == LABEL_CONE ||
-                    predict[i].type == LABEL_BLOCK
+                if (predict_result[i].type == LABEL_COMPANY || 
+                    predict_result[i].type == LABEL_SCHOOL || 
+                    predict_result[i].type == LABEL_BURGER ||
+                    predict_result[i].type == LABEL_PEDESTRIAN ||
+                    predict_result[i].type == LABEL_CONE ||
+                    predict_result[i].type == LABEL_BLOCK
                 )
                 {
                     elem_state = Scene::NormalScene;
                     flag_elem_over = true; // 不等待
                     track_state = TrackState::TRACK_MIDDLE;
                     circle.reset();
-                    std::cout << "Circle reset due to [" << predict[i].label << "] detected." << std::endl;
+                    std::cout << "Circle reset due to [" << predict_result[i].label << "] detected." << std::endl;
                     break;
                 }
             }
