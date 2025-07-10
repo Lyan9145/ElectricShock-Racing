@@ -86,7 +86,7 @@ Mat Preprocess::correction(Mat &image)
 
 	// 2. Crop to the valid region using the pre-calculated ROI.
 	// .clone() creates a deep copy, making the returned Mat independent.
-	cv::Mat cropped_dst = dst(m_roi).clone();      
+	cv::Mat cropped_dst = dst(PRECOMPUTED_ROI_LOW_RES).clone();      
 	// std::cout << cropped_dst.cols << "x" << cropped_dst.rows << std::endl;
 	return cropped_dst;
 }
