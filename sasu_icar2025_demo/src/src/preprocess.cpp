@@ -30,6 +30,20 @@ Preprocess::Preprocess()
 		cout << "打开相机矫正参数失败!!!" << endl;
 		enable = false;
 	}
+	const cv::Size image_size(640, 480);
+
+	// Pre-calculate the rectification maps.       
+	// CV_16SC2 is a more compact and faster map format than the default CV_32FC1.
+	cv::initUndistortRectifyMap(
+		PRECOMPUTED_MTX_LOW_RES,
+		PRECOMPUTED_DIST,
+		cv::Mat(), // Optional rectification (not needed for monocular)
+		PRECOMPUTED_NEW_MTX_LOW_RES,
+		image_size,
+		CV_16SC2, // Map type for remap
+		m_map1,
+		m_map2
+	);
 };
 
 /**
@@ -49,7 +63,7 @@ Mat Preprocess::resizeImage(Mat &frame)
 	}
 
 	// 将图像缩放到标准尺寸320x240
-	resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_NEAREST);
+	resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_LINEAR);
 
 	return resizedFrame;
 }
@@ -80,35 +94,15 @@ Mat Preprocess::correction(Mat &image)
 {
 	if (enable)
 	{
-		// Size sizeImage; // 图像的尺寸
-		// sizeImage.width = image.cols;
-		// sizeImage.height = image.rows;
+        // 1. Apply the rectification map. This is much faster than cv::undistort().
+        cv::Mat dst;
+        cv::remap(img_low_res, dst, m_map1, m_map2, cv::INTER_LINEAR);
 
-		// Mat mapx = Mat(sizeImage, CV_32FC1);	// 经过矫正后的X坐标重映射参数
-		// Mat mapy = Mat(sizeImage, CV_32FC1);	// 经过矫正后的Y坐标重映射参数
-		// Mat rotMatrix = Mat::eye(3, 3, CV_32F); // 内参矩阵与畸变矩阵之间的旋转矩阵
+        // 2. Crop to the valid region using the pre-calculated ROI.
+        // .clone() creates a deep copy, making the returned Mat independent.
+        cv::Mat cropped_dst = dst(m_roi).clone();      
 
-		// // 采用initUndistortRectifyMap+remap进行图像矫正
-		// initUndistortRectifyMap(cameraMatrix, distCoeffs, rotMatrix, cameraMatrix, sizeImage, CV_32FC1, mapx, mapy);
-		// Mat imageCorrect = image.clone();
-		// remap(image, imageCorrect, mapx, mapy, INTER_LINEAR);
-
-		// // 采用undistort进行图像矫正
-		// //  undistort(image, imageCorrect, cameraMatrix, distCoeffs);
-
-		// return imageCorrect;
-
-    	// 1. Undistort the low-resolution image using the pre-calculated matrices.
-		cv::Mat dst;
-		cv::undistort(image, dst, PRECOMPUTED_MTX_LOW_RES, PRECOMPUTED_DIST, PRECOMPUTED_NEW_MTX_LOW_RES);   
-		// return dst;   
-
-		// 2. Crop to the valid region using the pre-calculated ROI.
-		// .clone() creates a deep copy, making the returned Mat independent.   
-		cv::Mat cropped_dst = dst(PRECOMPUTED_ROI_LOW_RES).clone();
-
-		return cropped_dst;
-
+        return cropped_dst;
 	}
 	else
 	{

@@ -32,6 +32,8 @@ private:
     bool enable = false; // 图像矫正使能：初始化完成
     Mat cameraMatrix;    // 摄像机内参矩阵
     Mat distCoeffs;      // 相机的畸变矩阵
+    cv::Mat m_map1, m_map2;
+    cv::Rect m_roi;
     // Scaled camera matrix for 640x480 input images.
     const cv::Mat PRECOMPUTED_MTX_LOW_RES = (cv::Mat_<double>(3, 3) << 373.1034196662594, 0.0, 334.16980281807474, 0.0, 371.4904916872198, 247.18685393850973, 0.0, 0.0, 1.0);
 
