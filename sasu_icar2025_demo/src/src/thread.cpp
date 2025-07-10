@@ -230,7 +230,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
             frameCounter++;
             
             // 调用改进后的性能监控函数
-            performanceMonitor_improved(lastTime, frameCounter, totalWorkDuration, "Producer");
+            performanceMonitor(lastTime, frameCounter, totalWorkDuration, "Producer");
 		}
 		return true;
 	}
@@ -274,7 +274,7 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
             // 累加本帧的处理耗时
             totalWorkDuration += std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - frameStartTime);
             frameCounter++;
-			performanceMonitor_improved(lastTime, frameCounter, totalWorkDuration, "AI Consumer");
+			performanceMonitor(lastTime, frameCounter, totalWorkDuration, "AI Consumer");
 		}
 		return true;
 	}
