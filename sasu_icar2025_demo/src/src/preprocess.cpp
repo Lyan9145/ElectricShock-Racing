@@ -40,7 +40,7 @@ Preprocess::Preprocess()
 		cv::Mat(), // Optional rectification (not needed for monocular)
 		PRECOMPUTED_NEW_MTX_LOW_RES,
 		image_size,
-		CV_16SC2, // Map type for remap
+		CV_32FC1, // Map type for remap
 		m_map1,
 		m_map2
 	);
