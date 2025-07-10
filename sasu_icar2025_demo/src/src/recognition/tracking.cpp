@@ -1159,7 +1159,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                     cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 1);
 
         // 电池电压
-        cv::putText(result_img, cv::format("%.1f V", status.battery_voltage), cv::Point(10, 120),
+        cv::putText(result_img, cv::format("%.1f V", status.voltage), cv::Point(10, 120),
                     cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 1);
 
         // 直弯道检测
