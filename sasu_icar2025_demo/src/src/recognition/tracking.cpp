@@ -335,6 +335,7 @@ void Tracking::trackRecognition(bool isResearch, uint16_t rowStart)
 
 void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData &src, std::vector<PredictResult> &predict_result, UartStatus &status)
 {
+    auto start = std::chrono::high_resolution_clock::now();
     imagePath = imageBinary;
     
     // begin_y_t = track_row_begin;
@@ -422,6 +423,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             begin_x_r = COLSIMAGE - track_col_begin;
         }
     }
+    auto findline_end = std::chrono::high_resolution_clock::now();
     // 变换后左右中线
     float rpts0[ROWSIMAGE][2] = {0};
     float rpts1[ROWSIMAGE][2] = {0};
@@ -513,6 +515,8 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                     PIXEL_PER_METER * track_offset);
     rptsc1_num = rpts1s_num;
 
+    auto track_end = std::chrono::high_resolution_clock::now();
+
     
     // 可视化：将透视左右边线和中线画在单独一张图上
     if (0) {
@@ -557,6 +561,8 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     for (int i = 0; i < rptscs_num; i++)
         _imgprocess.mapPerspective(rptscs[i][0], rptscs[i][1], rptscs[i], 1);
 
+    auto perspective_end = std::chrono::high_resolution_clock::now();
+
     /* ***************************************************************** */
     /* *************************** 弯直道检测 *************************** */
     /* ***************************************************************** */
@@ -580,6 +586,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         else
             is_curve1 = true;
     }
+    auto fit_end = std::chrono::high_resolution_clock::now();
     /* ***************************************************************** */
     /* **************************** 角点检测 **************************** */
     /* ***************************************************************** */
@@ -669,6 +676,8 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             MAT_INFO(result_img, std::string("L_%.3f", Lpt1_found_conf), cv::Point(trans[0] + 5, trans[1]), 0.3);
         }
     } else Lpt1_found_last = false;
+
+    auto corner_end = std::chrono::high_resolution_clock::now();
 
     /* ***************************************************************** */
     /* **************************** 选定中线 **************************** */
@@ -939,6 +948,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         track_offset = ROAD_WIDTH / 2.0f;
         elem_state = Scene::NormalScene;
     }
+    auto elem_end = std::chrono::high_resolution_clock::now();
 
     /* ***************************************************************** */
     /* **************************** 中线处理 **************************** */
@@ -1155,6 +1165,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     aim_angle_pwm = clip(PWMSERVOMID + aim_angle_pwm, PWMSERVOMIN, PWMSERVOMAX); // 限幅 4000 ~ 6000
     src.steering_pwm = aim_angle_pwm;
 
+    auto run_end = std::chrono::high_resolution_clock::now();
 
     // 绘图
     if (_is_result) {
@@ -1325,6 +1336,29 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             cv::circle(result_img, cv::Point2f(rptsn[aim_idx_near][0], rptsn[aim_idx_near][1]),
                        10, cv::Scalar(0, 0, 255), 2, 8);
         }
+    }
+    auto visualization_end = std::chrono::high_resolution_clock::now();
+
+    // 性能统计
+    if (chrono::duration_cast<chrono::milliseconds>(visualization_end - start).count() > 100) {
+        cout << "Tracking run time too long: "
+             << chrono::duration_cast<chrono::milliseconds>(visualization_end - start).count() << " ms" << endl;
+        cout << "Find line: "
+             << chrono::duration_cast<chrono::milliseconds>(findline_end - start).count() << " ms" << endl;
+        cout << "Track: "
+            << chrono::duration_cast<chrono::milliseconds>(track_end - findline_end).count() << " ms" << endl;
+        cout << "Perspective: "
+            << chrono::duration_cast<chrono::milliseconds>(perspective_end - track_end).count() << " ms" << endl;
+        cout << "Fitting: "
+            << chrono::duration_cast<chrono::milliseconds>(fit_end - perspective_end).count() << " ms" << endl;
+        cout << "Corner: "
+            << chrono::duration_cast<chrono::milliseconds>(corner_end - fit_end).count() << " ms" << endl;
+        cout << "Element: "
+            << chrono::duration_cast<chrono::milliseconds>(elem_end - corner_end).count() << " ms" << endl;
+        cout << "RunControl: "
+            << chrono::duration_cast<chrono::milliseconds>(run_end - elem_end).count() << " ms" << endl;
+        cout << "Visualization: "
+            << chrono::duration_cast<chrono::milliseconds>(visualization_end - run_end).count() << " ms" << endl;
     }
 }
 

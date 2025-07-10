@@ -29,6 +29,7 @@
 #include <vector>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <chrono>
 #include "motion.hpp"
 #include "imgprocess.hpp"
 #include "circle.hpp"
