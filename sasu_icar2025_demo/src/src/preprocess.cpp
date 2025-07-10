@@ -12,7 +12,7 @@ using namespace std;
  * @brief 图像矫正参数初始化
  *
  */
-Preprocess::Preprocess()
+Preprocess::Preprocess() : m_roi(PRECOMPUTED_ROI_LOW_RES)
 {
 	// 读取xml中的相机标定参数
 	// cameraMatrix = Mat(3, 3, CV_32FC1, Scalar::all(0)); // 摄像机内参矩阵
@@ -95,12 +95,12 @@ Mat Preprocess::correction(Mat &image)
 	// 1. Apply the rectification map. This is much faster than cv::undistort().
 	cv::Mat dst;
 	cv::remap(image, dst, m_map1, m_map2, cv::INTER_LINEAR);
-	std::cout << dst.cols << "x" << dst.rows << std::endl;
+	// std::cout << dst.cols << "x" << dst.rows << std::endl;
 
 
 	// 2. Crop to the valid region using the pre-calculated ROI.
 	// .clone() creates a deep copy, making the returned Mat independent.
 	cv::Mat cropped_dst = dst(m_roi).clone();      
-	std::cout << cropped_dst.cols << "x" << cropped_dst.rows << std::endl;
+	// std::cout << cropped_dst.cols << "x" << cropped_dst.rows << std::endl;
 	return cropped_dst;
 }
