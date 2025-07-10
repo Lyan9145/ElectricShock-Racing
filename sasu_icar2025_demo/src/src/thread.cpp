@@ -132,23 +132,33 @@ void displayImageInfo(const Mat &img, long preTime, string info = "")
 }
 
 // 性能监控
-void performanceMonitor(std::chrono::high_resolution_clock::time_point &lastTime, 
-	std::chrono::high_resolution_clock::time_point &startTime, 
-	int &frameCounter, const std::string info)
+void performanceMonitor_improved(
+    std::chrono::high_resolution_clock::time_point &lastTime,
+    int &frameCounter,
+    std::chrono::milliseconds &totalWorkDuration, // 新增：总工作时间
+    const std::string& info)
 {
-  auto currentTime = chrono::high_resolution_clock::now();
-  auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - lastTime);
-  auto workDuration = chrono::duration_cast<chrono::milliseconds>(currentTime - startTime);
-  frameCounter++;
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    auto intervalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime);
 
-  if (duration.count() >= 1000)
-  { // 每秒更新一次
-    float fps = frameCounter * 1000.0 / duration.count();
-	float computePrecent = workDuration.count() * 100.0 / duration.count(); // 等待时间占duration百分比
-    printf("[%s] FPS: %.2f, Load: %.1f %%\n", info.c_str(), fps, computePrecent);
-    frameCounter = 0;
-    lastTime = currentTime;
-	}
+    if (intervalDuration.count() >= 1000)
+    { // 每秒更新一次
+        // 使用浮点数进行计算，避免整数除法问题，也更精确
+        double intervalSeconds = intervalDuration.count() / 1000.0;
+        double fps = frameCounter / intervalSeconds;
+        
+        // 使用累加的总处理时间来计算负载
+        double loadPercent = totalWorkDuration.count() * 100.0 / intervalDuration.count();
+        // 确保负载不超过100% (理论上可能因计时误差略微超过)
+        if (loadPercent > 100.0) loadPercent = 100.0; 
+
+        printf("[%s] FPS: %.2f, Load: %.1f %%\n", info.c_str(), fps, loadPercent);
+
+        // 重置计数器
+        frameCounter = 0;
+        lastTime = currentTime;
+        totalWorkDuration = std::chrono::milliseconds::zero(); // 重置累加时间
+    }
 }
 
 /**
@@ -185,7 +195,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 		Preprocess preprocess;
 		cv::Mat img_buffer;
 		auto lastTime = std::chrono::high_resolution_clock::now();
-		auto startTime = std::chrono::high_resolution_clock::now();
+		std::chrono::milliseconds totalWorkDuration = std::chrono::milliseconds::zero(); // 用于累加处理时间		
 		int frameCounter = 0; // 帧计数器
 		while (true)
 		{
@@ -196,13 +206,13 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			}
 			if (!capture.read(img_buffer))
 			{
-				usleep(100);
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				continue;
 			}
-			startTime = std::chrono::high_resolution_clock::now();
+			auto frameStartTime = std::chrono::high_resolution_clock::now();
 			TaskData src;
 			// auto time_now = std::chrono::high_resolution_clock::now();
-			src.timestamp = startTime;
+			src.timestamp = frameStartTime;
 			// 图像预处理
 			// src.img = img_buffer.clone(); // 克隆图像数据
 			resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
@@ -213,7 +223,14 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			task_data.produce(src);
 			AI_task_data.produce(src);
 			// 性能监控
-			performanceMonitor(lastTime, startTime, frameCounter, "Producer");
+			auto frameEndTime = std::chrono::high_resolution_clock::now();
+            // 累加本帧的处理耗时
+            totalWorkDuration += std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - frameStartTime);
+            
+            frameCounter++;
+            
+            // 调用改进后的性能监控函数
+            performanceMonitor_improved(lastTime, frameCounter, totalWorkDuration, "Producer");
 		}
 		return true;
 	}
@@ -235,7 +252,7 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 		detection->score = motion.params.score; // AI检测置信度
 		// long preTime1;
 		auto lastTime = std::chrono::high_resolution_clock::now();
-		auto startTime = std::chrono::high_resolution_clock::now();
+		std::chrono::milliseconds totalWorkDuration = std::chrono::milliseconds::zero(); // 用于累加处理时间		
 		int frameCounter = 0; // 帧计数器
 		while (true)
 		{
@@ -246,14 +263,18 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 			}
 			TaskData dst;
 			task_data.consume(dst);
-			startTime = std::chrono::high_resolution_clock::now();
+			auto frameStartTime = std::chrono::high_resolution_clock::now();
 			detection->inference(dst.img);
 			// displayImageInfo(dst.img, preTime1, "AI inference");
 			predict_result_lock.lock();
 			predict_result = detection->results;
 			predict_result_lock.unlock();
 			// 性能监控
-			performanceMonitor(lastTime, startTime, frameCounter, "AI Consumer");
+			auto frameEndTime = std::chrono::high_resolution_clock::now();
+            // 累加本帧的处理耗时
+            totalWorkDuration += std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - frameStartTime);
+            frameCounter++;
+			performanceMonitor_improved(lastTime, frameCounter, totalWorkDuration, "AI Consumer");
 		}
 		return true;
 	}
@@ -296,7 +317,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		std::vector<PredictResult> predict_result_buffer;
 
 		auto lastTime = std::chrono::high_resolution_clock::now();
-		auto startTime = std::chrono::high_resolution_clock::now();
+		std::chrono::milliseconds totalWorkDuration = std::chrono::milliseconds::zero(); // 用于累加处理时间		
 		int frameCounter = 0; // 帧计数器
 	
 		while (true)
@@ -309,15 +330,13 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 	
 			TaskData src;
 			task_data.consume(src);
-			startTime = std::chrono::high_resolution_clock::now();
 			if (src.img.empty())
 			{
 				// printf("[Warning] No image data received in consumer\n");
 				continue;
 			}
-			Mat imgBinary = preprocess.binaryzation(src.img);
-			displayImageInfo(src.img, preTime1, "Control loop");
-	
+			// displayImageInfo(src.img, preTime1, "Control loop");
+			
 			// 读取模型结果
 			try
 			{
@@ -334,13 +353,15 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				printf("[Warning] Failed to read predict result: %s\n", e.what());
 			}
 	
+			Mat imgBinary = preprocess.binaryzation(src.img);
+			auto frameStartTime = std::chrono::high_resolution_clock::now();
 			//[04] 赛道识别
 			// tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
 			// tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 			// tracking.trackRecognition(imgBinary);
 			UartStatus status = uart.getStatus();
     		// printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
-
+			
 
 			result_img = src.img.clone(); // 克隆原图像用于绘制结果
 			tracking.trackRecognition_new(imgBinary, result_img, src, predict_result_buffer, status);
@@ -555,6 +576,10 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// 	scene = Scene::NormalScene;
 
 			// 性能监控
+			auto frameEndTime = std::chrono::high_resolution_clock::now();
+            // 累加本帧的处理耗时
+            totalWorkDuration += std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - frameStartTime);
+            frameCounter++;
 			performanceMonitor(lastTime, startTime, frameCounter, "Consumer");
 	
 		}
