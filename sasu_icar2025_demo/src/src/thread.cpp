@@ -216,8 +216,8 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			src.timestamp = frameStartTime;
 			// 图像预处理
 			src.img = img_buffer.clone(); // 克隆图像数据
-			// resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
-			// src.img = preprocess.correction(src.img); // 图像矫正 
+			resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
+			src.img = preprocess.correction(src.img); // 图像矫正 
 			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
 			// displayImageInfo(src.img, preTime1, "producer capture");
 
