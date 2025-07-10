@@ -15,21 +15,21 @@ using namespace std;
 Preprocess::Preprocess()
 {
 	// 读取xml中的相机标定参数
-	cameraMatrix = Mat(3, 3, CV_32FC1, Scalar::all(0)); // 摄像机内参矩阵
-	distCoeffs = Mat(1, 5, CV_32FC1, Scalar::all(0));	// 相机的畸变矩阵
-	FileStorage file;
-	if (file.open("../res/calibration/valid/calibration.xml", FileStorage::READ)) // 读取本地保存的标定文件
-	{
-		file["cameraMatrix"] >> cameraMatrix;
-		file["distCoeffs"] >> distCoeffs;
-		cout << "相机矫正参数初始化成功!" << endl;
-		enable = true;
-	}
-	else
-	{
-		cout << "打开相机矫正参数失败!!!" << endl;
-		enable = false;
-	}
+	// cameraMatrix = Mat(3, 3, CV_32FC1, Scalar::all(0)); // 摄像机内参矩阵
+	// distCoeffs = Mat(1, 5, CV_32FC1, Scalar::all(0));	// 相机的畸变矩阵
+	// FileStorage file;
+	// if (file.open("../res/calibration/valid/calibration.xml", FileStorage::READ)) // 读取本地保存的标定文件
+	// {
+	// 	file["cameraMatrix"] >> cameraMatrix;
+	// 	file["distCoeffs"] >> distCoeffs;
+	// 	cout << "相机矫正参数初始化成功!" << endl;
+	// 	enable = true;
+	// }
+	// else
+	// {
+	// 	cout << "打开相机矫正参数失败!!!" << endl;
+	// 	enable = false;
+	// }
 	const cv::Size image_size(640, 480);
 
 	// Pre-calculate the rectification maps.       
@@ -97,11 +97,13 @@ Mat Preprocess::correction(Mat &image)
         // 1. Apply the rectification map. This is much faster than cv::undistort().
         cv::Mat dst;
         cv::remap(image, dst, m_map1, m_map2, cv::INTER_LINEAR);
+		std::cout << dst.cols << "x" << dst.rows << std::endl;
+
 
         // 2. Crop to the valid region using the pre-calculated ROI.
         // .clone() creates a deep copy, making the returned Mat independent.
         cv::Mat cropped_dst = dst(m_roi).clone();      
-
+		std::cout << cropped_dst.cols << "x" << cropped_dst.rows << std::endl;
         return cropped_dst;
 	}
 	else
