@@ -329,6 +329,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 	
 		while (true)
 		{
+			auto start = std::chrono::high_resolution_clock::now();
 			if (g_exit_flag)
 			{
 				printf("[INFO] Consumer thread exiting...\n");
@@ -349,6 +350,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 					   std::chrono::duration_cast<std::chrono::milliseconds>(src.timestamp - lastImageTime).count());
 			}
 			lastImageTime = src.timestamp; // 更新最后图像时间戳
+			auto getimg = std::chrono::high_resolution_clock::now();
 
 			// displayImageInfo(src.img, preTime1, "Control loop");
 			
@@ -367,23 +369,25 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			{
 				printf("[Warning] Failed to read predict result: %s\n", e.what());
 			}
+			auto getpredict = std::chrono::high_resolution_clock::now();
 	
 			Mat imgBinary = preprocess.binaryzation(src.img);
 			auto frameStartTime = std::chrono::high_resolution_clock::now();
 			//[04] 赛道识别
-			// tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
-			// tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
+			tracking.rowCutUp = motion.params.rowCutUp;			// 图像顶部切行（前瞻距离）
+			tracking.rowCutBottom = motion.params.rowCutBottom; // 图像底部切行（盲区距离）
 			// tracking.trackRecognition(imgBinary);
 			UartStatus status = uart.getStatus();
-    		// printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
-			
+			// printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
 
 			result_img = src.img.clone(); // 克隆原图像用于绘制结果
 			tracking.trackRecognition_new(imgBinary, result_img, src, predict_result_buffer, status);
 			drawUI(result_img, predict_result_buffer); // 绘制检测结果
+			auto trackEndTime = std::chrono::high_resolution_clock::now();
 
 			imshow("Tracking", result_img);
 			waitKey(1);
+			auto trackShowTime = std::chrono::high_resolution_clock::now();
 	
 			//[05] 停车区检测
 			if (motion.params.stop)
@@ -403,199 +407,35 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				}
 			}
 	
-			// //[06] 快餐店检测
-			// if ((scene == Scene::NormalScene || scene == Scene::CateringScene) &&
-			// 	motion.params.catering)
-			// {
-			// 	if (catering.process(tracking, imgBinary, predict_result_buffer)) // 传入二值化图像进行再处理
-			// 		scene = Scene::CateringScene;
-			// 	else
-			// 		scene = Scene::NormalScene;
-			// }
-	
-			// //[07] 临时停车区检测
-			// if ((scene == Scene::NormalScene || scene == Scene::LaybyScene) &&
-			// 	motion.params.catering)
-			// {
-			// 	if (layby.process(tracking, imgBinary, predict_result_buffer)) // 传入二值化图像进行再处理
-			// 		scene = Scene::LaybyScene;
-			// 	else
-			// 		scene = Scene::NormalScene;
-			// }
-	
-			// //[08] 充电停车场检测
-			// if ((scene == Scene::NormalScene || scene == Scene::ParkingScene) &&
-			// 	motion.params.parking)
-			// {
-			// 	if (parking.process(tracking, imgBinary, predict_result_buffer)) // 传入二值化图像进行再处理
-			// 		scene = Scene::ParkingScene;
-			// 	else
-			// 		scene = Scene::NormalScene;
-			// }
-	
-			// //[09] 坡道区检测
-			// if ((scene == Scene::NormalScene || scene == Scene::BridgeScene) &&
-			// 	motion.params.bridge)
-			// {
-			// 	if (bridge.process(tracking, predict_result_buffer))
-			// 		scene = Scene::BridgeScene;
-			// 	else
-			// 		scene = Scene::NormalScene;
-			// }
-	
-			// // [10] 障碍区检测
-			// if ((scene == Scene::NormalScene || scene == Scene::ObstacleScene) &&
-			// 	motion.params.obstacle)
-			// {
-			// 	if (obstacle.process(tracking, predict_result_buffer))
-			// 	{
-			// 		scene = Scene::ObstacleScene;
-			// 	}
-			// 	else
-			// 		scene = Scene::NormalScene;
-			// }
-	
-			// //[11] 十字道路识别与路径规划
-			// if ((scene == Scene::NormalScene || scene == Scene::CrossScene) &&
-			// 	motion.params.cross)
-			// {
-			// 	if (crossroad.crossRecognition(tracking))
-			// 		scene = Scene::CrossScene;
-			// 	else
-			// 		scene = Scene::NormalScene;
-			// }
-	
-			// //[12] 环岛识别与路径规划
-			// if ((scene == Scene::NormalScene || scene == Scene::RingScene) &&
-			// 	motion.params.ring && catering.noRing)
-			// {
-			// 	if (ring.process(tracking, imgBinary))
-			// 		scene = Scene::RingScene;
-			// 	else
-			// 		scene = Scene::NormalScene;
-			// }
-	
-			// //[13] 车辆控制中心拟合
-			// // ctrlCenter.fitting(tracking);
-	
-			// if (scene != Scene::ParkingScene)
-			// {
-			// 	if (ctrlCenter.derailmentCheck(tracking)) // 车辆冲出赛道检测（保护车辆）
-			// 	{
-			// 		uart.carControl(0, PWMSERVOMID); // 控制车辆停止运动
-			// 		cout << "PANIC: Out of track!" << endl;
-			// 		// sleep(2);
-			// 		// printf("Car stopping due to derailment...\n");
-			// 		// g_exit_flag = 1;; // 程序退出
-			// 		// break;
-			// 	}
-			// }
 	
 			//[14] 运动控制(速度+方向)
 			if (countInit > 30)
 			{
-				// 触发停车
-				// if ((catering.stopEnable && scene == Scene::CateringScene) || (layby.stopEnable && scene == Scene::LaybyScene) || (parking.step == parking.ParkStep::stop))
-				// {
-				// 	motion.speed = 0;
-				// }
-				// else if (scene == Scene::CateringScene)
-				// 	motion.speed = motion.params.speedCatering;
-				// else if (scene == Scene::LaybyScene)
-				// 	motion.speed = motion.params.speedLayby;
-				// else if (scene == Scene::ParkingScene && parking.step == parking.ParkStep::trackout) // 倒车出库
-				// 	motion.speed = -motion.params.speedDown;
-				// else if (scene == Scene::ParkingScene) // 减速
-				// 	motion.speed = motion.params.speedParking;
-				// else if (scene == Scene::BridgeScene) // 坡道速度
-				// 	motion.speed = motion.params.speedBridge;
-				// else if (scene == Scene::ObstacleScene) // 危险区速度
-				// 	motion.speed = motion.params.speedObstacle;
-				// else if (scene == Scene::RingScene) // 环岛速度
-				// 	motion.speed = motion.params.speedRing;
-				// else if (scene == Scene::StopScene)
-				// 	motion.speed = motion.params.speedDown;
-				// else
-				// 	motion.speedCtrl(true, false, ctrlCenter); // 车速控制
-	
-				// motion.poseCtrl(ctrlCenter.controlCenter);		 // 姿态控制（舵机）
 				uart.carControl(src.speed, src.steering_pwm); // 串口通信控制车辆
 																 // TODO:串口现在为阻塞发送，改为异步
 			}
 			else
 				countInit++;
 	
-			// 命令行调试输出
-			// printf(">> Speed: %.2fm/s | Servo: %d | Scene: %s\n",
-			// 	   motion.speed, motion.servoPwm,
-			// 	   sceneToString(scene).c_str());
-	
-			//[15] 综合显示调试UI窗口
-			// if (0)
-			// {
-			// 	Mat imgWithDetection = src.img.clone();
-			// 	drawUI(imgWithDetection, predict_result_buffer); // 绘制检测结果
-			// 	ctrlCenter.drawImage(tracking, imgWithDetection); // 图像绘制路径计算结果（控制中心）
-			// 	Mat imgRes = imgWithDetection.clone();			  // 复制图像用于后续处理
-			// 	switch (scene)
-			// 	{
-			// 	case Scene::NormalScene:
-			// 		break;
-			// 	case Scene::CrossScene:					   // [ 十字区 ]
-			// 		crossroad.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-			// 		break;
-			// 	case Scene::RingScene:				  // [ 环岛 ]
-			// 		ring.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-			// 		break;
-			// 	case Scene::CateringScene:				  // [ 餐饮区 ]
-			// 		catering.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-			// 		break;
-			// 	case Scene::LaybyScene:				   // [ 临时停车区 ]
-			// 		layby.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-			// 		break;
-			// 	case Scene::ParkingScene:				 // [ 充电停车场 ]
-			// 		parking.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-			// 		break;
-			// 	case Scene::BridgeScene:				// [ 坡道区 ]
-			// 		bridge.drawImage(tracking, imgRes); // 图像绘制特殊赛道识别结果
-			// 		break;
-			// 	case Scene::ObstacleScene:		//[ 障碍区 ]
-			// 		obstacle.drawImage(imgRes); // 图像绘制特殊赛道识别结果
-			// 		break;
-			// 	default: // 常规道路场景：无特殊路径规划
-			// 		break;
-			// 	}
-			// 	imshow("AI Detection", imgRes);
-			// 	waitKey(1); // 等待1ms，使窗口能够刷新显示
-			// }
-	
-			//[16] 状态复位
-			// if (sceneLast != scene)
-			// {
-			// 	// printf(">> Scene changed from [%s] to [%s]\n", sceneToString(sceneLast).c_str(), sceneToString(scene).c_str());
-			// }
-			// sceneLast = scene; // 记录当前状态
-			// if (scene == Scene::ObstacleScene)
-			// 	scene = Scene::NormalScene;
-			// else if (scene == Scene::CrossScene)
-			// 	scene = Scene::NormalScene;
-			// else if (scene == Scene::RingScene)
-			// 	scene = Scene::NormalScene;
-			// else if (scene == Scene::CateringScene)
-			// 	scene = Scene::NormalScene;
-			// else if (scene == Scene::LaybyScene)
-			// 	scene = Scene::NormalScene;
-			// else if (scene == Scene::ParkingScene)
-			// 	scene = Scene::NormalScene;
-			// else if (scene == Scene::StopScene)
-			// 	scene = Scene::NormalScene;
-
 			// 性能监控
 			auto frameEndTime = std::chrono::high_resolution_clock::now();
             // 累加本帧的处理耗时
             totalWorkDuration += std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - frameStartTime);
             frameCounter++;
 			performanceMonitor(lastTime, frameCounter, totalWorkDuration, "Consumer");
+			if (chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - start).count() > 100)
+			{
+				cout << "[Warning] Consumer loop took too long: " 
+					<< chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - start).count() << " ms\n";
+				cout << "Get image time: " 
+					<< chrono::duration_cast<std::chrono::milliseconds>(getimg - start).count() << " ms\n";
+				cout << "Get predict time: " 
+					<< chrono::duration_cast<std::chrono::milliseconds>(getpredict - getimg).count() << " ms\n";
+				cout << "Track time: " 
+					<< chrono::duration_cast<std::chrono::milliseconds>(trackEndTime - getpredict).count() << " ms\n";
+				cout << "Show time: " 
+					<< chrono::duration_cast<std::chrono::milliseconds>(trackShowTime - trackEndTime).count() << " ms\n";
+			}
 	
 		}
 		return true;
