@@ -95,7 +95,7 @@ int main(int argc, char const *argv[])
     std::mutex predict_result_lock; // 保护预测结果的互斥锁
 
     std::thread task_producer(&producer, std::ref(task_factory), std::ref(AI_task_factory), std::ref(capture));
-    std::thread AI_consumer(&AIConsumer, std::ref(task_factory), std::ref(predict_result), std::ref(predict_result_lock), std::ref(motion));
+    std::thread AI_consumer(&AIConsumer, std::ref(AI_task_factory), std::ref(predict_result), std::ref(predict_result_lock), std::ref(motion));
     std::thread task_consumer(&consumer, std::ref(task_factory), std::ref(debug_factory), std::ref(predict_result), std::ref(predict_result_lock), std::ref(motion), std::ref(*uart));
     // std::thread debug_data_consumer(&debugDataConsumer, std::ref(debug_factory));
     // debug_data_consumer.join();
