@@ -40,6 +40,12 @@ struct TaskData{
 	double speed = 0; // m/s
 };
 
+struct AIData{
+	cv::Mat img;
+	std::chrono::high_resolution_clock::time_point timestamp;
+	std::vector<PredictResult> results;
+};
+
 template<typename T>
 class Factory{
 private:
@@ -93,8 +99,8 @@ bool Factory<T>::consume(T &product) {
 // ------------------------------------ //
 void signalHandler(int signal);
 
-bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv::VideoCapture &capture);
-bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion);
+bool producer(Factory<TaskData> &task_data, Factory<AIData> &AI_task_data, cv::VideoCapture &capture);
+bool AIConsumer(Factory<AIData> &task_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion);
 bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion, Uart &uart);
 void drawUI(Mat &img, std::vector<PredictResult> results);
 cv::Scalar getCvcolor(int index);

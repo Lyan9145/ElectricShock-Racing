@@ -188,7 +188,7 @@ void signalHandler(int signal)
 	}
 }
 
-bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv::VideoCapture &capture)
+bool producer(Factory<TaskData> &task_data, Factory<AIData> &AI_task_data, cv::VideoCapture &capture)
 {
 	try
 	{
@@ -212,6 +212,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			}
 			auto frameStartTime = std::chrono::high_resolution_clock::now();
 			TaskData src;
+			AIData ai_src;
 			// auto time_now = std::chrono::high_resolution_clock::now();
 			src.timestamp = frameStartTime;
 			// 图像预处理
@@ -219,10 +220,13 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 			resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_NEAREST);
 			src.img = preprocess.correction(src.img); // 图像矫正 
 			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
+
+			ai_src.timestamp = frameStartTime;
+			ai_src.img = src.img.clone();
 			// displayImageInfo(src.img, preTime1, "producer capture");
 
 			task_data.produce(src);
-			AI_task_data.produce(src);
+			AI_task_data.produce(ai_src);
 			// 性能监控
 			auto frameEndTime = std::chrono::high_resolution_clock::now();
             // 累加本帧的处理耗时
@@ -244,7 +248,7 @@ bool producer(Factory<TaskData> &task_data, Factory<TaskData> &AI_task_data, cv:
 	
 }
 
-bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion)
+bool AIConsumer(Factory<AIData> &task_data, std::vector<PredictResult> &predict_result, std::mutex &predict_result_lock, Motion &motion)
 {
 	try
 	{
@@ -262,7 +266,7 @@ bool AIConsumer(Factory<TaskData> &task_data, std::vector<PredictResult> &predic
 				printf("[INFO] AI Consumer thread exiting...\n");
 				break;
 			}
-			TaskData dst;
+			AIData dst;
 			task_data.consume(dst);
 			auto frameStartTime = std::chrono::high_resolution_clock::now();
 			detection->inference(dst.img);

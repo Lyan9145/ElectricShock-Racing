@@ -88,8 +88,8 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    Factory<TaskData> task_factory(sizeof(TaskData));    // 任务数据工厂
-    Factory<TaskData> AI_task_factory(sizeof(TaskData)); // AI任务数据工厂
+    Factory<TaskData> task_factory(3);    // 任务数据工厂
+    Factory<AIData> AI_task_factory(3); // AI任务数据工厂
     Factory<DebugData> debug_factory(5);
     std::vector<PredictResult> predict_result;
     std::mutex predict_result_lock; // 保护预测结果的互斥锁
