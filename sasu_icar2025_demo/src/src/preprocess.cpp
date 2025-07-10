@@ -92,22 +92,15 @@ Mat Preprocess::binaryzation(Mat &frame)
  */
 Mat Preprocess::correction(Mat &image)
 {
-	if (enable)
-	{
-        // 1. Apply the rectification map. This is much faster than cv::undistort().
-        cv::Mat dst;
-        cv::remap(image, dst, m_map1, m_map2, cv::INTER_LINEAR);
-		std::cout << dst.cols << "x" << dst.rows << std::endl;
+	// 1. Apply the rectification map. This is much faster than cv::undistort().
+	cv::Mat dst;
+	cv::remap(image, dst, m_map1, m_map2, cv::INTER_LINEAR);
+	std::cout << dst.cols << "x" << dst.rows << std::endl;
 
 
-        // 2. Crop to the valid region using the pre-calculated ROI.
-        // .clone() creates a deep copy, making the returned Mat independent.
-        cv::Mat cropped_dst = dst(m_roi).clone();      
-		std::cout << cropped_dst.cols << "x" << cropped_dst.rows << std::endl;
-        return cropped_dst;
-	}
-	else
-	{
-		return image;
-	}
+	// 2. Crop to the valid region using the pre-calculated ROI.
+	// .clone() creates a deep copy, making the returned Mat independent.
+	cv::Mat cropped_dst = dst(m_roi).clone();      
+	std::cout << cropped_dst.cols << "x" << cropped_dst.rows << std::endl;
+	return cropped_dst;
 }
