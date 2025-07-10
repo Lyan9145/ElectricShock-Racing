@@ -324,6 +324,8 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		auto lastTime = std::chrono::high_resolution_clock::now();
 		std::chrono::milliseconds totalWorkDuration = std::chrono::milliseconds::zero(); // 用于累加处理时间		
 		int frameCounter = 0; // 帧计数器
+		auto lastImageTime = std::chrono::high_resolution_clock::now();
+
 	
 		while (true)
 		{
@@ -340,6 +342,14 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				// printf("[Warning] No image data received in consumer\n");
 				continue;
 			}
+			// 如果两帧相差时间过大则报警
+			if (std::chrono::duration_cast<std::chrono::milliseconds>(src.timestamp - lastImageTime).count() > 100)
+			{
+				printf("[Warning] Frame delay too long: %lld ms\n",
+					   std::chrono::duration_cast<std::chrono::milliseconds>(src.timestamp - lastImageTime).count());
+			}
+			lastImageTime = src.timestamp; // 更新最后图像时间戳
+
 			// displayImageInfo(src.img, preTime1, "Control loop");
 			
 			// 读取模型结果
