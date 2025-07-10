@@ -12,39 +12,25 @@ using namespace std;
  * @brief 图像矫正参数初始化
  *
  */
-Preprocess::Preprocess() : m_roi(PRECOMPUTED_ROI_LOW_RES)
-{
-	// 读取xml中的相机标定参数
-	// cameraMatrix = Mat(3, 3, CV_32FC1, Scalar::all(0)); // 摄像机内参矩阵
-	// distCoeffs = Mat(1, 5, CV_32FC1, Scalar::all(0));	// 相机的畸变矩阵
-	// FileStorage file;
-	// if (file.open("../res/calibration/valid/calibration.xml", FileStorage::READ)) // 读取本地保存的标定文件
-	// {
-	// 	file["cameraMatrix"] >> cameraMatrix;
-	// 	file["distCoeffs"] >> distCoeffs;
-	// 	cout << "相机矫正参数初始化成功!" << endl;
-	// 	enable = true;
-	// }
-	// else
-	// {
-	// 	cout << "打开相机矫正参数失败!!!" << endl;
-	// 	enable = false;
-	// }
-	const cv::Size image_size(640, 480);
-
-	// Pre-calculate the rectification maps.       
-	// CV_16SC2 is a more compact and faster map format than the default CV_32FC1.
-	cv::initUndistortRectifyMap(
-		PRECOMPUTED_MTX_LOW_RES,
-		PRECOMPUTED_DIST,
-		cv::Mat(), // Optional rectification (not needed for monocular)
-		PRECOMPUTED_NEW_MTX_LOW_RES,
-		image_size,
-		CV_32FC1, // Map type for remap
-		m_map1,
-		m_map2
-	);
-};
+// Preprocess::Preprocess()
+// {
+// 	读取xml中的相机标定参数
+// 	cameraMatrix = Mat(3, 3, CV_32FC1, Scalar::all(0)); // 摄像机内参矩阵
+// 	distCoeffs = Mat(1, 5, CV_32FC1, Scalar::all(0));	// 相机的畸变矩阵
+// 	FileStorage file;
+// 	if (file.open("../res/calibration/valid/calibration.xml", FileStorage::READ)) // 读取本地保存的标定文件
+// 	{
+// 		file["cameraMatrix"] >> cameraMatrix;
+// 		file["distCoeffs"] >> distCoeffs;
+// 		cout << "相机矫正参数初始化成功!" << endl;
+// 		enable = true;
+// 	}
+// 	else
+// 	{
+// 		cout << "打开相机矫正参数失败!!!" << endl;
+// 		enable = false;
+// 	}
+// };
 
 /**
  * @brief 图像尺寸标准化：确保输入图像为标准尺寸320x240

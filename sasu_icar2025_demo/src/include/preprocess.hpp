@@ -20,7 +20,24 @@ public:
      * @brief 图像矫正参数初始化
      *
      */
-    Preprocess();
+    Preprocess()        
+        : m_roi(PRECOMPUTED_ROI_LOW_RES)
+    {
+        const cv::Size image_size(640, 480);
+
+        // Pre-calculate the rectification maps.       
+        // CV_16SC2 is a more compact and faster map format than the default CV_32FC1.
+        cv::initUndistortRectifyMap(
+            PRECOMPUTED_MTX_LOW_RES,
+            PRECOMPUTED_DIST,
+            cv::Mat(), // Optional rectification (not needed for monocular)
+            PRECOMPUTED_NEW_MTX_LOW_RES,
+            image_size,
+            CV_32FC1, // Map type for remap
+            m_map1,
+            m_map2
+        );
+    }
 
     Mat resizeImage(Mat &frame);
 
