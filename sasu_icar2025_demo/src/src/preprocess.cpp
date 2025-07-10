@@ -49,7 +49,7 @@ Mat Preprocess::resizeImage(Mat &frame)
 	}
 
 	// 将图像缩放到标准尺寸320x240
-	resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_LINEAR);
+	resize(frame, resizedFrame, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_NEAREST);
 
 	return resizedFrame;
 }
