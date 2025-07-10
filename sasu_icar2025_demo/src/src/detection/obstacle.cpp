@@ -6,10 +6,10 @@ using namespace cv;
 bool Obstacle::process(vector<PredictResult> &predict, bool is_straight0, bool is_straight1)
 {
     // assert(predict != nullptr); // 确保预测结果不为空
-    if (!is_straight0 && !is_straight1) // 非直道
-    {
-        return enable; // 无障碍
-    }
+    // if (!is_straight0 && !is_straight1) // 非直道
+    // {
+    //     return enable; // 无障碍
+    // }
     if (current_state == state::StateNone)
     {
         vector<PredictResult> resultsObs; // 锥桶AI检测数据
