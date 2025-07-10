@@ -8,7 +8,7 @@
 
 #include "common.hpp"
 #include "detection.hpp"
-#include "tracking.hpp"
+// #include "tracking.hpp"
 #include "uart.hpp"
 
 using namespace cv;
