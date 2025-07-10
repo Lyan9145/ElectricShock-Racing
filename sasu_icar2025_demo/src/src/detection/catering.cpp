@@ -15,7 +15,7 @@ bool Catering::process(vector<PredictResult> predict)
     {
         if (predict[i].type == LABEL_BURGER) // 检测到汉堡标志
         {
-            if (predict[i].y > ROWSIMAGE * 0.3) // 汉堡标志在下半部分
+            if (predict[i].y > ROWSIMAGE * 0.2) // 汉堡标志在下半部分
             {
                 state = CateringState::Enter;
             }

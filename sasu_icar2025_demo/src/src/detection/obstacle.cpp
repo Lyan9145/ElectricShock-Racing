@@ -247,6 +247,12 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
         track_offset = ROAD_WIDTH / 2.0f;
         enable = false;       // 禁用障碍检测
         obstacle_counter = 0; // 重置障碍计数器
+        // if (resultsObs.size() > 0)
+        // {
+        //     printf("Obstacle: detected while exiting, continue avoiding\n");
+        //     // 回到Enter状态
+        //     current_state = state::EnterObstacle; // 进入障碍区
+        // }
     }
 
     return obstacle_counter;

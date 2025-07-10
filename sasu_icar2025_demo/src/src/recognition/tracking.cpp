@@ -798,7 +798,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                 break;
             case Circle::flag_circle_e::CIRCLE_LEFT_RUNNING:
                 track_state = TrackState::TRACK_RIGHT;
-		break;
+                break;
             case Circle::flag_circle_e::CIRCLE_LEFT_OUT:
                 track_state = TrackState::TRACK_LEFT;
                 break;
@@ -822,6 +822,19 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             elem_state = Scene::NormalScene;
             circle.circle_route = 0;
             flag_elem_over = false;
+        }
+        // 误检退出机制
+        if (circle.flag_circle == Circle::flag_circle_e::CIRCLE_RIGHT_BEGIN ||
+            circle.flag_circle == Circle::flag_circle_e::CIRCLE_LEFT_BEGIN) {
+            if (obstacle.process(predict_result, is_straight0, is_straight1)
+                || catering.process(predict_result)
+                || layby.process(predict_result)) {
+                elem_state = Scene::NormalScene;
+                flag_elem_over = true; // 不等待
+                track_state = TrackState::TRACK_MIDDLE;
+                circle.reset();
+                std::cout << "Circle reset due to obstacle or catering or layby." << std::endl;
+            }
         }
     } else if (elem_state == Scene::CrossScene) {
         int ret_state = cross.run_cross(Lpt0_found, Lpt1_found, rpts1s_num,
@@ -864,6 +877,9 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             elem_state = Scene::NormalScene;
             flag_elem_over = false;
             track_offset = ROAD_WIDTH / 2.0f;
+            // // 取消等待，直接开
+            // flag_elem_over = true;
+            // elem_over_cnt = 0;
         }
     } else if (elem_state == Scene::CateringScene) {
         catering.run(predict_result, status);

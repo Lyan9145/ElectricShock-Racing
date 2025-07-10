@@ -138,17 +138,17 @@ void performanceMonitor(std::chrono::high_resolution_clock::time_point &lastTime
 {
   auto currentTime = chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - lastTime);
-  auto startDuration = chrono::duration_cast<chrono::milliseconds>(startTime - currentTime);
+  auto workDuration = chrono::duration_cast<chrono::milliseconds>(currentTime - startTime);
   frameCounter++;
 
   if (duration.count() >= 1000)
   { // 每秒更新一次
     float fps = frameCounter * 1000.0 / duration.count();
-	float computePrecent = startDuration.count() * 100.0 / duration.count(); // 等待时间占duration百分比
+	float computePrecent = workDuration.count() * 100.0 / duration.count(); // 等待时间占duration百分比
     printf("[%s] FPS: %.2f, Load: %.1f %%\n", info.c_str(), fps, computePrecent);
     frameCounter = 0;
     lastTime = currentTime;
-  }
+	}
 }
 
 /**

@@ -43,5 +43,13 @@ public:
         }
         return "UNKNOWN_CIRCLE_STATE";
     }
+    void reset() {
+        circle_route = 0;
+        none_left_line = 0;
+        none_right_line = 0;
+        have_left_line = 0;
+        have_right_line = 0;
+        flag_circle = CIRCLE_NONE;
+    }
 };
 

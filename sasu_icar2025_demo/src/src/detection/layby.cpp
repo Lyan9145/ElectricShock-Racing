@@ -81,7 +81,7 @@ int Layby::run(vector<PredictResult> &predict, UartStatus &status)
     {
         if (status.distance - start_odom > stop_distance)
         {
-            cout << "Layby: Left" << endl;
+            cout << "Layby: Out" << endl;
             state = LaybyState::None;
             direction = LaybyDirection::Unknown;
             counter = 0;
