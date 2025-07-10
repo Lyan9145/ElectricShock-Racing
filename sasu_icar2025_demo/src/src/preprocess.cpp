@@ -96,7 +96,7 @@ Mat Preprocess::correction(Mat &image)
 	{
         // 1. Apply the rectification map. This is much faster than cv::undistort().
         cv::Mat dst;
-        cv::remap(img_low_res, dst, m_map1, m_map2, cv::INTER_LINEAR);
+        cv::remap(image, dst, m_map1, m_map2, cv::INTER_LINEAR);
 
         // 2. Crop to the valid region using the pre-calculated ROI.
         // .clone() creates a deep copy, making the returned Mat independent.
