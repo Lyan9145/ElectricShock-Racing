@@ -132,7 +132,7 @@ void displayImageInfo(const Mat &img, long preTime, string info = "")
 }
 
 // 性能监控
-void performanceMonitor_improved(
+void performanceMonitor(
     std::chrono::high_resolution_clock::time_point &lastTime,
     int &frameCounter,
     std::chrono::milliseconds &totalWorkDuration, // 新增：总工作时间
