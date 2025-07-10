@@ -580,7 +580,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
             // 累加本帧的处理耗时
             totalWorkDuration += std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - frameStartTime);
             frameCounter++;
-			performanceMonitor(lastTime, startTime, frameCounter, "Consumer");
+			performanceMonitor(lastTime, frameCounter, totalWorkDuration, "Consumer");
 	
 		}
 		return true;

@@ -1148,19 +1148,19 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     // 绘图
     if (_is_result) {
         // 模式
-        cv::putText(result_img, sceneToString(elem_state), cv::Point(10, 30),
-                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 2);
+        cv::putText(result_img, sceneToString(elem_state), cv::Point(10, 20),
+                    cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0, 255, 0), 2);
         // 巡线状态
-        cv::putText(result_img, trackstateToString(track_state), cv::Point(10, 60),
-                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 2);
+        cv::putText(result_img, trackstateToString(track_state), cv::Point(10, 40),
+                    cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0, 255, 0), 2);
 
         // 当前速度
-        cv::putText(result_img, cv::format("%.2f->%.2f m/s", aim_speed, status.speed), cv::Point(10, 90),
-                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 1);
+        cv::putText(result_img, cv::format("%.2f->%.2f m/s", aim_speed, status.speed), cv::Point(10, 60),
+                    cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0, 255, 0), 1);
 
         // 电池电压
-        cv::putText(result_img, cv::format("%.1f V", status.voltage), cv::Point(10, 120),
-                    cv::FONT_HERSHEY_PLAIN, 0.5, cv::Scalar(0, 255, 0), 1);
+        cv::putText(result_img, cv::format("%.1f V", status.voltage), cv::Point(10, 90),
+                    cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0, 255, 0), 1);
 
         // 直弯道检测
         // 显示直道/弯道状态
