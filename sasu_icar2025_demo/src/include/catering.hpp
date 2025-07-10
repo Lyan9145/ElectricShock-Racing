@@ -43,5 +43,5 @@ private:
     bool detected = false; // 是否检测到快餐店
     int counter = 0;
     float start_odometer = 0.0f; // 起始里程
-    const float stop_distance = 1.1f; // 快餐店距离
+    const float stop_distance = 0.8f; // 快餐店距离
 };
