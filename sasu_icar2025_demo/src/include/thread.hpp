@@ -12,7 +12,7 @@ class Uart;   // 你的代码中也用到了 Uart&，可能也需要前向声明
 #include <unistd.h>
 #include <signal.h>
 #include <string>
-
+#include <chrono>
 #include "common.hpp"     //公共类方法文件
 #include "detection.hpp"  //百度Paddle框架移动端部署
 #include "uart.hpp"       //串口通信驱动
@@ -100,4 +100,8 @@ void drawUI(Mat &img, std::vector<PredictResult> results);
 cv::Scalar getCvcolor(int index);
 bool debugDataConsumer(Factory<DebugData> & debug_data);
 void displayImageInfo(const Mat &img, long preTime, string info);
-void performanceMonitor(std::chrono::high_resolution_clock::time_point &lastTime, std::chrono::high_resolution_clock::time_point &startTime, int &frameCounter, const std::string info);
+void performanceMonitor_improved(
+    std::chrono::high_resolution_clock::time_point &lastTime,
+    int &frameCounter,
+    std::chrono::milliseconds &totalWorkDuration, // 新增：总工作时间
+    const std::string& info);
