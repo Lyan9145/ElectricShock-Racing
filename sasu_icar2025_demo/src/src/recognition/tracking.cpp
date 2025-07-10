@@ -826,15 +826,26 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         // 误检退出机制
         if (circle.flag_circle == Circle::flag_circle_e::CIRCLE_RIGHT_BEGIN ||
             circle.flag_circle == Circle::flag_circle_e::CIRCLE_LEFT_BEGIN) {
-            if (obstacle.process(predict_result, is_straight0, is_straight1)
-                || catering.process(predict_result)
-                || layby.process(predict_result)) {
-                elem_state = Scene::NormalScene;
-                flag_elem_over = true; // 不等待
-                track_state = TrackState::TRACK_MIDDLE;
-                circle.reset();
-                std::cout << "Circle reset due to obstacle or catering or layby." << std::endl;
+            for (int i = 0; i < predict_result.size(); i++)
+            {
+                if (predict[i].type == LABEL_COMPANY || 
+                    predict[i].type == LABEL_SCHOOL || 
+                    predict[i].type == LABEL_BURGER ||
+                    predict[i].type == LABEL_PEDESTRIAN ||
+                    predict[i].type == LABEL_CONE ||
+                    predict[i].type == LABEL_BLOCK
+                )
+                {
+                    elem_state = Scene::NormalScene;
+                    flag_elem_over = true; // 不等待
+                    track_state = TrackState::TRACK_MIDDLE;
+                    circle.reset();
+                    std::cout << "Circle reset due to [" << predict[i].label << "] detected." << std::endl;
+                    break;
+                }
             }
+
+            
         }
     } else if (elem_state == Scene::CrossScene) {
         int ret_state = cross.run_cross(Lpt0_found, Lpt1_found, rpts1s_num,
