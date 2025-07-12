@@ -781,6 +781,14 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.stop) {
+            if (crosswalk.process(predict_result)) {
+                elem_state = Scene::StopScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
+
     }
 
     // 行车线处理 TODO：进行适配
@@ -959,6 +967,12 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             elem_state = Scene::NormalScene;
             flag_elem_over = true;
             elem_over_cnt = 0;
+        }
+    } else if (elem_state == Scene::StopScene) {
+        crosswalk.run(predict_result);
+        if (crosswalk.state == StopArea::State::Startup) {
+            elem_state = Scene::NormalScene;
+            flag_elem_over = false;
         }
     } else {
         track_offset = ROAD_WIDTH / 2.0f;
@@ -1142,6 +1156,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     }
 
 
+
     // 餐厅临时停车
     if (elem_state == Scene::CateringScene && catering.state == Catering::CateringState::Stopping) {
         aim_speed = 0.0f;
@@ -1153,8 +1168,9 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     // 停车
     if (elem_state == Scene::ParkingScene) {
         src.speed = 0.0f;
-        src.steering_pwm = PWMSERVOMID; // 停车时舵机归中
-        return;
+    }
+    if (elem_state == Scene::StopScene && crosswalk.state == Crosswalk::State::Stopping) {
+        aim_speed = 0.0f;
     }
     src.speed = aim_speed;
 
@@ -1204,6 +1220,9 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         // 电池电压
         cv::putText(result_img, cv::format("%.1f V", status.voltage), cv::Point(10, 90),
                     cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0, 255, 0), 1);
+
+        // 计时器
+        crosswalk.drawUI(result_img);
 
         // 直弯道检测
         // 显示直道/弯道状态

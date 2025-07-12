@@ -40,6 +40,7 @@
 #include "catering.hpp"
 #include "layby.hpp"
 #include "bridge.hpp"
+#include "crosswalk.hpp"
 
 using namespace cv;
 using namespace std;
@@ -55,6 +56,7 @@ public:
     Catering catering; // 快餐店处理类
     Layby layby; // 临时停车处理类
     Bridge bridge;
+    StopArea crosswalk; // 停车区处理类
 
     vector<POINT> pointsEdgeLeft;     // 赛道左边缘点集
     vector<POINT> pointsEdgeRight;    // 赛道右边缘点集

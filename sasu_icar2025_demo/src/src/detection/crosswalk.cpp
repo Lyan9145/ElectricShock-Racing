@@ -6,92 +6,108 @@ using namespace cv;
 
 bool StopArea::process(vector<PredictResult> predict)
 {
-    switch (step)
-    {
-    case Step::init: // 初始化：起点斑马线屏蔽
-        countSes++;
-        for (size_t i = 0; i < predict.size(); i++)
-        {
-            if (predict[i].type == LABEL_CROSSWALK) // AI识别标志
-            {
-                if ((predict[i].y + predict[i].height) > ROWSIMAGE * 0.2) // 标志距离计算
-                {
-                    countSes = 0;
-                    break;
-                }
-            }
-        }
-        if (countSes > 50)
-        {
-            countSes = 0;
-            step = Step::det;
-        }
-        break;
-
-    case Step::det: // AI未识别
-        for (size_t i = 0; i < predict.size(); i++)
-        {
-            if (predict[i].type == LABEL_CROSSWALK) // AI识别标志
-            {
-                if ((predict[i].y + predict[i].height) > ROWSIMAGE * 0.4) // 标志距离计算
-                {
-                    countRec++;
-                    break;
-                }
-            }
-        }
-        if (countRec) // 识别AI标志后开始场次计数
-            countSes++;
-
-        if (countSes >= 8)
-        {
-            if (countRec >= 2)
-            {
-                step = Step::enable;
-            }
-
-            countRec = 0;
-            countSes = 0;
-        }
-        break;
-
-    case Step::enable: // 场景使能: 检测斑马线标识丢失
-        countSes++;
-        for (size_t i = 0; i < predict.size(); i++)
-        {
-            if (predict[i].type == LABEL_CROSSWALK) // AI识别标志
-            {
-                if (predict[i].y > ROWSIMAGE * 0.2) // 标志距离计算
-                {
-                    countSes = 0;
-                    break;
-                }
-            }
-        }
-        if (countSes > 2)
-        {
-            countExit = 0;
-            step = Step::stop;
-        }
-        break;
-
-    case Step::stop: // 准备停车
-        park = true;
-        countExit++; // 停车倒计时
-        break;
-    }
-
-    // 输出场景状态结果
-    if (step == Step::init || step == Step::det)
+    if (predict.size() <= 0)
         return false;
-    else
-        return true;
+
+    detected = false; // 重置检测标志
+    for (const auto &result : predict)
+    {
+        if (result.type == LABEL_CROSSWALK && result.y + result.height > ROWSIMAGE * 0.5) // 斑马线检测
+        {
+            detected = true; // 检测到斑马线
+            return true;
+        }
+    }
+    return false;
 }
 
-
-void StopArea::drawImage(Mat &img)
+void StopArea::run(vector<PredictResult> predict)
 {
-    if (step == Step::enable)
-        putText(img, "[1] PARK - ENABLE", Point(COLSIMAGE / 2 - 30, 10), cv::FONT_HERSHEY_TRIPLEX, 0.3, cv::Scalar(0, 255, 0), 1, CV_AA);
+    if (state == State::Startup && process(predict))
+    {
+        state = State::Firstdet;
+        cout << "Crosswalk: First detection" << endl;
+    }
+    else if (state == State::Firstdet)
+    {
+        if (!detected) // 斑马线检测
+        {
+            counter++;
+            if (counter > 2)
+            {
+                lapstartTime = std::chrono::high_resolution_clock::now(); // 记录首次检测时间
+                state = State::Firstpass; // 首次通过终点线
+                cout << "Crosswalk: First pass" << endl;
+            }
+        }
+        else
+        {
+            counter = 0; // 重置计数器
+        }
+    }
+    else if (state == State::Firstpass)
+    {
+        // 进入飞行圈状态
+        state = State::Flyinglap;
+        cout << "Crosswalk: Flying lap" << endl;
+    }
+    else if (state == State::Flyinglap)
+    {
+        lapendTime = std::chrono::high_resolution_clock::now(); // 更新时间
+        if (detected) // 第二次检测斑马线
+        {
+            state = State::Seconddet;
+            cout << "Crosswalk: Second detection" << endl;
+            counter = 0; // 重置计数器
+        }
+    }
+    else if (state == State::Seconddet)
+    {
+        lapendTime = std::chrono::high_resolution_clock::now(); // 更新时间
+        if (!detected) // 第二次通过终点线
+        {
+            counter++;
+            if (counter > 2)
+            {
+                lapendTime = std::chrono::high_resolution_clock::now(); // 记录第二次通过时间
+                state = State::Secondpass; // 准备进入第二次停车区
+                cout << "Crosswalk: Second pass" << endl;
+            }
+        }
+        else
+        {
+            counter = 0; // 重置计数器
+        }
+    }
+    else if (state == State::Secondpass)
+    {
+        lapendTime = std::chrono::high_resolution_clock::now(); // 更新时间
+        state = State::Stop; // 进入停车状态
+        cout << "Crosswalk: Second pass" << endl;
+    }
+    if (state == State::Stop)
+    {
+        park = true; // 停车标志
+        cout << "Crosswalk: Stopped" << endl;
+    }
 }
+
+void StopArea::drawUI(Mat &img)
+{
+    if (state < State::Flyinglap)
+        return;
+
+    // mm:ss:xxx
+    string lapTimeStr = format("Lap Time: %02d:%02d:%03d",
+        std::chrono::duration_cast<std::chrono::minutes>(
+            lapendTime - lapstartTime).count(),
+        std::chrono::duration_cast<std::chrono::seconds>(
+            lapendTime - lapstartTime).count() % 60,
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            lapendTime - lapstartTime).count() % 1000);
+
+    putText(img, lapTimeStr, Point(150, 200), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 240), 2);
+}
+
+
 

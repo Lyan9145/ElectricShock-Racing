@@ -25,6 +25,7 @@
 #include <cmath>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <chrono>
 
 #include "common.hpp"
 #include "detection.hpp"
@@ -38,26 +39,32 @@ using namespace cv;
  */
 class StopArea
 {
-private:
-    /**
-     * @brief 场景状态
-     *
-     */
-    enum Step
-    {
-        init = 0, // 初始化屏蔽
-        det,      // AI标识检测
-        enable,   // 场景使能
-        stop      // 准备停车
-    };
-    Step step = Step::init; // 场景状态
-    uint16_t countRec = 0;  // AI场景识别计数器
-    uint16_t countSes = 0;  // 场次计数器
-
 public:
-    uint16_t countExit = 0; // 程序退出计数器
+
+  enum State
+  {
+      Startup = 0,
+      Firstdet, // 首次检测斑马线
+      Firstpass, // 首次通过终点线
+      Flyinglap, // 飞行圈
+      Seconddet, // 第二次检测斑马线
+      Secondpass, // 第二次通过终点线
+      Stop
+    };
+    State state = State::Startup; // 场景状态
+    bool process(vector<PredictResult> predict);
+    void run(vector<PredictResult> predict);
+    void drawUI(Mat &img);
+
+    
+    
+private:
     bool park = false;      // 停车标志
 
-    bool process(vector<PredictResult> predict);
-    void drawImage(Mat &img);
+    int counter = 0; // 计数器
+    bool detected = false; // 是否检测到斑马线
+    auto lapstartTime = std::chrono::high_resolution_clock::now(); // 场景开始时间
+    auto lapendTime = std::chrono::high_resolution_clock::now(); // 场景结束时间
+
+
 };
