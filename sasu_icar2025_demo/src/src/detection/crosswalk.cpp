@@ -60,28 +60,22 @@ void StopArea::run(vector<PredictResult> predict, UartStatus &status)
         lapendTime = std::chrono::high_resolution_clock::now(); // 更新时间
         if (detected) // 第二次检测斑马线
         {
-            counter++;
-            if (counter > 3)
-            {
-                state = State::Stop; // 准备进入第二次检测斑马线
-                cout << "Crosswalk: Second detection, stopping" << endl;
-                counter = 0; // 重置计数器
-            }
-            else
-                counter = 0; // 重置计数器
+            state = State::Seconddet; // 准备进入第二次检测斑马线
+            cout << "Crosswalk: Second detection" << endl;
+            startDistance = status.distance; // 记录起始距离
         }
     }
     else if (state == State::Seconddet)
     {
         lapendTime = std::chrono::high_resolution_clock::now(); // 更新时间
-        if (!detected) // 第二次通过终点线
+        if (!detected && status.distance - startDistance > passDistance) // 斑马线检测
         {
             counter++;
-            if (counter > 3)
+            if (counter > 2)
             {
-                lapendTime = std::chrono::high_resolution_clock::now(); // 记录第二次通过时间
-                state = State::Secondpass; // 准备进入第二次停车区
-                cout << "Crosswalk: Second pass" << endl;
+                lapstartTime = std::chrono::high_resolution_clock::now(); // 记录第二次检测时间
+                state = State::Stop; // 第二次通过终点线
+                cout << "Crosswalk: Stopping" << endl;
             }
         }
         else
