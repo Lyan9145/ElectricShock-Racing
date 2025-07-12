@@ -382,7 +382,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 			DebugData D_data;
 			D_data.img = result_img; // 克隆结果图像
-			debug_data.produce(D_data);
+			// debug_data.produce(D_data);
 			// imshow("Tracking", result_img);
 			// waitKey(1);
 			auto trackShowTime = std::chrono::high_resolution_clock::now();
