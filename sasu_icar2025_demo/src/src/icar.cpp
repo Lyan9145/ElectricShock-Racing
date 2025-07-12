@@ -80,7 +80,7 @@ int main(int argc, char const *argv[])
         // "queue ! " // 在转换前加队列
         "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
         // "videoscale ! video/x-raw,width=640,height=480 ! "
-        "appsink drop=true max-buffers=1";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
+        "appsink";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
 
     // 使用 GStreamer 管道和 cv::CAP_GSTREAMER 标志初始化 VideoCapture
     cv::VideoCapture capture;
