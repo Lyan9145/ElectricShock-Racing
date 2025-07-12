@@ -467,13 +467,6 @@ bool debugDataConsumer(Factory<DebugData> &debug_data)
 	std::strftime(datetime_buf, sizeof(datetime_buf), "%Y%m%d_%H%M%S", &tm_now);
 	const std::string folder = "recorder";
 	// Create the folder if it does not exist
-	#ifdef _WIN32
-		#include <direct.h>
-		#define mkdir_if_needed(path) _mkdir(path)
-	#else
-		#include <sys/stat.h>
-		#define mkdir_if_needed(path) mkdir(path, 0755)
-	#endif
 	mkdir_if_needed(folder.c_str());
 
 	const std::string video_filename = folder + std::string("/run_") + datetime_buf + ".mp4";

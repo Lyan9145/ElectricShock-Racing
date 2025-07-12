@@ -18,6 +18,9 @@ class Uart;   // 你的代码中也用到了 Uart&，可能也需要前向声明
 #include "uart.hpp"       //串口通信驱动
 // #include "motion.hpp"      //运动控制类
 
+#include <sys/stat.h>
+#define mkdir_if_needed(path) mkdir(path, 0755)
+
 // 全局变量用于信号处理
 extern shared_ptr<Uart> g_uart;
 extern volatile sig_atomic_t g_exit_flag;
