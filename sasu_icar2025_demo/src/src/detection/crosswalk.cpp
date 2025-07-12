@@ -73,7 +73,7 @@ void StopArea::run(vector<PredictResult> predict, UartStatus &status)
             counter++;
             if (counter > 2)
             {
-                lapstartTime = std::chrono::high_resolution_clock::now(); // 记录第二次检测时间
+                lapendTime = std::chrono::high_resolution_clock::now(); // 记录第二次检测时间
                 state = State::Stop; // 第二次通过终点线
                 cout << "Crosswalk: Stopping" << endl;
             }
@@ -110,7 +110,7 @@ void StopArea::drawUI(Mat &img)
         std::chrono::duration_cast<std::chrono::milliseconds>(
             lapendTime - lapstartTime).count() % 1000);
 
-    putText(img, lapTimeStr, Point(140, 220), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 0, 240), 2);
+    putText(img, lapTimeStr, Point(140, 220), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0), 2);
 }
 
 
