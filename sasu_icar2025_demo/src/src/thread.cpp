@@ -465,7 +465,13 @@ bool debugDataConsumer(Factory<DebugData> &debug_data)
 #endif
 	char datetime_buf[32];
 	std::strftime(datetime_buf, sizeof(datetime_buf), "%Y%m%d_%H%M%S", &tm_now);
-	const std::string video_filename = std::string("recorder/run_") + datetime_buf + ".mp4";
+	const std::string folder = "recorder";
+	if (!std::filesystem::exists(folder))
+	{
+		std::filesystem::create_directory(folder);
+		printf("[INFO] Created directory: %s\n", folder.c_str());
+	}
+	const std::string video_filename = folder + std::string("/run_") + datetime_buf + ".mp4";
 	const int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v'); // mp4v编码
 	const cv::Size video_size(320, 240);
 
@@ -494,25 +500,25 @@ bool debugDataConsumer(Factory<DebugData> &debug_data)
 			cv::waitKey(1);
 			last_display_time = current_time;
 
-			// // 初始化VideoWriter
-			// if (!is_writer_initialized)
-			// {
-			// 	video_writer.open(video_filename, fourcc, target_fps, video_size, true);
-			// 	if (!video_writer.isOpened())
-			// 	{
-			// 		std::cerr << "[Error] Failed to open video file for writing: " << video_filename << std::endl;
-			// 	}
-			// 	else
-			// 	{
-			// 		is_writer_initialized = true;
-			// 		printf("[INFO] Video recording started: %s\n", video_filename.c_str());
-			// 	}
-			// }
-			// // 写入视频帧
-			// if (is_writer_initialized)
-			// {
-			// 	video_writer.write(dst.img);
-			// }
+			// 初始化VideoWriter
+			if (!is_writer_initialized)
+			{
+				video_writer.open(video_filename, fourcc, target_fps, video_size, true);
+				if (!video_writer.isOpened())
+				{
+					std::cerr << "[Error] Failed to open video file for writing: " << video_filename << std::endl;
+				}
+				else
+				{
+					is_writer_initialized = true;
+					printf("[INFO] Video recording started: %s\n", video_filename.c_str());
+				}
+			}
+			// 写入视频帧
+			if (is_writer_initialized)
+			{
+				video_writer.write(dst.img);
+			}
 		}
 	}
 

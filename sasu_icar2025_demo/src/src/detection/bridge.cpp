@@ -49,7 +49,7 @@ void Bridge::run(vector<PredictResult> predict)
     else if (state == State::Up)
     {
         counter++;
-        if (counter >= 10) // 连续10帧检测到桥区域
+        if (counter >= 20)
         {
             state = State::Down; // 桥区域下降
             cout << "Bridge: Down" << endl;
