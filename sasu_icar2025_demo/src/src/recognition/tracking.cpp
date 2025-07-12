@@ -995,7 +995,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
 
     aim_distance_f = 0.8f;
     aim_distance_n = 0.4f;
-    aim_angle_p_k = 0.01f;
+    aim_angle_p_k = 0.03f;
     aim_angle_p = motion.params.turnP;
     aim_angle_d = motion.params.turnD;
 
@@ -1149,13 +1149,12 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     float aim_angle_filter = filter(aim_angle);
     aim_angle_last = aim_angle_filter;
 
-    // 动态 P 项, 出入库禁止
-    // if ( elem_state != Scene::GARAGE &&
-    //     ((is_curve0 && track_state == TRACK_LEFT) || (is_curve1 && track_state == TRACK_RIGHT))) {
-    //     aim_angle_p += fabs(aim_angle_filter) * aim_angle_p_k;
-    //     aim_angle_p = aim_angle_p > _config.steering_p * 3.0f ? _config.steering_p * 3.0f
-    //                                                            : aim_angle_p;
-    // }
+    // 动态 P 项
+    if ((is_curve0 && track_state == TRACK_LEFT) || (is_curve1 && track_state == TRACK_RIGHT)) {
+        aim_angle_p += fabs(aim_angle_filter) * aim_angle_p_k;
+        aim_angle_p = aim_angle_p > motion.params.turnP * 3.0f ? motion.params.turnP * 3.0f
+                                                               : aim_angle_p;
+    }
 
     // 计算舵机 PID
     int aim_angle_pwm = 0;
@@ -1340,7 +1339,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     auto visualization_end = std::chrono::high_resolution_clock::now();
 
     // 性能统计
-    if (chrono::duration_cast<chrono::milliseconds>(visualization_end - start).count() > 100) {
+    if (chrono::duration_cast<chrono::milliseconds>(visualization_end - start).count() > 50) {
         cout << "Tracking run time too long: "
              << chrono::duration_cast<chrono::milliseconds>(visualization_end - start).count() << " ms" << endl;
         cout << "Find line: "

@@ -2,6 +2,7 @@ serial_config.json
 sasu_icar2025_demo/src/build/
 calib_imgs/
 calibration/calib_imgs/
+recorder/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

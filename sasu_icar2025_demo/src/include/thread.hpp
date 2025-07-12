@@ -25,7 +25,6 @@ extern volatile sig_atomic_t g_exit_flag;
 
 struct DebugData{
 	cv::Mat img;
-	cv::Mat bin_img;
 	std::vector<PredictResult> results;
 	int steering_pwm = 0;
 	double speed = 0;

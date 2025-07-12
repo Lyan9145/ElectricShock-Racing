@@ -75,9 +75,12 @@ int main(int argc, char const *argv[])
         std::to_string(COLSIMAGE_CAM) +
         ",height=" + std::to_string(ROWSIMAGE_CAM) +
         ",framerate=60/1 ! " // 60/1 表示 60fps
-        "jpegdec ! "         // 解码 MJPG 压缩流到原始格式 (x-raw)
+        "queue ! " // 在解码前加队列
+        "jpegdec ! "
+        "queue ! " // 在转换前加队列
         "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
-        "appsink";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
+        "videoscale ! video/x-raw,width=640,height=480 ! "
+        "appsink drop=true max-buffers=1";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
 
     // 使用 GStreamer 管道和 cv::CAP_GSTREAMER 标志初始化 VideoCapture
     cv::VideoCapture capture;
@@ -97,17 +100,17 @@ int main(int argc, char const *argv[])
     std::thread task_producer(&producer, std::ref(task_factory), std::ref(AI_task_factory), std::ref(capture));
     std::thread AI_consumer(&AIConsumer, std::ref(AI_task_factory), std::ref(predict_result), std::ref(predict_result_lock), std::ref(motion));
     std::thread task_consumer(&consumer, std::ref(task_factory), std::ref(debug_factory), std::ref(predict_result), std::ref(predict_result_lock), std::ref(motion), std::ref(*uart));
-    // std::thread debug_data_consumer(&debugDataConsumer, std::ref(debug_factory));
-    // debug_data_consumer.join();
+    std::thread debug_data_consumer(&debugDataConsumer, std::ref(debug_factory));
     
     UartStatus status = uart->getStatus();
     std::cout << "[INFO] Battery voltage: " << status.voltage << std::endl;
     sleep(3);
-
+    
     task_producer.join();
     task_consumer.join();
     AI_consumer.join();
-
+    debug_data_consumer.join();
+    
     std::cout << "[INFO] All threads have finished." << std::endl;
     status = uart->getStatus();
     std::cout << "[INFO] Battery voltage: " << status.voltage << std::endl;

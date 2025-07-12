@@ -217,13 +217,13 @@ bool producer(Factory<TaskData> &task_data, Factory<AIData> &AI_task_data, cv::V
 			src.timestamp = frameStartTime;
 			// 图像预处理
 			// src.img = img_buffer.clone(); // 克隆图像数据
-			resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_NEAREST);
-			src.img = preprocess.correction(src.img); // 图像矫正 
+			// resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_NEAREST);
+			displayImageInfo(img_buffer, preTime1, "capture");
+			src.img = preprocess.correction(img_buffer); // 图像矫正 
 			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
 
 			ai_src.timestamp = frameStartTime;
-			ai_src.img = src.img.clone();
-			// displayImageInfo(src.img, preTime1, "producer capture");
+			ai_src.img = src.img;
 
 			task_data.produce(src);
 			AI_task_data.produce(ai_src);
@@ -318,7 +318,6 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		long preTime2;
 		long preTime3;
 		Mat img;
-		Mat result_img;
 		std::vector<PredictResult> predict_result_buffer;
 
 		auto lastTime = std::chrono::high_resolution_clock::now();
@@ -380,11 +379,14 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			UartStatus status = uart.getStatus();
 			// printf("距离: %.3f m, 电压: %.2f V, 速度: %.3f m/s\n", status.distance, status.voltage, status.speed);
 
-			result_img = src.img.clone(); // 克隆原图像用于绘制结果
+			Mat result_img = src.img.clone(); // 克隆原图像用于绘制结果
 			tracking.trackRecognition_new(imgBinary, result_img, src, predict_result_buffer, status);
 			drawUI(result_img, predict_result_buffer); // 绘制检测结果
 			auto trackEndTime = std::chrono::high_resolution_clock::now();
 
+			DebugData D_data;
+			D_data.img = result_img; // 克隆结果图像
+			debug_data.produce(D_data);
 			// imshow("Tracking", result_img);
 			// waitKey(1);
 			auto trackShowTime = std::chrono::high_resolution_clock::now();
@@ -423,7 +425,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
             totalWorkDuration += std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - frameStartTime);
             frameCounter++;
 			performanceMonitor(lastTime, frameCounter, totalWorkDuration, "Consumer");
-			if (chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - start).count() > 100)
+			if (chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - start).count() > 50)
 			{
 				cout << "[Warning] Consumer loop took too long: " 
 					<< chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - start).count() << " ms\n";
@@ -450,16 +452,79 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 bool debugDataConsumer(Factory<DebugData> &debug_data)
 {
-	// while (true)
-	// {
-		// DebugData dst;
-		// debug_data.consume(dst);
-		// if (dst.img.empty())
-		// 	continue;
-		// drawUI(dst.img, dst.results);
-		// cv::resize(dst.img, cv::Size(640, 480));
-		// cv::imshow("output", dst.img);
-		// cv::waitKey(1);
-	// }
+	const int target_fps = 24;
+	const auto frame_duration = std::chrono::milliseconds(1000 / target_fps); // ~41.67ms per frame
+	auto last_display_time = std::chrono::high_resolution_clock::now();
+
+	// 视频保存相关
+	cv::VideoWriter video_writer;
+	bool is_writer_initialized = false;
+	auto now = std::chrono::system_clock::now();
+	std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+	std::tm tm_now;
+#ifdef _WIN32
+	localtime_s(&tm_now, &now_time);
+#else
+	localtime_r(&now_time, &tm_now);
+#endif
+	char datetime_buf[32];
+	std::strftime(datetime_buf, sizeof(datetime_buf), "%Y%m%d_%H%M%S", &tm_now);
+	const std::string video_filename = std::string("recorder/run_") + datetime_buf + ".mp4";
+	const int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v'); // mp4v编码
+	const cv::Size video_size(320, 240);
+
+	while (true)
+	{
+		if (g_exit_flag)
+		{
+			printf("[INFO] Debug Consumer thread exiting...\n");
+			break;
+		}
+
+		DebugData dst;
+		debug_data.consume(dst);
+		if (dst.img.empty())
+			continue;
+
+		auto current_time = std::chrono::high_resolution_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_display_time);
+
+		// 只有当经过足够时间才显示帧
+		if (elapsed >= frame_duration)
+		{
+			cv::Mat display_img;
+			cv::resize(dst.img, display_img, video_size);
+			cv::imshow("output", display_img);
+			cv::waitKey(1);
+			last_display_time = current_time;
+
+			// 初始化VideoWriter
+			if (!is_writer_initialized)
+			{
+				video_writer.open(video_filename, fourcc, target_fps, video_size, true);
+				if (!video_writer.isOpened())
+				{
+					std::cerr << "[Error] Failed to open video file for writing: " << video_filename << std::endl;
+				}
+				else
+				{
+					is_writer_initialized = true;
+					printf("[INFO] Video recording started: %s\n", video_filename.c_str());
+				}
+			}
+			// 写入视频帧
+			if (is_writer_initialized)
+			{
+				video_writer.write(dst.img);
+			}
+		}
+	}
+
+	// 释放VideoWriter资源
+	if (is_writer_initialized)
+	{
+		video_writer.release();
+		printf("[INFO] Video recording stopped.\n");
+	}
 	return true;
 }
