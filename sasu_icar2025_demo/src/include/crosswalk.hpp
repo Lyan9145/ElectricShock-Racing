@@ -62,7 +62,7 @@ public:
 private:
     bool park = false;      // 停车标志
     float startDistance = 0.0f; // 起始距离
-    float passDistance = 0.4f; // 通过距离
+    float passDistance = 0.2f; // 通过距离
 
     int counter = 0; // 计数器
     bool detected = false; // 是否检测到斑马线
