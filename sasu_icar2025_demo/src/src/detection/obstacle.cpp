@@ -53,34 +53,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     if (current_state == state::StateNone && resultsObs.size() > 0) // 无障碍，遭遇障碍
     {
         current_state = state::EnterObstacle;      // 进入障碍区
-        // 通过底部坐标y值找到最近的，y最大最近
-        resultObs.height = 0;
-        resultObs.width = 0;
-        resultObs.x = 0;
-        resultObs.y = 0;
-        for (int i = 0; i < resultsObs.size(); i++)
-        {
-            if (resultsObs[i].y + resultsObs[i].height > resultObs.y + resultObs.height)
-            {
-                resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
-            }
-        }
-        if (resultObs.type == LABEL_BLOCK) // 黑色路障特殊处理
-        {
-            flag_obstacle_type = Obstacle::ObstacleType::Block;
-        }
-        else if (resultObs.type == LABEL_PEDESTRIAN) // 行人特殊处理
-        {
-            flag_obstacle_type = Obstacle::ObstacleType::Pedestrian;
-        }
-        else if (resultObs.type == LABEL_CONE) // 锥桶特殊处理
-        {
-            flag_obstacle_type = Obstacle::ObstacleType::Cone;
-        }
-        else
-        {
-            flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone;
-        }
+        updateType();
     }
     if (current_state == state::EnterObstacle) // 进入障碍区前
     {
@@ -247,12 +220,13 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
         track_offset = ROAD_WIDTH / 2.0f;
         enable = false;       // 禁用障碍检测
         obstacle_counter = 0; // 重置障碍计数器
-        // if (resultsObs.size() > 0)
-        // {
-        //     printf("Obstacle: detected while exiting, continue avoiding\n");
-        //     // 回到Enter状态
-        //     current_state = state::EnterObstacle; // 进入障碍区
-        // }
+        if (resultsObs.size() > 0)
+        {
+            printf("Obstacle: detected while exiting, continue avoiding\n");
+            // 回到Enter状态
+            current_state = state::EnterObstacle; // 进入障碍区
+            updateType();
+        }
     }
 
     return obstacle_counter;
@@ -265,6 +239,43 @@ float Obstacle::getTrackOffset()
         return track_offset; // 返回赛道偏移量
     }
     return ROAD_WIDTH / 2.0f; // 无障碍物，返回0
+}
+
+void Obstacle::updateType()
+{
+    if (resultsObs.size() <= 0) // 无障碍物检测结果
+    {
+        flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone; // 无障碍
+        return;
+    }
+    // 通过底部坐标y值找到最近的，y最大最近
+    resultObs.height = 0;
+    resultObs.width = 0;
+    resultObs.x = 0;
+    resultObs.y = 0;
+    for (int i = 0; i < resultsObs.size(); i++)
+    {
+        if (resultsObs[i].y + resultsObs[i].height > resultObs.y + resultObs.height)
+        {
+            resultObs = resultsObs[i]; // 选取底部坐标y值最大的障碍物
+        }
+    }
+    if (resultObs.type == LABEL_BLOCK) // 黑色路障特殊处理
+    {
+        flag_obstacle_type = Obstacle::ObstacleType::Block;
+    }
+    else if (resultObs.type == LABEL_PEDESTRIAN) // 行人特殊处理
+    {
+        flag_obstacle_type = Obstacle::ObstacleType::Pedestrian;
+    }
+    else if (resultObs.type == LABEL_CONE) // 锥桶特殊处理
+    {
+        flag_obstacle_type = Obstacle::ObstacleType::Cone;
+    }
+    else
+    {
+        flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone;
+    }
 }
 
 /**

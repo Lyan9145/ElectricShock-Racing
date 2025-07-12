@@ -91,6 +91,8 @@ private:
     float track_offset = 0.0f; // 赛道偏移量
     float obstacle_distance; // 障碍物距离
 
+    void updateType(); // 更新障碍物类型
+
 
     // void curtailTracking(Tracking &track, bool left);
 };
