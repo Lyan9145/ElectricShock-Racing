@@ -781,13 +781,13 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
-        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.stop) {
-            if (crosswalk.process(predict_result)) {
-                elem_state = Scene::StopScene;
-            } else {
-                elem_state = Scene::NormalScene;
-            }
-        }
+        // if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.stop) {
+        //     if (crosswalk.process(predict_result)) {
+        //         elem_state = Scene::StopScene;
+        //     } else {
+        //         elem_state = Scene::NormalScene;
+        //     }
+        // }
 
     }
 
@@ -968,16 +968,27 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             flag_elem_over = true;
             elem_over_cnt = 0;
         }
-    } else if (elem_state == Scene::StopScene) {
-        crosswalk.run(predict_result);
-        if (crosswalk.state == StopArea::State::Startup) {
-            elem_state = Scene::NormalScene;
-            flag_elem_over = false;
-        }
+    // } else if (elem_state == Scene::StopScene) {
+    //     crosswalk.run(predict_result);
+    //     if (crosswalk.state == StopArea::State::Startup) {
+    //         elem_state = Scene::NormalScene;
+    //         flag_elem_over = false;
+    //     }
     } else {
         track_offset = ROAD_WIDTH / 2.0f;
         elem_state = Scene::NormalScene;
     }
+
+    // 单独处理起跑线
+    crosswalk.run(predict_result);
+    if (crosswalk.state == StopArea::State::Startup) {
+        elem_state = Scene::NormalScene;
+    }
+    if (crosswalk.state == StopArea::State::Stop) {
+        elem_state = Scene::StopScene;
+    }
+
+
     auto elem_end = std::chrono::high_resolution_clock::now();
 
     /* ***************************************************************** */
