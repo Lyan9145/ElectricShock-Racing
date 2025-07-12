@@ -49,7 +49,7 @@ void Bridge::run(vector<PredictResult> predict)
     else if (state == State::Up)
     {
         counter++;
-        if (counter >= 20)
+        if (counter >= accframes)
         {
             state = State::Down; // 桥区域下降
             cout << "Bridge: Down" << endl;
