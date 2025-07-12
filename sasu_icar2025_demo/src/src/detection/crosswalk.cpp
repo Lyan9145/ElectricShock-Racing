@@ -35,7 +35,7 @@ void StopArea::run(vector<PredictResult> predict)
         if (!detected) // 斑马线检测
         {
             counter++;
-            if (counter > 2)
+            if (counter > 3)
             {
                 lapstartTime = std::chrono::high_resolution_clock::now(); // 记录首次检测时间
                 state = State::Firstpass; // 首次通过终点线
@@ -69,7 +69,7 @@ void StopArea::run(vector<PredictResult> predict)
         if (!detected) // 第二次通过终点线
         {
             counter++;
-            if (counter > 2)
+            if (counter > 3)
             {
                 lapendTime = std::chrono::high_resolution_clock::now(); // 记录第二次通过时间
                 state = State::Secondpass; // 准备进入第二次停车区
