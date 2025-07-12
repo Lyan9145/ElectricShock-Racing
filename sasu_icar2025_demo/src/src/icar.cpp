@@ -75,11 +75,11 @@ int main(int argc, char const *argv[])
         std::to_string(COLSIMAGE_CAM) +
         ",height=" + std::to_string(ROWSIMAGE_CAM) +
         ",framerate=60/1 ! " // 60/1 表示 60fps
-        "queue ! " // 在解码前加队列
+        // "queue ! " // 在解码前加队列
         "jpegdec ! "
-        "queue ! " // 在转换前加队列
+        // "queue ! " // 在转换前加队列
         "videoconvert ! "    // 转换为 OpenCV 兼容的颜色空间 (如 RGB 或 BGR)
-        "videoscale ! video/x-raw,width=640,height=480 ! "
+        // "videoscale ! video/x-raw,width=640,height=480 ! "
         "appsink drop=true max-buffers=1";           // OpenCV 通过 appsink 从 GStreamer 管道获取帧
 
     // 使用 GStreamer 管道和 cv::CAP_GSTREAMER 标志初始化 VideoCapture
