@@ -197,7 +197,7 @@ bool producer(Factory<TaskData> &task_data, Factory<AIData> &AI_task_data, cv::V
 		auto lastTime = std::chrono::high_resolution_clock::now();
 		std::chrono::milliseconds totalWorkDuration = std::chrono::milliseconds::zero(); // 用于累加处理时间		
 		int frameCounter = 0; // 帧计数器
-		auto preTime1 = std::chrono::high_resolution_clock::now();
+		long preTime1;
 		while (true)
 		{
 			if (g_exit_flag)
