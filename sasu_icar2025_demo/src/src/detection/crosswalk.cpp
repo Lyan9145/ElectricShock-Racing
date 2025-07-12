@@ -24,7 +24,7 @@ bool StopArea::process(vector<PredictResult> predict)
 
 void StopArea::run(vector<PredictResult> predict)
 {
-    process(predict)
+    process(predict);
     if (state == State::Startup && detected)
     {
         state = State::Firstdet;
