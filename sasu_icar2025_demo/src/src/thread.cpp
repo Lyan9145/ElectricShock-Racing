@@ -388,22 +388,22 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			auto trackShowTime = std::chrono::high_resolution_clock::now();
 	
 			//[05] 停车区检测
-			if (motion.params.stop)
-			{
-				if (stopArea.process(predict_result_buffer))
-				{
-					scene = Scene::StopScene;
-					if (stopArea.countExit > 20)
-					{
-						uart.carControl(0, PWMSERVOMID); // 控制车辆停止运动
-						sleep(1);
-						printf("Car stopping in stop area...\n");
-						g_exit_flag = 1;
-						// 程序退出
-						continue;
-					}
-				}
-			}
+			// if (motion.params.stop)
+			// {
+			// 	if (stopArea.process(predict_result_buffer))
+			// 	{
+			// 		scene = Scene::StopScene;
+			// 		if (stopArea.countExit > 20)
+			// 		{
+			// 			uart.carControl(0, PWMSERVOMID); // 控制车辆停止运动
+			// 			sleep(1);
+			// 			printf("Car stopping in stop area...\n");
+			// 			g_exit_flag = 1;
+			// 			// 程序退出
+			// 			continue;
+			// 		}
+			// 	}
+			// }
 	
 	
 			//[14] 运动控制(速度+方向)
