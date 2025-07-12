@@ -12,9 +12,9 @@ bool StopArea::process(vector<PredictResult> predict)
 
     for (const auto &result : predict)
     {
-        if (result.type == LABEL_CROSSWALK && result.y + result.height > ROWSIMAGE * 0.5) // 斑马线检测
+        if (result.type == LABEL_CROSSWALK && result.y + result.height > ROWSIMAGE * 0.7) // 斑马线检测
         {
-            cout << "Crosswalk detected at (" << result.x << ", " << result.y << ")" << endl;
+            // cout << "Crosswalk detected at (" << result.x << ", " << result.y << ")" << endl;
             detected = true; // 检测到斑马线
             return true;
         }
@@ -22,17 +22,18 @@ bool StopArea::process(vector<PredictResult> predict)
     return false;
 }
 
-void StopArea::run(vector<PredictResult> predict)
+void StopArea::run(vector<PredictResult> predict, UartStatus &status)
 {
     process(predict);
     if (state == State::Startup && detected)
     {
         state = State::Firstdet;
+        startDistance = status.distance; // 记录起始距离
         cout << "Crosswalk: First detection" << endl;
     }
     else if (state == State::Firstdet)
     {
-        if (!detected) // 斑马线检测
+        if (!detected && status.distance - startDistance > passDistance) // 斑马线检测
         {
             counter++;
             if (counter > 3)
@@ -52,15 +53,22 @@ void StopArea::run(vector<PredictResult> predict)
         // 进入飞行圈状态
         state = State::Flyinglap;
         cout << "Crosswalk: Flying lap" << endl;
+        counter = 0; // 重置计数器
     }
     else if (state == State::Flyinglap)
     {
         lapendTime = std::chrono::high_resolution_clock::now(); // 更新时间
         if (detected) // 第二次检测斑马线
         {
-            state = State::Seconddet;
-            cout << "Crosswalk: Second detection" << endl;
-            counter = 0; // 重置计数器
+            counter++;
+            if (counter > 3)
+            {
+                state = State::Stop; // 准备进入第二次检测斑马线
+                cout << "Crosswalk: Second detection, stopping" << endl;
+                counter = 0; // 重置计数器
+            }
+            else
+                counter = 0; // 重置计数器
         }
     }
     else if (state == State::Seconddet)
@@ -90,7 +98,7 @@ void StopArea::run(vector<PredictResult> predict)
     if (state == State::Stop)
     {
         park = true; // 停车标志
-        cout << "Crosswalk: Stopped" << endl;
+        // cout << "Crosswalk: Stopped" << endl;
     }
 }
 
@@ -108,7 +116,7 @@ void StopArea::drawUI(Mat &img)
         std::chrono::duration_cast<std::chrono::milliseconds>(
             lapendTime - lapstartTime).count() % 1000);
 
-    putText(img, lapTimeStr, Point(150, 200), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 240), 2);
+    putText(img, lapTimeStr, Point(140, 220), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 0, 240), 2);
 }
 
 

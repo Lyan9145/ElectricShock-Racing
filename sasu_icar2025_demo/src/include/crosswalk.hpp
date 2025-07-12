@@ -29,6 +29,7 @@
 
 #include "common.hpp"
 #include "detection.hpp"
+#include "uart.hpp"
 
 using namespace std;
 using namespace cv;
@@ -53,13 +54,15 @@ public:
     };
     State state = State::Startup; // 场景状态
     bool process(vector<PredictResult> predict);
-    void run(vector<PredictResult> predict);
+    void run(vector<PredictResult> predict, UartStatus &status);
     void drawUI(Mat &img);
 
     
     
 private:
     bool park = false;      // 停车标志
+    float startDistance = 0.0f; // 起始距离
+    float passDistance = 1.0f; // 通过距离
 
     int counter = 0; // 计数器
     bool detected = false; // 是否检测到斑马线
