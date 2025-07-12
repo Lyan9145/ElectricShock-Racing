@@ -39,6 +39,7 @@
 #include "uart.hpp"
 #include "catering.hpp"
 #include "layby.hpp"
+#include "bridge.hpp"
 
 using namespace cv;
 using namespace std;
@@ -53,6 +54,7 @@ public:
     Obstacle obstacle; // 障碍物处理类
     Catering catering; // 快餐店处理类
     Layby layby; // 临时停车处理类
+    Bridge bridge;
 
     vector<POINT> pointsEdgeLeft;     // 赛道左边缘点集
     vector<POINT> pointsEdgeRight;    // 赛道右边缘点集

@@ -753,6 +753,14 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.bridge) {
+            if (bridge.process(predict_result)) {
+                elem_state = Scene::BridgeScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
+
         // 十字
         if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.cross) {
             cross.check_cross(Lpt0_found, Lpt1_found, rpts1s_num, rpts0s_num, is_curve0, is_curve1);
@@ -944,6 +952,14 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     //         elem_state = Scene::NormalScene;
     //         flag_elem_over = false;
     //     }
+    } else if (elem_state == Scene::BridgeScene) {
+        bridge.run(predict_result);
+        track_state = TrackState::TRACK_MIDDLE;
+        if (bridge.state == Bridge::State::None) {
+            elem_state = Scene::NormalScene;
+            flag_elem_over = true;
+            elem_over_cnt = 0;
+        }
     } else {
         track_offset = ROAD_WIDTH / 2.0f;
         elem_state = Scene::NormalScene;
@@ -1117,6 +1133,12 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     // 路边临时停车减速
     if (elem_state == Scene::LaybyScene) {
         aim_speed = motion.params.speedLayby;
+    }
+
+    // 过桥加速
+    if (elem_state == Scene::BridgeScene && (bridge.state == Bridge::State::Enter ||
+                                             bridge.state == Bridge::State::Up)) {
+        aim_speed = motion.params.speedBridge;
     }
 
 

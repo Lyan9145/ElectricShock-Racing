@@ -15,11 +15,20 @@ using namespace std;
 class Bridge
 {
 public:
-    bool process(Tracking &track, vector<PredictResult> predict);
-    void drawImage(Tracking track, Mat &image);
+    enum State
+    {
+        None,
+        Enter,
+        Up,
+        Down
+    };
+    State state = State::None; // 桥区域状态
+
+    bool process(vector<PredictResult> predict);
+    void run(vector<PredictResult> predict);
+
 
 private:
-    uint16_t counterSession = 0; // 图像场次计数器
-    uint16_t counterRec = 0;     // 加油站标志检测计数器
+    int counter = 0;
     bool bridgeEnable = false;   // 桥区域使能标志
 };
