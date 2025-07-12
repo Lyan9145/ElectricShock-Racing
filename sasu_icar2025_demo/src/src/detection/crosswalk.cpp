@@ -14,6 +14,7 @@ bool StopArea::process(vector<PredictResult> predict)
     {
         if (result.type == LABEL_CROSSWALK && result.y + result.height > ROWSIMAGE * 0.5) // 斑马线检测
         {
+            cout << "Crosswalk detected at (" << result.x << ", " << result.y << ")" << endl;
             detected = true; // 检测到斑马线
             return true;
         }
@@ -23,7 +24,8 @@ bool StopArea::process(vector<PredictResult> predict)
 
 void StopArea::run(vector<PredictResult> predict)
 {
-    if (state == State::Startup && process(predict))
+    process(predict)
+    if (state == State::Startup && detected)
     {
         state = State::Firstdet;
         cout << "Crosswalk: First detection" << endl;
