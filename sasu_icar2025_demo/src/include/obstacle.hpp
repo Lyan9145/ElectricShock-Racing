@@ -84,6 +84,7 @@ private:
     ImageProcess _imgprocess; // 图像处理类
     bool enable = false;      // 场景检测使能标志
     PredictResult resultObs;  // 避障目标锥桶
+    vector<PredictResult> resultsObs;
 
     float pointLeft[2], pointRight[2];           // 避障目标锥桶透视变换后点
     float pointLeftTrans[2], pointRightTrans[2]; // 避障目标锥桶透视变换后点

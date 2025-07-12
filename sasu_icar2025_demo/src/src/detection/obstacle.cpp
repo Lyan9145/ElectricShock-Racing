@@ -36,7 +36,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     if (!enable) // 场景检测使能标志
         return 0;
 
-    vector<PredictResult> resultsObs; // 锥桶AI检测数据
+    resultsObs.clear(); // 锥桶AI检测数据
     for (size_t i = 0; i < predict.size(); i++)
     {
         if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.4) // AI标志距离计算
