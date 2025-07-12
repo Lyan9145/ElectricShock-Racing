@@ -1149,12 +1149,12 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     float aim_angle_filter = filter(aim_angle);
     aim_angle_last = aim_angle_filter;
 
-    // 动态 P 项
-    if ((is_curve0 && track_state == TRACK_LEFT) || (is_curve1 && track_state == TRACK_RIGHT)) {
-        aim_angle_p += fabs(aim_angle_filter) * aim_angle_p_k;
-        aim_angle_p = aim_angle_p > motion.params.turnP * 3.0f ? motion.params.turnP * 3.0f
-                                                               : aim_angle_p;
-    }
+    // // 动态 P 项
+    // if ((is_curve0 && track_state == TRACK_LEFT) || (is_curve1 && track_state == TRACK_RIGHT)) {
+    //     aim_angle_p += fabs(aim_angle_filter) * aim_angle_p_k;
+    //     aim_angle_p = aim_angle_p > motion.params.turnP * 3.0f ? motion.params.turnP * 3.0f
+    //                                                            : aim_angle_p;
+    // }
 
     // 计算舵机 PID
     int aim_angle_pwm = 0;
