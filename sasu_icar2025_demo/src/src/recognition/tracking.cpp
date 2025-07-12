@@ -980,7 +980,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     }
 
     // 单独处理起跑线
-    crosswalk.run(predict_result);
+    crosswalk.run(predict_result, status);
     if (crosswalk.state == StopArea::State::Startup) {
         elem_state = Scene::NormalScene;
     }
