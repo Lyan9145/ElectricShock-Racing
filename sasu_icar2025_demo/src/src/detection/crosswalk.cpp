@@ -6,10 +6,10 @@ using namespace cv;
 
 bool StopArea::process(vector<PredictResult> predict)
 {
+    detected = false; // 重置检测标志
     if (predict.size() <= 0)
         return false;
 
-    detected = false; // 重置检测标志
     for (const auto &result : predict)
     {
         if (result.type == LABEL_CROSSWALK && result.y + result.height > ROWSIMAGE * 0.5) // 斑马线检测
