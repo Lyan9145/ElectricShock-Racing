@@ -63,8 +63,8 @@ private:
 
     int counter = 0; // 计数器
     bool detected = false; // 是否检测到斑马线
-    auto lapstartTime = std::chrono::high_resolution_clock::now(); // 场景开始时间
-    auto lapendTime = std::chrono::high_resolution_clock::now(); // 场景结束时间
+    std::chrono::high_resolution_clock::time_point lapstartTime; // 场景开始时间
+    std::chrono::high_resolution_clock::time_point lapendTime; // 场景结束时间
 
 
 };
