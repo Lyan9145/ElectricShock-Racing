@@ -13,7 +13,6 @@ class Uart;   // 你的代码中也用到了 Uart&，可能也需要前向声明
 #include <signal.h>
 #include <string>
 #include <chrono>
-#include <filesystem>
 #include "common.hpp"     //公共类方法文件
 #include "detection.hpp"  //百度Paddle框架移动端部署
 #include "uart.hpp"       //串口通信驱动
