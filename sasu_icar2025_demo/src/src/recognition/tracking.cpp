@@ -1169,7 +1169,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     if (elem_state == Scene::ParkingScene) {
         src.speed = 0.0f;
     }
-    if (elem_state == Scene::StopScene && crosswalk.state == Crosswalk::State::Stopping) {
+    if (elem_state == Scene::StopScene && crosswalk.state == StopArea::State::Stop) {
         aim_speed = 0.0f;
     }
     src.speed = aim_speed;
