@@ -342,12 +342,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 				// printf("[Warning] No image data received in consumer\n");
 				continue;
 			}
-			// 如果两帧相差时间过大则报警
-			if (std::chrono::duration_cast<std::chrono::milliseconds>(src.timestamp - lastImageTime).count() > 100)
-			{
-				printf("[Warning] Frame delay too long: %lld ms\n",
-					   std::chrono::duration_cast<std::chrono::milliseconds>(src.timestamp - lastImageTime).count());
-			}
+
 			lastImageTime = src.timestamp; // 更新最后图像时间戳
 			auto getimg = std::chrono::high_resolution_clock::now();
 
