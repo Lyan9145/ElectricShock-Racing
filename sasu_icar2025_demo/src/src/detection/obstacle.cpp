@@ -228,7 +228,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             updateType();
         }
     }
-
+    cout << "Obstacle state: " << current_state << endl;
     return obstacle_counter;
 }
 

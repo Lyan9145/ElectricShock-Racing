@@ -13,6 +13,7 @@ void Cross::check_cross(bool Lpt0_found, bool Lpt1_found,
          (Lpt0_found && rpts1s_num < 0.35 / SAMPLE_DIST) ||
          (Lpt1_found && rpts0s_num < 0.35 / SAMPLE_DIST))) {
         flag_cross = CROSS_BEGIN;
+        std::cout << "Cross: Begin" << std::endl;
         cross_route = 0;
     }
 }
@@ -39,6 +40,7 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
             (rpts0s_num < 0.40 / SAMPLE_DIST && rpts1s_num < 0.40 / SAMPLE_DIST)) {
             cross_route = 0;
             flag_cross = CROSS_IN;
+            std::cout << "Cross: Entering far line control" << std::endl;
         }
         // printf("> Cross Begin: Lpt0_found=%d, Lpt1_found=%d, rpts0s_num=%d, rpts1s_num=%d, lpt0_rpts0s_id=%d, Lpt1_rpts1s_id=%d\n",
         //        Lpt0_found, Lpt1_found, rpts0s_num, rpts1s_num,
