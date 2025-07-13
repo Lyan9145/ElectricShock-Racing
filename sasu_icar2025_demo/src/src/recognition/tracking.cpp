@@ -910,6 +910,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             break;
         }
         if (obstacle.current_state == Obstacle::state::StateNone) {
+            cout << "Obstacle State: StateNone, resetting" << endl;
             elem_state = Scene::NormalScene;
             flag_elem_over = false;
             track_offset = ROAD_WIDTH / 2.0f;
