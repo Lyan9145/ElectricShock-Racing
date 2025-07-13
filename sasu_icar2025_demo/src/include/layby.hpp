@@ -47,5 +47,5 @@ private:
     float start_odom = 0.0f;
     
     const float track_offset = 0.10f;
-    const float stop_distance = 0.05f;
+    const float stop_distance = 0.25f;
 };
