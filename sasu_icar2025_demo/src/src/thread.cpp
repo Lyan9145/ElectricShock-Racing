@@ -214,20 +214,19 @@ bool producer(Factory<TaskData> &task_data, Factory<AIData> &AI_task_data, cv::V
 			auto frameStartTime = std::chrono::high_resolution_clock::now();
 			TaskData src;
 			AIData ai_src;
-			// auto time_now = std::chrono::high_resolution_clock::now();
 			src.timestamp = frameStartTime;
 			// 图像预处理
 			// src.img = img_buffer.clone(); // 克隆图像数据
-			resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
-			displayImageInfo(src.img, preTime1, "capture");
-			src.img = preprocess.correction(src.img); // 图像矫正 
-			src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
+			// resize(img_buffer, src.img, Size(640, 480), 0, 0, INTER_LINEAR);
+			// displayImageInfo(src.img, preTime1, "capture");
+			// src.img = preprocess.correction(src.img); // 图像矫正 
+			// src.img = preprocess.resizeImage(src.img); // 图像尺寸标准化
 
 			ai_src.timestamp = frameStartTime;
 			ai_src.img = src.img;
 
-			task_data.produce(src);
-			AI_task_data.produce(ai_src);
+			// task_data.produce(src);
+			// AI_task_data.produce(ai_src);
 			// 性能监控
 			auto frameEndTime = std::chrono::high_resolution_clock::now();
             // 累加本帧的处理耗时
