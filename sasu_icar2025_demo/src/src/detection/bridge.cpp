@@ -25,6 +25,7 @@ bool Bridge::process(vector<PredictResult> predict)
 
 void Bridge::run(vector<PredictResult> predict)
 {
+    process(predict);
     if (state == State::None && bridgeEnable)
     {
         counter = 0; // 重置计数器
@@ -33,10 +34,10 @@ void Bridge::run(vector<PredictResult> predict)
     }
     else if (state == State::Enter)
     {
-        if (!process(predict))
+        if (!bridgeEnable)
         {
             counter++;
-            if (counter >= 4) // 连续4帧未检测到桥区域
+            if (counter >= 3) // 连续3帧未检测到桥区域
             {
                 state = State::Up; // 桥区域上升
                 cout << "Bridge: Up" << endl;
