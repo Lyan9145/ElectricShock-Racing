@@ -14,10 +14,9 @@ bool Bridge::process(vector<PredictResult> predict)
         if (result.type == LABEL_BRIDGE && result.y < ROWSIMAGE * 0.25) // 桥区域检测
         {
             detectionCounter++;
-            if (detectionCounter < 2)
-                continue;
-            bridgeEnable = true; // 桥区域使能标志
-            return true;
+            if (detectionCounter >= 2)
+                bridgeEnable = true; // 桥区域使能标志
+                return true;
         }
     }
 
@@ -67,6 +66,7 @@ void Bridge::run(vector<PredictResult> predict)
             state = State::None; // 桥区域结束
             cout << "Bridge: Out" << endl;
             counter = 0; // 重置计数器
+            detectionCounter = 0; // 重置检测计数器
         }
     }
 }
