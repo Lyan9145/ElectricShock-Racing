@@ -858,9 +858,13 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                     predict_result[i].type == LABEL_BURGER ||
                     predict_result[i].type == LABEL_PEDESTRIAN ||
                     predict_result[i].type == LABEL_CONE ||
-                    predict_result[i].type == LABEL_BLOCK
+                    predict_result[i].type == LABEL_BLOCK ||
+                    predict_result[i].type == LABEL_CROSSWALK
                 )
                 {
+                    // 底部在1/4以下
+                    if (predict_result[i].y < ROWSIMAGE * 0.2)
+                        continue;
                     elem_state = Scene::NormalScene;
                     flag_elem_over = true; // 不等待
                     track_state = TrackState::TRACK_MIDDLE;
