@@ -171,7 +171,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                 if (track_offset == 0.0f)
                     track_offset = minDistLeft / PIXEL_PER_METER / 2.0f; // 左侧点偏移量
                 else
-                    track_offset = (track_offset + minDistLeft / PIXEL_PER_METER / 2.0f) / 2.0f; // 左侧点偏移量
+                    track_offset = track_offset * 0.2f + minDistLeft / PIXEL_PER_METER / 2.0f * 0.8f; // 左侧点偏移量
             }
             else // 右侧障碍
             {
@@ -180,7 +180,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
                 if (track_offset == 0.0f)
                     track_offset = minDistRight / PIXEL_PER_METER / 2.0f; // 右侧点偏移量
                 else
-                    track_offset = (track_offset + minDistRight / PIXEL_PER_METER / 2.0f) / 2.0f; // 右侧点偏移量
+                    track_offset = track_offset * 0.2f + minDistRight / PIXEL_PER_METER / 2.0f * 0.8f; // 右侧点偏移量
             }
             if (track_offset < 0.1f) // 确保偏移量在合理范围
                 track_offset = 0.1f;
@@ -192,6 +192,18 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     }
     if (current_state == state::InObstacle) // 在障碍区
     {
+        // 有新障碍
+        if (resultsObs.size() > 0)
+        {
+            obstacle_counter++;
+            if (obstacle_counter > 2)
+            {
+                current_state = state::EnterObstacle; // 进入障碍区
+                printf("Obstacle: InObstacle, new obstacle detected, reset state\n");
+                obstacle_counter = 0; // 重置障碍计数器
+                updateType(); // 更新障碍物类型
+            }
+        }
         
         switch (flag_obstacle_type) // 根据障碍物类型处理
         {
