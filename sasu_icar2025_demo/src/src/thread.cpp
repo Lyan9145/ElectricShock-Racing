@@ -225,8 +225,8 @@ bool producer(Factory<TaskData> &task_data, Factory<AIData> &AI_task_data, cv::V
 			ai_src.timestamp = frameStartTime;
 			ai_src.img = src.img;
 
-			// task_data.produce(src);
-			// AI_task_data.produce(ai_src);
+			task_data.produce(src);
+			AI_task_data.produce(ai_src);
 			// 性能监控
 			auto frameEndTime = std::chrono::high_resolution_clock::now();
             // 累加本帧的处理耗时
