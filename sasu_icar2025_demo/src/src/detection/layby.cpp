@@ -35,7 +35,7 @@ int Layby::run(vector<PredictResult> &predict, UartStatus &status)
             if (counter > 3)
             {
                 cout << "Layby: In" << endl;
-                state = LaybyState::Stopping;
+                state = LaybyState::In;
                 counter = 0;
                 start_odom = status.distance;
             }
