@@ -956,7 +956,8 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         if (layby.state == Layby::LaybyState::None) {
             track_offset = ROAD_WIDTH / 2.0f;
             elem_state = Scene::NormalScene;
-            flag_elem_over = false;
+            flag_elem_over = true;
+            elem_over_cnt = 0;
         }
     // } else if (elem_state == Scene::ParkingScene) {
     //     garage.run_garage(predict_result, status);

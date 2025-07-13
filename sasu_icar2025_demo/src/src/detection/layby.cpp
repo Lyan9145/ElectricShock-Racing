@@ -21,6 +21,7 @@ bool Layby::process(vector<PredictResult> &predict)
 
 int Layby::run(vector<PredictResult> &predict, UartStatus &status)
 {
+    process(predict);
     if (state == LaybyState::None && detected)
     {
         cout << "Layby: Entering" << endl;
@@ -28,7 +29,7 @@ int Layby::run(vector<PredictResult> &predict, UartStatus &status)
     }
     if (state == LaybyState::Enter)
     {
-        if (!process(predict))
+        if (!detected)
         {
             counter++;
             if (counter > 3)
