@@ -813,7 +813,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             ipts1_num, rptsc1_num, Lpt1_rpts1s_id, Lpt0_found, 
             ipts0_num, rptsc0_num, Lpt0_rpts0s_id);
         ++circle.circle_route;
-        std::cout << "Circle State: " << circle.getCircleState() << std::endl;
+        // std::cout << "Circle State: " << circle.getCircleState() << std::endl;
         switch (circle.flag_circle) {
             case Circle::flag_circle_e::CIRCLE_LEFT_BEGIN:
                 track_state = TrackState::TRACK_RIGHT;
@@ -878,7 +878,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             ipts1_num, rptsc1_num, Lpt0_rpts0s_id, imagePath,
             rpts0s, rpts1s);
         ++cross.cross_route;
-        std::cout << "Cross State: " << cross.flag_cross << std::endl;
+        // std::cout << "Cross State: " << cross.flag_cross << std::endl;
         switch (ret_state) {
             case 0:
                 track_state = TrackState::TRACK_LEFT;

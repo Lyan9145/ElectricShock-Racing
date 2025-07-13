@@ -37,14 +37,16 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
                 have_left_line = 0;
                 circle_route = 0;
                 flag_circle = CIRCLE_LEFT_IN;
+                std::cout << "Circle: Left circle In" << std::endl;
             }
         }
         // 入环失败
-        if (circle_route > 100 &&
+        if (circle_route > 50 &&
             flag_circle != CIRCLE_LEFT_IN) {
             none_left_line = 0;
             have_left_line = 0;
             flag_circle = CIRCLE_NONE;
+            std::cout << "Circle: Left circle failed" << std::endl;
         }
     }
     // 入左环, 寻内圆左线
@@ -59,6 +61,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
                 none_right_line = 0;
                 have_right_line = 0;
                 flag_circle = CIRCLE_LEFT_RUNNING;
+                std::cout << "Circle: Left circle Running" << std::endl;
             }
         }
     }
@@ -69,6 +72,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
             ipts1_num = rpts1s_num = rptsc1_num = Lpt1_rpts1s_id;
         if (Lpt1_found && Lpt1_rpts1s_id < 0.6 / SAMPLE_DIST) {
             flag_circle = CIRCLE_LEFT_OUT;
+            std::cout << "Circle: Left circle Out" << std::endl;
         }
     }
     // 出环, 寻内圆
@@ -85,6 +89,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
                 have_right_line = 0;
                 circle_route = 0;
                 flag_circle = CIRCLE_NONE;
+                std::cout << "Circle: Left circle finished" << std::endl;
             } else {
                 have_right_line++;
             }
@@ -105,15 +110,17 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
                 have_right_line = 0;
                 circle_route = 0;
                 flag_circle = CIRCLE_RIGHT_IN;
+                std::cout << "Circle: Right circle In" << std::endl;
             }
         }
         // 入环失败
-        if (circle_route > 100 &&
+        if (circle_route > 50 &&
             flag_circle != CIRCLE_RIGHT_IN) {
             none_right_line = 0;
             have_right_line = 0;
             circle_route = 0;
             flag_circle = CIRCLE_NONE;
+            std::cout << "Circle: Right circle failed" << std::endl;
         }
     }
     // 入右环, 寻内圆右线
@@ -128,6 +135,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
                 none_left_line = 0;
                 have_left_line = 0;
                 flag_circle = CIRCLE_RIGHT_RUNNING;
+                std::cout << "Circle: Right circle Running" << std::endl;
             }
         }
     }
@@ -138,6 +146,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
             ipts0_num = rpts0s_num = rptsc0_num = Lpt0_rpts0s_id;
         if (Lpt0_found && Lpt0_rpts0s_id < 0.6 / SAMPLE_DIST) {
             flag_circle = CIRCLE_RIGHT_OUT;
+            std::cout << "Circle: Right circle Out" << std::endl;
         }
     }
     // 出环, 寻内圆
@@ -154,6 +163,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
                 have_left_line = 0;
                 circle_route = 0;
                 flag_circle = CIRCLE_NONE;
+                std::cout << "Circle: Right circle finished" << std::endl;
             } else {
                 have_left_line++;
             }
