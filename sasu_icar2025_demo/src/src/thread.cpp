@@ -319,7 +319,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 		long preTime2;
 		long preTime3;
 		Mat img;
-		std::vector<PredictResult> predict_result_buffer;
+
 
 		auto lastTime = std::chrono::high_resolution_clock::now();
 		std::chrono::milliseconds totalWorkDuration = std::chrono::milliseconds::zero(); // 用于累加处理时间		
@@ -350,23 +350,15 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			// displayImageInfo(src.img, preTime1, "Control loop");
 			
 			// 读取模型结果
-			try
-			{
-				predict_result_lock.lock();
-				predict_result_buffer.clear();
-				for (const auto& res : predict_result) {
-					predict_result_buffer.push_back(res);
-				}
-				predict_result_lock.unlock();
-				// if (predict_result_buffer.empty())
-				// {
-				// 	printf("[Warning] No prediction results available.\n");
-				// }
-			}
-			catch (const std::exception &e)
-			{
-				printf("[Warning] Failed to read predict result: %s\n", e.what());
-			}
+
+			predict_result_lock.lock();
+			std::vector<PredictResult> predict_result_buffer(predict_result); // 克隆预测结果
+			predict_result_lock.unlock();
+			// if (predict_result_buffer.empty())
+			// {
+			// 	printf("[Warning] No prediction results available.\n");
+			// }
+
 			auto getpredict = std::chrono::high_resolution_clock::now();
 	
 			Mat imgBinary = preprocess.binaryzation(src.img);
