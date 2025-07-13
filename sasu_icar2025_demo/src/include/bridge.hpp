@@ -32,4 +32,5 @@ private:
     int accframes = 30;
     int counter = 0;
     bool bridgeEnable = false;   // 桥区域使能标志
+    int detectionCounter = 0;
 };

@@ -11,8 +11,11 @@ bool Bridge::process(vector<PredictResult> predict)
         
     for (const auto &result : predict)
     {
-        if (result.type == LABEL_BRIDGE) // 桥区域检测
+        if (result.type == LABEL_BRIDGE && result.y < ROWSIMAGE * 0.25) // 桥区域检测
         {
+            detectionCounter++;
+            if (detectionCounter < 2)
+                continue;
             bridgeEnable = true; // 桥区域使能标志
             return true;
         }

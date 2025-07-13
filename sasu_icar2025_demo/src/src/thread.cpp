@@ -353,7 +353,10 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 			try
 			{
 				predict_result_lock.lock();
-				predict_result_buffer = predict_result;
+				predict_result_buffer.clear();
+				for (const auto& res : predict_result) {
+					predict_result_buffer.push_back(res);
+				}
 				predict_result_lock.unlock();
 				// if (predict_result_buffer.empty())
 				// {
