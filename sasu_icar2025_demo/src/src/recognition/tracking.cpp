@@ -991,7 +991,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     //         flag_elem_over = false;
     //     }
     } else if (elem_state == Scene::ParkingScene) {
-        parking.run(predict_result);
+        parking.run(predict_result, status);
         switch (parking.position)
         {
         case Parking::Position::Left: // 左侧停车
