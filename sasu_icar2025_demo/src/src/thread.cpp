@@ -509,8 +509,8 @@ bool debugDataConsumer(Factory<DebugData> &debug_data)
             }
 			if (showdisplay)
             {
-                // cv::imshow("output", display_img);
-                // cv::waitKey(1);
+                cv::imshow("output", display_img);
+                cv::waitKey(1);
             }
             last_display_time = current_time;
 
