@@ -1212,22 +1212,23 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     // }
 
     // 计算舵机 PID
-    int aim_angle_pwm = 0;
-    aim_angle_pwm = (int)(pid_realize_a(aim_angle_filter, 0.0f, aim_angle_p, aim_angle_d) + 0.5f);
+    int aim_angle_pwm_0 = 0;
+    aim_angle_pwm_0 = (int)(pid_realize_a(aim_angle_filter, 0.0f, aim_angle_p, aim_angle_d) + 0.5f);
     // cout << "> aim_angle: " << aim_angle_pwm << endl;
-    aim_angle_pwm += PWMSERVO_OFFSET;
-    aim_angle_pwm = clip(PWMSERVOMID + aim_angle_pwm, PWMSERVOMIN, PWMSERVOMAX); // 限幅 4000 ~ 6000
-    
+    aim_angle_pwm_0 += PWMSERVO_OFFSET;
+    int aim_angle_pwm_raw;
+    aim_angle_pwm_raw = clip(PWMSERVOMID + aim_angle_pwm_0, PWMSERVOMIN, PWMSERVOMAX); // 限幅 4000 ~ 6000
+
     
     // 撞车超控
     if (elem_state == Scene::ObstacleScene && obstacle.hit_state == Obstacle::Hitstate::Reversing)
     {
         aim_speed = -motion.params.speedObstacle;
-        aim_angle_pwm = PWMSERVOMID; // 直行
+        aim_angle_pwm_raw = PWMSERVOMID; // 直行
     }
-    
-    
-    src.steering_pwm = aim_angle_pwm;
+
+
+    src.steering_pwm = aim_angle_pwm_raw;
     src.speed = aim_speed;
 
     auto run_end = std::chrono::high_resolution_clock::now();
@@ -1258,6 +1259,33 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         int arrow_thickness = 4;
         cv::Point left_arrow_base(40, result_img.rows - 20);
         cv::Point right_arrow_base(result_img.cols - 40, result_img.rows - 20);
+
+        // 绘制方向打角条形和滑块
+        int bar_width = 300;
+        int bar_height = 16;
+        int bar_x = (result_img.cols - bar_width) / 2;
+        int bar_y = result_img.rows - 40;
+        // 条形背景
+        cv::rectangle(result_img, cv::Rect(bar_x, bar_y, bar_width, bar_height), cv::Scalar(50, 50, 50), -1, cv::LINE_AA);
+        // 条形边框
+        cv::rectangle(result_img, cv::Rect(bar_x, bar_y, bar_width, bar_height), cv::Scalar(200, 200, 200), 2, cv::LINE_AA);
+
+        // 计算滑块位置（居中为0，左右最大为±1000）
+        float norm_angle = std::max(-1000.0f, std::min(1000.0f, aim_angle_pwm_0));
+        int slider_x = bar_x + bar_width / 2 + static_cast<int>(norm_angle / 1000.0f * (bar_width / 2));
+        int slider_y = bar_y + bar_height / 2;
+        // 滑块
+        cv::circle(result_img, cv::Point(slider_x, slider_y), bar_height, cv::Scalar(0, 0, 255), -1, cv::LINE_AA);
+
+        // 绘制刻度
+        for (int i = -5; i <= 5; ++i) {
+            int tick_x = bar_x + bar_width / 2 + i * (bar_width / 10);
+            int tick_height = (i % 5 == 0) ? bar_height : bar_height / 2;
+            cv::line(result_img, cv::Point(tick_x, bar_y + bar_height), cv::Point(tick_x, bar_y + bar_height + tick_height), cv::Scalar(180, 180, 180), 1, cv::LINE_AA);
+        }
+
+        // 显示数值
+        // cv::putText(result_img, cv::format("Steer: %.1f", aim_angle), cv::Point(bar_x + bar_width + 10, bar_y + bar_height), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0, 0, 255), 1);
 
         // 左侧
         if (is_straight0) {
