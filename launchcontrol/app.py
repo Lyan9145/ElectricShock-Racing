@@ -102,16 +102,19 @@ def car_status():
 def log_stream():
     """使用Server-Sent Events实时流式传输日志"""
     def generate():
-        with open(LOG_FILE_PATH, 'r') as f:
-            # 移动到文件末尾
-            f.seek(0, 2)
-            while True:
-                line = f.readline()
-                if not line:
-                    time.sleep(0.1)
-                    continue
-                # SSE格式: data: ...\n\n，去除原始行末的换行符
-                yield f"data: {line.rstrip()}\n\n"
+        try:
+            with open(LOG_FILE_PATH, 'r') as f:
+                f.seek(0, 2)
+                while True:
+                    line = f.readline()
+                    if not line:
+                        # 发送心跳，防止前端断开
+                        yield "data: \u2764\n\n"
+                        time.sleep(1)
+                        continue
+                    yield f"data: {line.rstrip()}\n\n"
+        except Exception as e:
+            yield f"data: [日志流错误] {str(e)}\n\n"
     return Response(generate(), mimetype='text/event-stream')
 
 

@@ -110,11 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
         logOutput.textContent = '';
         logEventSource = new EventSource('/api/log_stream');
         logEventSource.onmessage = (event) => {
-            logOutput.textContent += event.data + '\n'; // 关键修正
+            // 过滤心跳
+            if (event.data === "❤" || event.data === "\u2764") return;
+            logOutput.textContent += event.data + '\n';
             logOutput.scrollTop = logOutput.scrollHeight;
         };
-        logEventSource.onerror = () => {
-            console.error('日志流连接错误，正在关闭。');
+        logEventSource.onerror = (e) => {
+            console.error('日志流连接错误，正在关闭。', e);
+            logOutput.textContent += '[日志流连接错误]\n';
             logEventSource.close();
             logEventSource = null;
         };
