@@ -1271,7 +1271,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         cv::rectangle(result_img, cv::Rect(bar_x, bar_y, bar_width, bar_height), cv::Scalar(200, 200, 200), 2, cv::LINE_AA);
 
         // 计算滑块位置（居中为0，左右最大为±1000）
-        float norm_angle = std::max(-1000.0f, std::min(1000.0f, aim_angle_pwm_0));
+        float norm_angle = (float)std::max(-1000, std::min(1000, aim_angle_pwm_0));
         int slider_x = bar_x + bar_width / 2 + static_cast<int>(norm_angle / 1000.0f * (bar_width / 2));
         int slider_y = bar_y + bar_height / 2;
         // 滑块
