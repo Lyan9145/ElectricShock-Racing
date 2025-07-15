@@ -167,15 +167,15 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             printf("leftdist=%.2f, rightdist=%.2f, leftIndex=%d, rightIndex=%d\n", minDistLeft, minDistRight, leftIndex, rightIndex);
     
             // 赛道外检测
-            if (pointLeftTrans[0] > rpts1s[rightIndex][0] + 10 || pointRightTrans[0] + 10 < rpts0s[leftIndex][0])
-            {
-                flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone; // 无障碍
-                flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone; // 无障碍
-                current_state = state::StateNone;                     // 无障碍
-                obstacle_counter = 0;                            // 重置障碍计数器
-                printf("Obstacle: EnterObstacle, out of track, reset state\n");
-                return 0;
-            }
+            // if (pointLeftTrans[0] > rpts1s[rightIndex][0] + 10 || pointRightTrans[0] + 10 < rpts0s[leftIndex][0])
+            // {
+            //     flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone; // 无障碍
+            //     flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone; // 无障碍
+            //     current_state = state::StateNone;                     // 无障碍
+            //     obstacle_counter = 0;                            // 重置障碍计数器
+            //     printf("Obstacle: EnterObstacle, out of track, reset state\n");
+            //     return 0;
+            // }
     
             // 确定避障方向：左侧或右侧
             // 规则：看那一侧的minDist较大
