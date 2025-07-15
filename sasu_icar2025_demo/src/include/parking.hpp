@@ -55,7 +55,7 @@ public:
 
     State state = State::None;
     Position position = Position::Left; // 停车位置
-    bool process(vector<PredictResult> predict); // 处理停车场检测结果
+    bool process(vector<PredictResult> &predict); // 处理停车场检测结果
     void run(vector<PredictResult> &predict, UartStatus &status); // 处理停车场检测结果
 
 

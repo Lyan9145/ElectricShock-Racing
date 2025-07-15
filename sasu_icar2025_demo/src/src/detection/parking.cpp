@@ -35,7 +35,7 @@ bool Parking::process(vector<PredictResult> &predict)
 void Parking::run(vector<PredictResult> &predict, UartStatus &status)
 {
     process(predict);
-    if (step == State::None && detected) // 初始状态且检测到停车
+    if (state == State::None && detected) // 初始状态且检测到停车
     {
         state = State::Enter; // 进入停车状态
         cout << "Parking: Entering parking lot" << endl;
