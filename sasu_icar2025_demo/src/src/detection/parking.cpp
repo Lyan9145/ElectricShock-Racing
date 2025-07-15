@@ -13,6 +13,7 @@ bool Parking::process(vector<PredictResult> &predict)
         {
             counter++;
             detected = true;
+            cout << "Parking: detection counter = " << counter << endl;
             if (counter > 3) // 连续3帧检测到停车场标志
             {
                 if (result.x + result.width / 2 < COLSIMAGE / 2) // 判断停车场位置
