@@ -56,12 +56,13 @@ void StopArea::run(vector<PredictResult> predict, UartStatus &status)
             state = State::Flyinglap;
             cout << "Crosswalk: Flying lap" << endl;
             counter = 0; // 重置计数器
+            startDistance = status.distance; // 记录起始距离
         }
     }
     else if (state == State::Flyinglap)
     {
         lapendTime = std::chrono::high_resolution_clock::now(); // 更新时间
-        if (detected) // 第二次检测斑马线
+        if (detected && status.distance - startDistance > 5) // 第二次检测斑马线
         {
             state = State::Seconddet; // 准备进入第二次检测斑马线
             cout << "Crosswalk: Second detection" << endl;
