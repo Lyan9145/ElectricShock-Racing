@@ -167,7 +167,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             printf("leftdist=%.2f, rightdist=%.2f, leftIndex=%d, rightIndex=%d\n", minDistLeft, minDistRight, leftIndex, rightIndex);
     
             // 赛道外检测
-            if (pointLeftTrans[0] > rpts1s[rightIndex][0] || pointRightTrans[0] < rpts0s[leftIndex][0])
+            if (pointLeftTrans[0] > rpts1s[rightIndex][0] + 10 || pointRightTrans[0] + 10 < rpts0s[leftIndex][0])
             {
                 flag_obstacle_type = Obstacle::ObstacleType::ObstacleTypeNone; // 无障碍
                 flag_obstacle_pos = Obstacle::ObstaclePos::ObstaclePosNone; // 无障碍
@@ -199,8 +199,8 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
             }
             if (track_offset < 0.1f) // 确保偏移量在合理范围
                 track_offset = 0.1f;
-            else if (track_offset > ROAD_WIDTH / 2.0f)
-                track_offset = ROAD_WIDTH / 2.0f;
+            else if (track_offset > 0.15f)
+                track_offset = 0.15f;
             // printf("Obstacle: state=%d, pos=%d, type=%d, track_offset=%.2f\n",current_state, flag_obstacle_pos, flag_obstacle_type, track_offset);
         }
 
