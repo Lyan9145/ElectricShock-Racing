@@ -441,7 +441,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 bool debugDataConsumer(Factory<DebugData> &debug_data)
 {
-    const int target_fps = 24;
+    const int target_fps = 50;
     const auto frame_duration = std::chrono::milliseconds(1000 / target_fps);
     auto last_display_time = std::chrono::high_resolution_clock::now();
 
@@ -508,8 +508,8 @@ bool debugDataConsumer(Factory<DebugData> &debug_data)
             }
 			if (showdisplay)
             {
-                cv::imshow("output", display_img);
-                cv::waitKey(1);
+                // cv::imshow("output", display_img);
+                // cv::waitKey(1);
             }
             last_display_time = current_time;
 

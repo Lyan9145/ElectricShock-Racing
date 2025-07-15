@@ -1041,8 +1041,8 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     /* **************************** 偏差计算 **************************** */
     /* ***************************************************************** */
 
-    aim_distance_f = 0.8f;
-    aim_distance_n = 0.4f;
+    aim_distance_f = 1.0f;
+    aim_distance_n = 0.5f;
     aim_angle_p_k = 0.03f;
     aim_angle_p = motion.params.turnP;
     aim_angle_d = motion.params.turnD;
