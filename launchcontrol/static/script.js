@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logOutput.textContent = '';
         logEventSource = new EventSource('/api/log_stream');
         logEventSource.onmessage = (event) => {
-            logOutput.textContent += event.data;
+            logOutput.textContent += event.data + '\n'; // 关键修正
             logOutput.scrollTop = logOutput.scrollHeight;
         };
         logEventSource.onerror = () => {
