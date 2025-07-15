@@ -8,7 +8,7 @@ bool Obstacle::process(vector<PredictResult> &predict, bool is_straight0, bool i
     vector<PredictResult> resultsObs; // 锥桶AI检测数据
     for (size_t i = 0; i < predict.size(); i++)
     {
-        if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.4) // AI标志距离计算
+        if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.1) // AI标志距离计算
             resultsObs.push_back(predict[i]);
     }
 
@@ -32,7 +32,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     resultsObs.clear(); // 锥桶AI检测数据
     for (size_t i = 0; i < predict.size(); i++)
     {
-        if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.4) // AI标志距离计算
+        if ((predict[i].type == LABEL_CONE || predict[i].type == LABEL_BLOCK || predict[i].type == LABEL_PEDESTRIAN) && (predict[i].y + predict[i].height) > ROWSIMAGE * 0.1) // AI标志距离计算
             resultsObs.push_back(predict[i]);
     }
 
