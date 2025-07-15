@@ -73,11 +73,11 @@ def stop_car():
     if car_process and car_process.poll() is None:
         try:
             car_process.send_signal(signal.SIGINT)
-            car_process.wait(timeout=5) # 等待进程终止
+            car_process.wait(timeout=20) # 等待进程终止
             car_process = None
             return jsonify({'status': 'success', 'message': '停车指令已发送'})
         except subprocess.TimeoutExpired:
-            car_process.kill() # 如果5秒后仍在运行，则强制终止
+            car_process.kill() # 如果20秒后仍在运行，则强制终止
             car_process = None
             return jsonify({'status': 'warning', 'message': '车辆未在5秒内响应，已强制终止'})
         except Exception as e:
@@ -110,8 +110,8 @@ def log_stream():
                 if not line:
                     time.sleep(0.1)
                     continue
-                # SSE格式: data: ...\n\n
-                yield f"data: {line}\n\n"
+                # SSE格式: data: ...\n\n，去除原始行末的换行符
+                yield f"data: {line.rstrip()}\n\n"
     return Response(generate(), mimetype='text/event-stream')
 
 
