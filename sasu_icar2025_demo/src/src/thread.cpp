@@ -441,6 +441,7 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 bool debugDataConsumer(Factory<DebugData> &debug_data)
 {
+	Motion motion; // 运动控制类
     const int target_fps = 50;
     const auto frame_duration = std::chrono::milliseconds(1000 / target_fps);
     auto last_display_time = std::chrono::high_resolution_clock::now();
