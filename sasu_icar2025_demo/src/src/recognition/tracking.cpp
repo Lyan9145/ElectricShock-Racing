@@ -869,18 +869,22 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                     predict_result[i].type == LABEL_CONE ||
                     predict_result[i].type == LABEL_BLOCK ||
                     predict_result[i].type == LABEL_CROSSWALK ||
-                    predict_result[i].type == LABEL_BRIDGE
+                    predict_result[i].type == LABEL_BRIDGE ||
+                    predict_result[i].type == LABEL_BATTERY
                 )
                 {
+                    ringFalseDetectionconter++;
                     // 底部在1/4以下
                     if (predict_result[i].y < ROWSIMAGE * 0.25)
                         continue;
-                    elem_state = Scene::NormalScene;
-                    flag_elem_over = true; // 不等待
-                    track_state = TrackState::TRACK_MIDDLE;
-                    circle.reset();
-                    std::cout << "Circle reset due to [" << predict_result[i].label << "] detected." << std::endl;
-                    break;
+                    if (ringFalseDetectionconter > 3) {
+                        ringFalseDetectionconter = 0;
+                        elem_state = Scene::NormalScene;
+                        flag_elem_over = true; // 不等待
+                        track_state = TrackState::TRACK_MIDDLE;
+                        circle.reset();
+                        std::cout << "Circle reset due to [" << predict_result[i].label << "] detected." << std::endl;
+                        break;
                 }
             }
 

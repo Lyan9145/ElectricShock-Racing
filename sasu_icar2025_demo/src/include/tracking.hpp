@@ -115,6 +115,7 @@ private:
     int getMiddleValue(vector<int> vec);
 
 private:
+    int ringFalseDetectionconter = 0; // 环岛误识别计数器
     bool _is_result = true; // 是否生成处理后的图像
 
     float cx = COLSIMAGE / 1.9f; // 车轮对应点 (纯跟踪起始点)
