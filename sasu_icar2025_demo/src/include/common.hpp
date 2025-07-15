@@ -38,9 +38,9 @@ using namespace cv;
 #define ROWSIMAGE_CAM 600  // 图像的行数
 #define COLSIMAGEIPM 320   // IPM图像的列数
 #define ROWSIMAGEIPM 400   // IPM图像的行数
-#define PWMSERVOMAX 6000   // 舵机PWM最大值（左）
+#define PWMSERVOMAX 6200   // 舵机PWM最大值（左）
 #define PWMSERVOMID 5000   // 舵机PWM中值
-#define PWMSERVOMIN 4000   // 舵机PWM最小值（右）
+#define PWMSERVOMIN 3800   // 舵机PWM最小值（右）
 #define PWMSERVO_OFFSET 0 // 舵机PWM偏移值（向右偏移为+）
 
 #define LABEL_BATTERY 0    // AI标签：充电站
