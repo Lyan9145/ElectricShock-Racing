@@ -442,83 +442,106 @@ bool consumer(Factory<TaskData> &task_data, Factory<DebugData> &debug_data, std:
 
 bool debugDataConsumer(Factory<DebugData> &debug_data)
 {
-	const int target_fps = 24;
-	const auto frame_duration = std::chrono::milliseconds(1000 / target_fps); // ~41.67ms per frame
-	auto last_display_time = std::chrono::high_resolution_clock::now();
+    const int target_fps = 24;
+    const auto frame_duration = std::chrono::milliseconds(1000 / target_fps);
+    auto last_display_time = std::chrono::high_resolution_clock::now();
 
-	// 视频保存相关
-	cv::VideoWriter video_writer;
-	bool is_writer_initialized = false;
-	auto now = std::chrono::system_clock::now();
-	std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-	std::tm tm_now;
+    // 视频保存相关
+    cv::VideoWriter video_writer;
+    bool is_writer_initialized = false;
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_now;
 #ifdef _WIN32
-	localtime_s(&tm_now, &now_time);
+    localtime_s(&tm_now, &now_time);
 #else
-	localtime_r(&now_time, &tm_now);
+    localtime_r(&now_time, &tm_now);
 #endif
-	char datetime_buf[32];
-	std::strftime(datetime_buf, sizeof(datetime_buf), "%Y%m%d_%H%M%S", &tm_now);
-	const std::string folder = "recorder";
-	// Create the folder if it does not exist
-	mkdir_if_needed(folder.c_str());
+    char datetime_buf[32];
+    std::strftime(datetime_buf, sizeof(datetime_buf), "%Y%m%d_%H%M%S", &tm_now);
+    const std::string folder = "recorder";
+    mkdir_if_needed(folder.c_str());
 
-	const std::string video_filename = folder + std::string("/run_") + datetime_buf + ".mp4";
-	const int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v'); // mp4v编码
-	const cv::Size video_size(320, 240);
+    const std::string video_filename = folder + std::string("/run_") + datetime_buf + ".mp4";
+    // 尝试更兼容的编码器
+    const int fourcc = cv::VideoWriter::fourcc('H', '2', '6', '4');
+    const cv::Size video_size(320, 240);
 
-	while (true)
-	{
-		if (g_exit_flag)
-		{
-			printf("[INFO] Debug Consumer thread exiting...\n");
-			break;
-		}
+    int frame_count = 0; // 添加帧计数器用于调试
 
-		DebugData dst;
-		debug_data.consume(dst);
-		if (dst.img.empty())
-			continue;
+    while (true)
+    {
+        if (g_exit_flag)
+        {
+            printf("[INFO] Debug Consumer thread exiting...\n");
+            break;
+        }
 
-		auto current_time = std::chrono::high_resolution_clock::now();
-		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_display_time);
+        DebugData dst;
+        debug_data.consume(dst);
+        if (dst.img.empty())
+            continue;
 
-		// 只有当经过足够时间才显示帧
-		if (elapsed >= frame_duration)
-		{
-			cv::Mat display_img;
-			cv::resize(dst.img, display_img, video_size);
-			cv::imshow("output", display_img);
-			cv::waitKey(1);
-			last_display_time = current_time;
+        auto current_time = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_display_time);
 
-			// 初始化VideoWriter
-			if (!is_writer_initialized)
-			{
-				video_writer.open(video_filename, fourcc, target_fps, video_size, true);
-				if (!video_writer.isOpened())
-				{
-					std::cerr << "[Error] Failed to open video file for writing: " << video_filename << std::endl;
-				}
-				else
-				{
-					is_writer_initialized = true;
-					printf("[INFO] Video recording started: %s\n", video_filename.c_str());
-				}
-			}
-			// 写入视频帧
-			if (is_writer_initialized)
-			{
-				video_writer.write(dst.img);
-			}
-		}
-	}
+        if (elapsed >= frame_duration)
+        {
+            cv::Mat display_img;
+            cv::resize(dst.img, display_img, video_size);
+            
+            // 验证图像格式
+            if (display_img.channels() != 3)
+            {
+                cv::cvtColor(display_img, display_img, cv::COLOR_GRAY2BGR);
+            }
 
-	// 释放VideoWriter资源
-	if (is_writer_initialized)
-	{
-		video_writer.release();
-		printf("[INFO] Video recording stopped.\n");
-	}
-	return true;
+            cv::imshow("output", display_img);
+            cv::waitKey(1);
+            last_display_time = current_time;
+
+            // 初始化VideoWriter
+            if (!is_writer_initialized)
+            {
+                video_writer.open(video_filename, fourcc, target_fps, video_size, true);
+                if (!video_writer.isOpened())
+                {
+                    std::cerr << "[Error] Failed to open video file for writing: " << video_filename << std::endl;
+                    // 尝试备选编码器
+                    const int backup_fourcc = cv::VideoWriter::fourcc('X', 'V', 'I', 'D');
+                    video_writer.open(video_filename, backup_fourcc, target_fps, video_size, true);
+                    if (!video_writer.isOpened())
+                    {
+                        std::cerr << "[Error] Backup codec also failed, skipping video recording" << std::endl;
+                        continue;
+                    }
+                }
+                is_writer_initialized = true;
+                printf("[INFO] Video recording started: %s\n", video_filename.c_str());
+            }
+
+            // 写入视频帧 - 使用resize后的图像
+            if (is_writer_initialized)
+            {
+                video_writer.write(display_img);
+                frame_count++;
+                
+                // 定期检查写入状态
+                if (frame_count % 100 == 0)
+                {
+                    printf("[INFO] Written %d frames to video\n", frame_count);
+                }
+            }
+        }
+    }
+
+    // 确保正确释放VideoWriter资源
+    if (is_writer_initialized && video_writer.isOpened())
+    {
+        video_writer.release();
+        printf("[INFO] Video recording stopped. Total frames: %d\n", frame_count);
+    }
+    
+    cv::destroyAllWindows(); // 清理OpenCV窗口
+    return true;
 }
