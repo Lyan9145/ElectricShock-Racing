@@ -100,19 +100,23 @@ def car_status():
 
 @app.route('/api/log_stream')
 def log_stream():
-    """使用Server-Sent Events实时流式传输日志"""
+    """使用Server-Sent Events实时流式传输日志，兼容非UTF-8内容"""
     def generate():
         try:
-            with open(LOG_FILE_PATH, 'r') as f:
+            with open(LOG_FILE_PATH, 'rb') as f:  # 二进制模式
                 f.seek(0, 2)
                 while True:
                     line = f.readline()
                     if not line:
-                        # 发送心跳，防止前端断开
                         yield "data: \u2764\n\n"
                         time.sleep(1)
                         continue
-                    yield f"data: {line.rstrip()}\n\n"
+                    # 尝试用utf-8解码，遇到非法字节用�替换
+                    try:
+                        decoded = line.decode('utf-8', errors='replace').rstrip()
+                    except Exception as e:
+                        decoded = f"[日志解码错误] {str(e)}"
+                    yield f"data: {decoded}\n\n"
         except Exception as e:
             yield f"data: [日志流错误] {str(e)}\n\n"
     return Response(generate(), mimetype='text/event-stream')
