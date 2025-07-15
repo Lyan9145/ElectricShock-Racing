@@ -24,6 +24,7 @@ bool Parking::process(vector<PredictResult> &predict)
                     position = Position::Right; // 停车在右侧
                 }
                 cout << "Parking: Entering parking lot" << endl;
+                counter = 0;
                 return true;
             }
         }

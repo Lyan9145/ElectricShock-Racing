@@ -6,17 +6,22 @@ using namespace std;
 bool Layby::process(vector<PredictResult> &predict)
 {
     detected = false;
-    if (predict.empty())
-        return false;
     for (int i = 0; i < predict.size(); i++)
     {
-        if (predict[i].type == LABEL_COMPANY || predict[i].type == LABEL_SCHOOL)
+        if ((predict[i].type == LABEL_COMPANY || predict[i].type == LABEL_SCHOOL) &&
+            (predict[i].y + predict[i].height) > ROWSIMAGE * 0.2) // AI标志距离计算
         {
+            detection_counter++;
             detected = true;
             target = predict[i];
-            return true;
+            if (detection_counter > 3) // 连续3帧检测到目标
+            {
+                cout << "Layby: Detected target [" << target.label << "]" << endl;
+                return true; // 检测成功
+            }
         }
     }
+    return false;
 }
 
 int Layby::run(vector<PredictResult> &predict, UartStatus &status)
@@ -24,6 +29,7 @@ int Layby::run(vector<PredictResult> &predict, UartStatus &status)
     process(predict);
     if (state == LaybyState::None && detected)
     {
+        detection_counter = 0; // 重置检测计数器
         cout << "Layby: Entering" << endl;
         state = LaybyState::Enter;
     }

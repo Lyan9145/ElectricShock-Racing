@@ -43,6 +43,7 @@ public:
 private:
     PredictResult target;
     bool detected = false;
+    int detection_counter = 0; // 检测计数器
     int counter = 0;
     float start_odom = 0.0f;
     
