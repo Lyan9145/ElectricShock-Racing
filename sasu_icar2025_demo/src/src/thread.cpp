@@ -468,16 +468,16 @@ bool debugDataConsumer(Factory<DebugData> &debug_data)
 
     int frame_count = 0; // 添加帧计数器用于调试
 
-	bool showdisplay = false;
+	bool showdisplay = motion.params.debug;
 	// 检测是否连接了X11显示服务器
-	if (getenv("DISPLAY") != nullptr)
-	{
-		showdisplay = true;
-	}
-	else
-	{
-		printf("[Warning] No display found, debug data consumer will not show images.\n");
-	}
+	// if (getenv("DISPLAY") != nullptr)
+	// {
+	// 	showdisplay = true;
+	// }
+	// else
+	// {
+	// 	printf("[Warning] No display found, debug data consumer will not show images.\n");
+	// }
 
 
     while (true)
