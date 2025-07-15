@@ -4,6 +4,7 @@ calib_imgs/
 calibration/calib_imgs/
 recorder/
 sasu_icar2025_demo/recorder/
+lauchcontrol/presets/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELECTRICSHOCK RACING - 控制中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <style>
+        /* 自定义滚动条样式 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        /* 确保在禁用时有更清晰的视觉效果 */
+        button:disabled, select:disabled { cursor: not-allowed; opacity: 0.5; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+    <div id="app-container" class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+        <header class="mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">⚡ ELECTRICSHOCK RACING 控制中心</h1>
+            <p class="text-gray-600 mt-1">智能车调试与控制面板</p>
+        </header>
+
+        <!-- 导航 -->
+        <nav class="flex border-b border-gray-300 mb-6">
+            <button data-tab="control" class="nav-tab py-3 px-4 md:px-6 font-semibold text-blue-600 border-b-2 border-blue-600">车辆控制</button>
+            <button data-tab="recorder" class="nav-tab py-3 px-4 md:px-6 font-semibold text-gray-500 hover:text-blue-600">行车记录</button>
+            <button data-tab="config" class="nav-tab py-3 px-4 md:px-6 font-semibold text-gray-500 hover:text-blue-600">参数配置</button>
+        </nav>
+        
+        <!-- 全局提示信息 -->
+        <div id="toast-container" class="fixed top-5 right-5 z-50"></div>
+
+        <!-- 页面内容 -->
+        <main>
+            <!-- 1. 车辆控制面板 -->
+            <div id="control-page" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 左侧：控制按钮 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">主控制台</h2>
+                        <div class="flex flex-col space-y-4">
+                            <button id="start-btn" class="w-full py-4 px-6 text-xl font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                                启动车辆 (GO)
+                            </button>
+                            <button id="stop-btn" class="w-full py-4 px-6 text-xl font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                                紧急停车 (STOP)
+                            </button>
+                            <div id="status-indicator" class="flex items-center justify-center p-3 mt-4 rounded-md bg-gray-200">
+                                <span id="status-light" class="w-4 h-4 rounded-full bg-gray-400 mr-3"></span>
+                                <span id="status-text" class="font-semibold text-gray-700">车辆状态: 未知</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右侧：日志输出 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">实时日志</h2>
+                        <div class="bg-gray-900 text-white font-mono text-sm p-4 rounded-md h-64 overflow-y-auto">
+                            <pre id="log-output">等待车辆启动...</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 行车记录播放器 -->
+            <div id="recorder-page" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                        <h2 id="video-title" class="text-2xl font-bold mb-4">选择一个视频进行播放</h2>
+                        <div class="bg-black rounded-lg overflow-hidden">
+                            <video id="video-player" class="w-full" controls></video>
+                        </div>
+                        <div class="mt-4 flex items-center space-x-4">
+                            <h3 class="font-semibold">逐帧控制:</h3>
+                            <button id="prev-frame-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"> << 上一帧 </button>
+                            <button id="next-frame-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"> 下一帧 >> </button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">视频列表</h2>
+                        <div id="video-list" class="h-96 overflow-y-auto space-y-2">
+                            <!-- 视频列表将由JS动态填充 -->
+                            <p class="text-gray-500">正在加载...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 参数配置编辑器 -->
+            <div id="config-page" class="tab-content hidden">
+                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 左侧：配置表单 -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold">参数配置 (config.json)</h2>
+                            <button id="save-config-btn" class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600">保存更改</button>
+                        </div>
+                        <form id="config-form" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2"></form>
+                    </div>
+                    <!-- 右侧：预设管理 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold mb-4">配置预设</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="preset-select" class="block text-sm font-medium text-gray-700">加载预设</label>
+                                <div class="flex space-x-2 mt-1">
+                                    <select id="preset-select" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
+                                    <button id="load-preset-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">加载</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="save-preset-input" class="block text-sm font-medium text-gray-700">将当前配置另存为</label>
+                                <div class="flex space-x-2 mt-1">
+                                    <input type="text" id="save-preset-input" placeholder="输入预设名称" class="block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    <button id="save-preset-btn" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
