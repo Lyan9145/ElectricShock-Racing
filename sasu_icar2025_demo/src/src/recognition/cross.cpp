@@ -12,9 +12,13 @@ void Cross::check_cross(bool Lpt0_found, bool Lpt1_found,
         //  (Lpt1_found && is_curve0) || 
          (Lpt0_found && rpts1s_num < 0.35 / SAMPLE_DIST) ||
          (Lpt1_found && rpts0s_num < 0.35 / SAMPLE_DIST))) {
+        counter++;
+        if (counter < 5)
+            return;
         flag_cross = CROSS_BEGIN;
         std::cout << "Cross: Begin" << std::endl;
         cross_route = 0;
+        counter = 0;
     }
 }
 

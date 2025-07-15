@@ -7,6 +7,7 @@
 class Cross{
 private:
     ImageProcess _imgprocess;
+    int counter = 0; // 十字计数器
 public:
     // 变量定义
     int cross_route = 0;  // 十字编码器积分
