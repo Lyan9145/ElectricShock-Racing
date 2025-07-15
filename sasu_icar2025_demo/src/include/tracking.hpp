@@ -41,6 +41,7 @@
 #include "layby.hpp"
 #include "bridge.hpp"
 #include "crosswalk.hpp"
+#include "parking.hpp"
 
 using namespace cv;
 using namespace std;
@@ -57,6 +58,7 @@ public:
     Layby layby; // 临时停车处理类
     Bridge bridge;
     StopArea crosswalk; // 停车区处理类
+    Parking parking; // 充电停车场处理类
 
     vector<POINT> pointsEdgeLeft;     // 赛道左边缘点集
     vector<POINT> pointsEdgeRight;    // 赛道右边缘点集

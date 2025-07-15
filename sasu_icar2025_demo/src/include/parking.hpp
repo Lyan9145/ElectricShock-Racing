@@ -28,7 +28,8 @@
 
 #include "common.hpp"
 #include "detection.hpp"
-#include "tracking.hpp"
+// #include "tracking.hpp"
+#include "uart.hpp"
 
 using namespace cv;
 using namespace std;
@@ -40,31 +41,29 @@ public:
      * @brief 停车步骤
      *
      */
-    enum ParkStep
+    enum State
     {
-        none = 0, // 未知状态
-        enable,   // 停车场使能
-        turning,  // 入库转向
-        stop,     // 停车
-        trackout  // 出库
+        None,
+        Enter,
+        In
+    };
+    enum Position
+    {
+        Left,
+        Right
     };
 
-    ParkStep step = ParkStep::none; // 停车步骤
+    State state = State::None;
+    Position position = Position::Left; // 停车位置
+    bool process(vector<PredictResult> predict); // 处理停车场检测结果
+    void run(vector<PredictResult> &predict, UartStatus &status); // 处理停车场检测结果
 
-    bool process(Tracking &track, Mat &image, vector<PredictResult> predict);
-    void drawImage(Tracking track, Mat &image);
 
 private:
-    uint16_t counterSession = 0;         // 图像场次计数器
-    uint16_t counterRec = 0;             // 加油站标志检测计数器
-    bool garageFirst = true;             // 进入一号车库
-    int lineY = 0;                       // 直线高度
-    bool startTurning = false;           // 开始转弯
-    vector<vector<POINT>> pathsEdgeLeft; // 记录入库路径
-    vector<vector<POINT>> pathsEdgeRight;
-    Point ptA = Point(0, 0); // 记录线段的两个端点
-    Point ptB = Point(0, 0);
-    int truningTime = 21;   // 转弯时间 21帧
-    int stopTime = 40;      // 停车时间 40帧
-    float swerveTime = 0.2; // 转向时机 0.2 （转弯线出现在屏幕上方0.2处）
+    bool detected = false; // 是否检测到停车场标志
+    int counter = 0; // 计数器
+    int counter2 = 0; // 第二个计数器
+    int startOdometer = 0; // 起始里程计
+    const int stopDistance = 1.5f; // 停车距离
+
 };

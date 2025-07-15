@@ -18,7 +18,6 @@ void Cross::check_cross(bool Lpt0_found, bool Lpt1_found,
         flag_cross = CROSS_BEGIN;
         std::cout << "Cross: Begin" << std::endl;
         cross_route = 0;
-        counter = 0;
     }
 }
 
@@ -87,6 +86,10 @@ int Cross::run_cross(bool &Lpt0_found, bool &Lpt1_found,
             last_Corner2_found = false;
             flag_cross = CROSS_NONE;
         }
+    }
+    if (flag_cross == CROSS_NONE) {
+        // 十字模式结束, 重置计数器
+        counter = 0;
     }
     return ret_track_state;
 }

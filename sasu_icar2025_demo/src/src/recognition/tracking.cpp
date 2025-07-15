@@ -753,9 +753,18 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
+        // 桥
         if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.bridge) {
             if (bridge.process(predict_result)) {
                 elem_state = Scene::BridgeScene;
+            } else {
+                elem_state = Scene::NormalScene;
+            }
+        }
+
+        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.parking) {
+            if (parking.process(predict_result)) {
+                elem_state = Scene::ParkingScene;
             } else {
                 elem_state = Scene::NormalScene;
             }
@@ -981,6 +990,25 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     //         elem_state = Scene::NormalScene;
     //         flag_elem_over = false;
     //     }
+    } else if (elem_state == Scene::ParkingScene) {
+        parking.run(predict_result);
+        switch (parking.position)
+        {
+        case Parking::Position::Left: // 左侧停车
+            track_state = TrackState::TRACK_RIGHT;
+            break;
+        case Parking::Position::Right: // 右侧停车
+            track_state = TrackState::TRACK_LEFT;
+            break;
+        default:
+            track_state = TrackState::TRACK_MIDDLE;
+        }
+
+        if (parking.state == Parking::State::None) {
+            elem_state = Scene::NormalScene;
+            flag_elem_over = true;
+            elem_over_cnt = 0;
+        }
     } else {
         track_offset = ROAD_WIDTH / 2.0f;
         elem_state = Scene::NormalScene;
@@ -1172,8 +1200,10 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                                              bridge.state == Bridge::State::Up)) {
         aim_speed = motion.params.speedBridge;
     }
-
-
+    // 过停车区加速
+    if (elem_state == Scene::ParkingScene) {
+        aim_speed = motion.params.speedParking;
+    }
 
     // 餐厅临时停车
     if (elem_state == Scene::CateringScene && catering.state == Catering::CateringState::Stopping) {
