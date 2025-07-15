@@ -76,8 +76,8 @@ public:
         HitNone = 0,
         Reversing,
         Resume
-    }
-    Hitstate hit_state = HitNone; // 撞车状态
+    };
+    Hitstate hit_state = Hitstate::HitNone; // 撞车状态
 
     int obstacle_counter = 0; // 障碍计数器
     float odometer = 0.0f; // 里程计
