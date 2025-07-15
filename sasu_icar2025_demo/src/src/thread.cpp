@@ -184,7 +184,6 @@ void signalHandler(int signal)
 		}
 		sleep(1); // 等待串口关闭完成
 		printf("[INFO] Exiting program...\n");
-		exit(0);
 	}
 }
 
