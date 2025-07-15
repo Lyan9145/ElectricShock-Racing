@@ -114,7 +114,7 @@ void StopArea::drawUI(Mat &img)
         std::chrono::duration_cast<std::chrono::milliseconds>(
             lapendTime - lapstartTime).count() % 1000);
 
-    putText(img, lapTimeStr, Point(140, 220), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0), 2);
+    putText(img, lapTimeStr, Point(140, 20), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0), 2);
 }
 
 
