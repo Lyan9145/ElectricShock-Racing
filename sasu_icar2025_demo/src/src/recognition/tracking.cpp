@@ -762,6 +762,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             }
         }
 
+        // 充电停车区
         if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.parking) {
             if (parking.process(predict_result)) {
                 elem_state = Scene::ParkingScene;

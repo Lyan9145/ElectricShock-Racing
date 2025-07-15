@@ -13,21 +13,21 @@ bool Parking::process(vector<PredictResult> &predict)
         {
             counter++;
             detected = true;
-            cout << "Parking: detection counter = " << counter << endl;
-            if (counter > 3) // 连续3帧检测到停车场标志
+            // cout << "Parking: detection counter = " << counter << endl;
+            // if (counter > 3) // 连续3帧检测到停车场标志
+            // {
+            if (result.x + result.width / 2 < COLSIMAGE / 2) // 判断停车场位置
             {
-                if (result.x + result.width / 2 < COLSIMAGE / 2) // 判断停车场位置
-                {
-                    position = Position::Left; // 停车在左侧
-                }
-                else
-                {
-                    position = Position::Right; // 停车在右侧
-                }
-                cout << "Parking: Entering parking lot" << endl;
-                counter = 0;
-                return true;
+                position = Position::Left; // 停车在左侧
             }
+            else
+            {
+                position = Position::Right; // 停车在右侧
+            }
+            cout << "Parking: Entering parking lot" << endl;
+            // counter = 0;
+            return true;
+            // }
         }
     }
     return false; // 无停车场标志检测结果
