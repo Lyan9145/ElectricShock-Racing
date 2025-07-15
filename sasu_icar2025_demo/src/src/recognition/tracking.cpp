@@ -1222,7 +1222,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     // 撞车超控
     if (elem_state == Scene::ObstacleScene && obstacle.hit_state == Hitstate::Reversing)
     {
-        aim_speed = -motion.params.speedLow;
+        aim_speed = -motion.params.speedObstacle;
         aim_angle_pwm = PWMSERVOMID; // 直行
     }
     
