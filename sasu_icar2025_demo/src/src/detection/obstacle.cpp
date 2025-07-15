@@ -43,7 +43,7 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     // }
 
     // 撞车保护
-    if (status.speed < 0.2 && current_state != state::StateNone && hit_state == Hitstate::HitNone) // 撞车后倒车1s
+    if (status.speed < 0.5 && current_state != state::StateNone && hit_state == Hitstate::HitNone) // 撞车后倒车1s
     {
         cout << "Obstacle: hit object, reversing 0.5m" << endl;
         hit_state = Hitstate::Reversing;
