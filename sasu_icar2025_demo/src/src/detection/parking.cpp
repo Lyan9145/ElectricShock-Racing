@@ -9,7 +9,7 @@ bool Parking::process(vector<PredictResult> &predict)
     // 停车场检测逻辑
     for (const auto &result : predict)
     {
-        if (result.type == LABEL_CAR && result.y > ROWSIMAGE * 0.2) // 检测到停车场标志
+        if (result.type == LABEL_BATTERY && result.y > ROWSIMAGE * 0.2) // 检测到停车场标志
         {
             counter++;
             detected = true;
