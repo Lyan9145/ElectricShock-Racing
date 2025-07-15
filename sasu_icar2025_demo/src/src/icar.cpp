@@ -106,10 +106,10 @@ int main(int argc, char const *argv[])
     std::cout << "[INFO] Battery voltage: " << status.voltage << std::endl;
     sleep(3);
     
+    debug_data_consumer.join();
     task_producer.join();
     task_consumer.join();
     AI_consumer.join();
-    debug_data_consumer.join();
     
     std::cout << "[INFO] All threads have finished." << std::endl;
     status = uart->getStatus();

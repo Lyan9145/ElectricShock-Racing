@@ -42,6 +42,28 @@ int Obstacle::run(vector<PredictResult> &predict, float rpts0s[ROWSIMAGE][2], fl
     //     return 0;
     // }
 
+    // 撞车保护
+    if (status.speed < 0.2 && current_state != state::StateNone && hit_state == Hitstate::HitNone) // 撞车后倒车1s
+    {
+        cout << "Obstacle: hit object, reversing 0.5m" << endl;
+        hit_state = Hitstate::Reversing;
+        reverse_odometer = status.distance; // 记录倒车起始里程计
+    }
+    else if (hit_state == Hitstate::Reversing) // 倒车后恢复
+    {
+        if (status.distance - reverse_odometer >= reverse_distance) // 倒车距离
+        {
+            hit_state = Hitstate::Resume; // 恢复状态
+            reverse_odometer = 0.0f; // 重置倒车里程计
+            cout << "Obstacle: reversing finished, resuming" << endl;
+        }
+    }
+    else if (hit_state == Hitstate::Resume && status.speed > 0.2) // 恢复状态，速度大于0.2m/s
+    {
+        hit_state = Hitstate::HitNone; // 重置撞车状态
+        cout << "Obstacle: resuming driving" << endl;
+    }
+
 
     if (current_state == state::StateNone && resultsObs.size() > 0) // 无障碍，遭遇障碍
     {

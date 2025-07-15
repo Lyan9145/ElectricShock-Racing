@@ -71,6 +71,14 @@ public:
     };
     ObstacleType flag_obstacle_type = ObstacleType::ObstacleTypeNone;
 
+    enum Hitstate
+    {
+        HitNone = 0,
+        Reversing,
+        Resume
+    }
+    Hitstate hit_state = HitNone; // 撞车状态
+
     int obstacle_counter = 0; // 障碍计数器
     float odometer = 0.0f; // 里程计
     float start_odometer = 0.0f; // 起始里程计
@@ -91,6 +99,9 @@ private:
 
     float track_offset = 0.0f; // 赛道偏移量
     float obstacle_distance; // 障碍物距离
+
+    float reverse_distance = -0.7f; // 倒车距离
+    float reverse_odometer = 0.0f; // 倒车里程计
 
     void updateType(); // 更新障碍物类型
 

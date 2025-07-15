@@ -859,11 +859,12 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                     predict_result[i].type == LABEL_PEDESTRIAN ||
                     predict_result[i].type == LABEL_CONE ||
                     predict_result[i].type == LABEL_BLOCK ||
-                    predict_result[i].type == LABEL_CROSSWALK
+                    predict_result[i].type == LABEL_CROSSWALK ||
+                    predict_result[i].type == LABEL_BRIDGE
                 )
                 {
                     // 底部在1/4以下
-                    if (predict_result[i].y < ROWSIMAGE * 0.2)
+                    if (predict_result[i].y < ROWSIMAGE * 0.25)
                         continue;
                     elem_state = Scene::NormalScene;
                     flag_elem_over = true; // 不等待
@@ -1189,9 +1190,8 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     if (elem_state == Scene::StopScene && crosswalk.state == StopArea::State::Stop) {
         aim_speed = 0.0f;
     }
-    src.speed = aim_speed;
-
-
+    
+    
     /* ***************************************************************** */
     /* **************************** 运行控制 **************************** */
     /* ***************************************************************** */
@@ -1217,7 +1217,18 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
     // cout << "> aim_angle: " << aim_angle_pwm << endl;
     aim_angle_pwm += PWMSERVO_OFFSET;
     aim_angle_pwm = clip(PWMSERVOMID + aim_angle_pwm, PWMSERVOMIN, PWMSERVOMAX); // 限幅 4000 ~ 6000
+    
+    
+    // 撞车超控
+    if (elem_state == Scene::ObstacleScene && obstacle.hit_state == Hitstate::Reversing)
+    {
+        aim_speed = -motion.params.speedLow;
+        aim_angle_pwm = PWMSERVOMID; // 直行
+    }
+    
+    
     src.steering_pwm = aim_angle_pwm;
+    src.speed = aim_speed;
 
     auto run_end = std::chrono::high_resolution_clock::now();
 
