@@ -59,7 +59,7 @@ def start_car():
             cwd=ICAR_SRC_DIR,
             stdout=log_file,
             stderr=subprocess.STDOUT,
-            text=True,
+            universal_newlines=True,
             bufsize=1 # 行缓冲
         )
         return jsonify({'status': 'success', 'message': '车辆启动成功'})
