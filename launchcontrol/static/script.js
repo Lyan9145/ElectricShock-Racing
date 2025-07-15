@@ -113,11 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // 过滤心跳
             if (event.data === "❤" || event.data === "\u2764") return;
             logOutput.textContent += event.data + '\n';
-            logOutput.scrollTo({ top: logOutput.scrollHeight, behavior: 'smooth' });
+            // 立即滚动到底部，兼容性更好
+            logOutput.scrollTop = logOutput.scrollHeight;
         };
         logEventSource.onerror = (e) => {
             console.error('日志流连接错误，正在关闭。', e);
             logOutput.textContent += '[日志流连接错误]\n';
+            logOutput.scrollTop = logOutput.scrollHeight;
             logEventSource.close();
             logEventSource = null;
         };
