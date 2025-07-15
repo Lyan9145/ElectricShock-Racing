@@ -862,16 +862,11 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
             circle.flag_circle == Circle::flag_circle_e::CIRCLE_LEFT_BEGIN) {
             for (int i = 0; i < predict_result.size(); i++)
             {
-                if (predict_result[i].type == LABEL_COMPANY || 
-                    predict_result[i].type == LABEL_SCHOOL || 
-                    predict_result[i].type == LABEL_BURGER ||
-                    predict_result[i].type == LABEL_PEDESTRIAN ||
-                    predict_result[i].type == LABEL_CONE ||
-                    predict_result[i].type == LABEL_BLOCK ||
-                    predict_result[i].type == LABEL_CROSSWALK ||
-                    predict_result[i].type == LABEL_BRIDGE ||
-                    predict_result[i].type == LABEL_BATTERY
-                )
+                static const std::set<int> ring_false_labels = {
+                    LABEL_COMPANY, LABEL_SCHOOL, LABEL_BURGER, LABEL_PEDESTRIAN,
+                    LABEL_CONE, LABEL_BLOCK, LABEL_CROSSWALK, LABEL_BRIDGE, LABEL_BATTERY
+                };
+                if (ring_false_labels.count(predict_result[i].type))
                 {
                     ringFalseDetectionconter++;
                     // 底部在1/4以下
@@ -885,6 +880,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
                         circle.reset();
                         std::cout << "Circle reset due to [" << predict_result[i].label << "] detected." << std::endl;
                         break;
+                    }
                 }
             }
 
