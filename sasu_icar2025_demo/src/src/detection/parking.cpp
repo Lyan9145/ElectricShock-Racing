@@ -29,8 +29,6 @@ bool Parking::process(vector<PredictResult> &predict)
             }
         }
     }
-    if (!detected) // 无检测结果
-        counter = 0;
     return false; // 无停车场标志检测结果
 }
 
