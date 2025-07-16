@@ -737,7 +737,7 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
 
         // 餐厅
         if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.catering) {
-            if (catering.process(predict_result)) {
+            if (catering.process(predict_result) && (is_straight0 || is_straight1)) {
                 elem_state = Scene::CateringScene;
             } else {
                 elem_state = Scene::NormalScene;
