@@ -41,7 +41,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
             }
         }
         // 入环失败
-        if (circle_route > 50 &&
+        if (circle_route > 140 &&
             flag_circle != CIRCLE_LEFT_IN) {
             none_left_line = 0;
             have_left_line = 0;
@@ -114,7 +114,7 @@ void Circle::run_circle(int &rpts0s_num, int &rpts1s_num, bool &Lpt1_found,
             }
         }
         // 入环失败
-        if (circle_route > 50 &&
+        if (circle_route > 140 &&
             flag_circle != CIRCLE_RIGHT_IN) {
             none_right_line = 0;
             have_right_line = 0;
