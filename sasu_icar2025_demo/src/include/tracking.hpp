@@ -255,6 +255,7 @@ private:
     TrackState track_state = TrackState::TRACK_MIDDLE;
     Scene elem_state = Scene::NormalScene;
 
+    int circled = 0;
     bool flag_elem_over = true;
     int elem_over_cnt = 0;
     string trackstateToString(TrackState state);

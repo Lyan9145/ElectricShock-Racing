@@ -782,12 +782,16 @@ void Tracking::trackRecognition_new(Mat &imageBinary, Mat &result_img, TaskData 
         }
 
         // 圆环
-        if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.ring) {
-            circle.check_circle(Lpt0_found, Lpt1_found, is_straight1, is_straight0);
-            if (circle.flag_circle != Circle::flag_circle_e::CIRCLE_NONE) {
-                elem_state = Scene::RingScene;
-            } else {
-                elem_state = Scene::NormalScene;
+        if (circled == 0)
+        {
+            if (elem_state == Scene::NormalScene && flag_elem_over && motion.params.ring) {
+                circle.check_circle(Lpt0_found, Lpt1_found, is_straight1, is_straight0);
+                if (circle.flag_circle != Circle::flag_circle_e::CIRCLE_NONE) {
+                    elem_state = Scene::RingScene;
+                    circled++;
+                } else {
+                    elem_state = Scene::NormalScene;
+                }
             }
         }
 
